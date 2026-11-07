@@ -19,7 +19,7 @@
  */
 import { build } from 'esbuild'
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { resolve, dirname } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -37,7 +37,7 @@ const PACKAGES = [
     dir: 'packages/agent-cron-dashboard',
     entry: 'src/index.ts',
     out: 'index.js',
-    externals: ['cordis', '@deepseek-ai/cordis', '@deepseek-ai/dsh-storage-domain', 'zod'],
+    externals: ['cordis', '@deepseek-ai/cordis', '@deepseek-ai/schemastery', '@deepseek-ai/dsh-storage-domain', 'zod'],
     client: { entry: 'client/index.ts', out: 'client/index.js' },
   },
 ]
@@ -52,6 +52,7 @@ async function main() {
       cpSync(resolve(pkgDir, asset), resolve(outDir, asset), { recursive: true })
     }
     const manifest = JSON.parse(readFileSync(resolve(pkgDir, 'package.json'), 'utf8'))
+    manifest.private = true
     manifest.main = './index.js'
     manifest.exports = {
       '.': './index.js',
@@ -62,9 +63,15 @@ async function main() {
     manifest.files = undefined
     writeFileSync(resolve(outDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
 
+    // dsh's loader performs `import()` on the row's package and reads the
+    // NAMED exports of the entry module (`apply`, `name`, `Config`, ...), not
+    // esbuild's anonymous export wrapper. Bundle to `<entry>-impl.js` and have
+    // `index.js` re-export that module scope under the same names.
+    const entryPath = resolve(pkgDir, pkg.entry)
+    const implName = `${basename(pkg.entry, '.ts')}-impl`
     await build({
-      entryPoints: [resolve(pkgDir, pkg.entry)],
-      outfile: resolve(outDir, pkg.out),
+      entryPoints: [entryPath],
+      outfile: resolve(outDir, `${implName}.js`),
       bundle: true,
       format: 'esm',
       platform: 'node',
@@ -72,6 +79,10 @@ async function main() {
       external: pkg.externals,
       logLevel: 'warning',
     })
+    // The loader needs the entry's own bindings by name; a plain
+    // `export * from "./<impl>.js"` line is exactly that when esbuild records
+    // every binding as a named export (it does, for these entries).
+    writeFileSync(resolve(outDir, pkg.out), `export * from "./${implName}.js"\n`)
 
     if (pkg.client) {
       await build({

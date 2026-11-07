@@ -7,9 +7,9 @@
  * that later plans (P2-P7) fill in node by node.
  */
 import { Context, Service } from '@deepseek-ai/cordis'
-import { domainTable, defineDomain } from '@deepseek-ai/dsh-storage-domain'
+import { defineDomain, domainTable, type DomainFacility } from '@deepseek-ai/dsh-storage-domain'
 import z from 'zod'
-import { validateWorkbenchConfig, type WorkbenchConfig } from '../../../contracts/config-validate.ts'
+import { Config as RowConfig, resolveConfig, type WorkbenchConfig } from './config.ts'
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
 const iso = z.string().min(19)
@@ -218,8 +218,23 @@ export const DOMAINS = [
   sourceHealthDomain,
 ] as const
 
-/** Raw row config accepted by {@link apply}; validated by `contracts/config-validate.ts`. */
+/** Row config accepted by {@link apply}; dsh validates it with {@link RowConfig}. */
 export type Config = Partial<WorkbenchConfig>
+
+/** Plugin row name (dsh expects a `name` export; the loader keeps the row id). */
+export const name = 'workbench'
+
+/**
+ * Services this row reads. `storageDomain` is served by the mounted
+ * `@deepseek-ai/dsh-storage-domain` form (composed by the `dsh-base` stack);
+ * reading it through a `ctx.plugin()` fiber without this declaration throws
+ * `cannot get property "storageDomain" without inject` (measured in the
+ * offline probe, see handoff §实测).
+ */
+export const inject = ['storageDomain']
+
+/** Schemastery row schema so dsh validates activation. */
+export { RowConfig as Config }
 
 /**
  * Workbench service: the handle later plans inject into.
@@ -236,10 +251,49 @@ export class WorkbenchService extends Service {
   readonly domains: Readonly<Record<string, unknown>> = {}
   /** Startup time, used by `workbench_status`. */
   readonly startedAt = new Date().toISOString()
+  /** Why storage domains failed to open (inspect-visible), or null while healthy. */
+  domainError: string | null = null
 
   constructor(ctx: Context, raw: Config) {
     super(ctx, 'workbench', true)
-    this.config = validateWorkbenchConfig(raw ?? {})
+    this.config = resolveConfig(raw)
+    // Published for read-only inspect reads.
+    workbenchService = this
+    // Domains open as an effect of this row, so they close when the row
+    // unmounts (dsh's storage facility would close them on unmount anyway).
+    ctx.effect(() => {
+      let closing: Promise<void>[] = []
+      void this.openDomains()
+        // The domain facility may still be mounting when this row activates
+        // (`storage-domain` injects the `storage` hub), so absence is retried
+        // rather than reported as a permanent failure.
+        .then(() => {
+          closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
+        })
+        .catch(() => {
+          let attempts = 0
+          const retry = setInterval(() => {
+            attempts += 1
+            void this.openDomains()
+              .then(() => {
+                clearInterval(retry)
+                this.domainError = null
+                closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
+                ctx.logger?.('workbench')?.info?.('workbench: storage domains opened after %d retries', attempts)
+              })
+              .catch((error: unknown) => {
+                this.domainError = String(error instanceof Error ? error.message : error)
+                if (attempts >= 20) {
+                  clearInterval(retry)
+                  ctx.logger?.('workbench')?.error?.('workbench: storage domains unavailable: %s', this.domainError)
+                }
+              })
+          }, 1000)
+        })
+      return async () => {
+        await Promise.allSettled(closing)
+      }
+    }, 'workbench:domains')
   }
 
   /**
@@ -247,10 +301,15 @@ export class WorkbenchService extends Service {
    * @throws DomainError when a backend route is missing or a stored record is invalid.
    */
   async openDomains(): Promise<void> {
+    // The `storageDomain` form is mounted by the composed `storage-domain` row
+    // under the profile's `storage` hub. Read it through `ctx.get`, which
+    // resolves from the plugin's committed services and does not trip the
+    // proxy's "without inject" guard (measured: the bare property read fails).
+    const facility = this.ctx.get?.('storageDomain') as DomainFacility | undefined
+    if (facility === undefined) throw new Error('workbench: storageDomain facility is not mounted in this profile')
     for (const spec of DOMAINS) {
-      const domain = await this.ctx.storageDomain.open(spec)
+      const domain = await facility.open(spec)
       ;(this.domains as Record<string, unknown>)[spec.name] = domain
-      this.ctx.effect(() => () => domain.close(), `workbench:domain:${spec.name}`)
     }
   }
 
@@ -260,14 +319,78 @@ export class WorkbenchService extends Service {
   }
 }
 
+/**
+ * Read-only inspect provider of the workbench row.
+ *
+ * The row registers itself with the process-wide `cordisInspect` registry
+ * (dsh 0.2.2-rc.1 `CordisInspectRegistryService`) so the model-facing
+ * `cordis_inspect_query` tool can confirm the configuration row and every
+ * storage domain that is actually open, without a browser page. Registration
+ * is skipped when no inspect registry is mounted (e.g. `--dump-config`).
+ */
+export const inspectProvider = {
+  manifest: {
+    id: 'workbench-domains',
+    description: 'Reports the workbench configuration row and the storage domains currently open on this host.',
+    methods: [
+      {
+        name: 'list',
+        description: 'List the resolved workbench config summary and the names of every open storage domain.',
+        inputSchema: { type: 'object', additionalProperties: false, properties: {} },
+        outputSchema: {
+          type: 'object',
+          properties: {
+            startedAt: { type: 'string' },
+            domains: { type: 'array', items: { type: 'string' } },
+            fleetSources: { type: 'array', items: { type: 'string' } },
+            digestCron: { type: 'string' },
+            domainError: { type: 'string', description: 'Empty string when storage domains opened cleanly.' },
+          },
+          required: ['startedAt', 'domains', 'fleetSources', 'digestCron', 'domainError'],
+        },
+      },
+    ],
+  },
+  async query(method: string, _input: unknown, _context: unknown) {
+    if (method !== 'list') throw new Error(`unknown method ${method}`)
+    const service = workbenchService
+    if (service === undefined) throw new Error('workbench service is not mounted')
+    return {
+      startedAt: service.startedAt,
+      domains: service.domainNames(),
+      fleetSources: service.config.fleet.map((source: { id: string }) => source.id),
+      digestCron: service.config.notify.digest.cron,
+      // The inspect schema language has no nullable type, so an empty string
+      // encodes "domains opened cleanly".
+      domainError: service.domainError ?? '',
+    }
+  },
+}
+
+/** The mounted service, published for inspect and smoke reads. */
+let workbenchService: WorkbenchService | undefined
+
+/** Publish or clear the inspect-visible instance (the smoke probe uses the setter). */
+export function setWorkbenchService(service: WorkbenchService | undefined): void {
+  workbenchService = service
+}
+
 /** Cordis entry of the bundle's host row. */
 export function apply(ctx: Context, raw: Config = {}): void {
-  // Validated once here so activation fails loud; the service re-validates to
-  // retain the resolved object for consumers.
-  const resolved = validateWorkbenchConfig(raw)
+  // Validated before anything touches `ctx`, so a rejected row (credential
+  // literal, write query, missing ssh block ...) fails activation loud.
+  const resolved = resolveConfig(raw)
+  // dsh constructs the service from this row context when the plugin mounts,
+  // and publishes the instance through WorkbenchService's constructor.
   ctx.plugin(WorkbenchService, raw)
   ctx.effect(() => {
-    ctx.logger?.('workbench')?.info?.('workbench ready: %d fleet source(s), digest cron %s', resolved.fleet.length, resolved.notify.digest.cron)
-    return () => undefined
+    const registry = ctx.get?.('cordisInspect') as
+      | { register(registration: unknown): () => void }
+      | undefined
+    const unregister = registry?.register(inspectProvider)
+    ctx.logger?.('workbench')?.info?.('workbench ready: %d fleet source(s), digest cron %s, inspect provider %s', resolved.fleet.length, resolved.notify.digest.cron, unregister === undefined ? 'skipped' : 'registered')
+    return () => {
+      unregister?.()
+    }
   }, 'workbench:announce')
 }
