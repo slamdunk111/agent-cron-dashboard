@@ -315,6 +315,8 @@ export class WorkbenchService extends Service {
         // Let every open attempt still in flight finish (a retry may be revisiting
         // domains the first attempt already opened), then close what the row holds.
         await Promise.allSettled(attempts)
+        // Domain handles are stored untyped in `domains`; the only member used
+        // here is `close`, and storage-domain guarantees it on every handle.
         await Promise.allSettled(
           Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close()),
         )
@@ -331,6 +333,8 @@ export class WorkbenchService extends Service {
     // under the profile's `storage` hub. Read it through `ctx.get`, which
     // resolves from the plugin's committed services and does not trip the
     // proxy's "without inject" guard (measured: the bare property read fails).
+    // `ctx.get` is untyped (any); the value is narrowed to the facility type here
+    // and guarded below.
     const facility = this.ctx.get?.('storageDomain') as DomainFacility | undefined
     if (facility === undefined) throw new Error('workbench: storageDomain facility is not mounted in this profile')
     for (const spec of DOMAINS) {

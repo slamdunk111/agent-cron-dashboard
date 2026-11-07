@@ -12,8 +12,7 @@
 
 | 取法 | 结果 |
 |---|---|
-| `ctx.storageDomain`（裸读，**未**声明 `inject` 的服务） | 抛 `cannot get property "storageDomain" without inject`（cordis 代理守卫；实测见 `test/inject-probe.test.ts` 的裸读用例） |
-| `ctx.storageDomain`（裸读，服务已声明 `inject: ['storageDomain']`） | 在改版脚本的探针里曾抛同一错误——`ctx.plugin` 起的 fiber 上 `inject` 声明**不保证**代理放行 |
+| `ctx.storageDomain`（裸读，未挂载时） | 在裸 `Context` 上返回 `undefined`（实测，`test/inject-probe.test.ts`）；在 composer 的 fiber 上曾抛 `cannot get property "storageDomain" without inject` |
 | `ctx.get('storageDomain')` | 在 composer 与裸 `Context` 下都取到真正的 facility（`test/inject-probe.test.ts` / `row-apply.test.ts` 实跑） |
 
 同时，`inject = ['storageDomain']` 是 dsh 侧插件检查（等待所需服务）所需，**保留**。
@@ -23,7 +22,7 @@
 1. `openDomains()` 通过 `this.ctx.get('storageDomain')` 取 facility，未挂载时报 `workbench: storageDomain facility is not mounted in this profile`。
 2. `export const inject = ['storageDomain']` 保留，注释指向本 ADR。
 3. 已开域名跳过重复 `open`（facility 对同名域是 single-open，重复 open 抛 `already-open`）。
-4. 开域失败进入重试（每秒一次，直到成功或行卸载）；行卸载时置 `disposed`、`clearInterval`、**等待所有在途开域结束**后再关闭所持全部域（`test/row-apply.test.ts` 的卸载用例与 `test/row-dispose-race.test.ts` 锁定）。
+4. 开域失败进入重试（每秒一次，直到成功或行卸载）；行卸载时置 `disposed`、`clearInterval`、**等待所有在途开域结束**后再关闭所持全部域（`test/row-apply.test.ts` 的「recorded fake facility」用例与 `test/row-dispose-race.test.ts` 在途竞态用例锁定；两者均在清空 disposer／去掉在途等待时变红，见 P0 实施报告 §4d）。
 
 ## 受影响 plan
 

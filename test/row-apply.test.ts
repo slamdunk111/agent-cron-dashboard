@@ -104,3 +104,38 @@ describe('row unmount closes the domains it opened', () => {
     expect(Object.keys(service.domains).length).toBe(snapshot)
   })
 })
+
+describe('row disposer alone closes every domain it opened', () => {
+  it('closes each opened domain through the row disposer (recorded fake facility)', async () => {
+    // A recording fake facility isolates the row's own disposer: the storage
+    // plugin's teardown would otherwise close domains too, and a disposer that
+    // did nothing would still look green. The fake records open/close calls.
+    const { Context } = await import('@deepseek-ai/cordis')
+    const { WorkbenchService, DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
+    const opened: string[] = []
+    const closed: string[] = []
+    const facility = {
+      async open(spec: { name: string }) {
+        opened.push(spec.name)
+        return {
+          async close() {
+            closed.push(spec.name)
+          },
+          table() {
+            throw new Error('not used')
+          },
+        }
+      },
+      get: () => undefined,
+      closeAll: async () => {},
+    }
+    const ctx = new Context()
+    ctx.provide('storageDomain', facility as never)
+    const service = new WorkbenchService(ctx, {})
+    await vi.waitFor(() => expect(opened).toHaveLength(DOMAINS.length))
+    await ctx.fiber.dispose()
+    await vi.waitFor(() => expect([...closed].sort()).toEqual([...opened].sort()))
+    expect(closed).toHaveLength(DOMAINS.length)
+    expect(service.domainNames()).toHaveLength(DOMAINS.length)
+  })
+})

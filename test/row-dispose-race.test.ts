@@ -9,15 +9,15 @@ import { describe, expect, it, vi } from 'vitest'
  * waited for it and closed it too.
  */
 describe('row unmount during an in-flight open', () => {
-  it('closes domains produced by an open that races the unmount', async () => {
+  it('closes every domain opened, including those opened after dispose began', async () => {
     const { Context } = await import('@deepseek-ai/cordis')
-    const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
+    const { WorkbenchService, DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const opened: string[] = []
     const closed: string[] = []
-    let disposing = false
     const facility = {
+      // Every open takes 40 ms, so the row is mid-open when disposal starts.
       async open(spec: { name: string }) {
-        if (disposing) await new Promise((resolve) => setTimeout(resolve, 30))
+        await new Promise((resolve) => setTimeout(resolve, 40))
         opened.push(spec.name)
         return {
           async close() {
@@ -32,15 +32,16 @@ describe('row unmount during an in-flight open', () => {
       closeAll: async () => {},
     }
     const ctx = new Context()
-    const service = new WorkbenchService(ctx, {})
     ctx.provide('storageDomain', facility as never)
-    await vi.waitFor(() => expect(opened.length).toBe(7), { timeout: 2000 })
-    disposing = true
-    await ctx.fiber.dispose()
-    const snapshot = closed.length
+    const service = new WorkbenchService(ctx, {})
     await new Promise((resolve) => setTimeout(resolve, 100))
-    // Whatever finished opening during the unmount is closed exactly once.
-    expect(closed.length).toBeGreaterThanOrEqual(snapshot)
-    expect(closed.length).toBeLessThanOrEqual(opened.length)
+    // The dispose must land mid-open; this assertion is what makes the test a race.
+    expect(opened.length).toBeGreaterThan(0)
+    expect(opened.length).toBeLessThan(DOMAINS.length)
+    await ctx.fiber.dispose()
+    // The disposer waited for the in-flight open; give it a settled window too.
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(opened.length).toBe(DOMAINS.length)
+    expect([...closed].sort()).toEqual([...opened].sort())
   })
 })
