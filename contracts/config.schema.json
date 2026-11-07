@@ -76,6 +76,13 @@
             ]
           },
           "then": {
+            "properties": {
+              "username": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            },
             "required": [
               "username"
             ]
@@ -157,6 +164,11 @@
             ]
           },
           "then": {
+            "properties": {
+              "ssh": {
+                "$ref": "#/$defs/fleetSsh"
+              }
+            },
             "required": [
               "ssh"
             ]
@@ -174,6 +186,11 @@
             ]
           },
           "then": {
+            "properties": {
+              "paths": {
+                "$ref": "#/$defs/fleetLocalPaths"
+              }
+            },
             "required": [
               "paths"
             ]
@@ -191,6 +208,14 @@
             ]
           },
           "then": {
+            "properties": {
+              "ssh": {
+                "$ref": "#/$defs/fleetSsh"
+              },
+              "query": {
+                "$ref": "#/$defs/readOnlyQuery"
+              }
+            },
             "required": [
               "ssh",
               "query"
@@ -228,9 +253,10 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 512,
-            "pattern": "^[A-Za-z0-9_.:=/,@-]+$"
+            "pattern": "^(?:ConnectTimeout|BatchMode|StrictHostKeyChecking|ServerAliveInterval|ServerAliveCountMax|ConnectTimeout|IdentityFile|Port|User|KeepAliveInterval|ConnectRetries)=[A-Za-z0-9_.:=/,@-]+$"
           },
-          "maxItems": 8
+          "maxItems": 8,
+          "description": "Non-interactive ssh options; only a fixed key allowlist (no ProxyCommand/LocalCommand/ProxyJump)."
         }
       }
     },
@@ -255,8 +281,8 @@
       "not": {
         "pattern": ";\\s*[^;\\s]"
       },
-      "x-singleSelect": true,
-      "description": "Single read-only SELECT statement: starts with SELECT, may end with one semicolon, must not contain a second statement. `x-singleSelect` is the SELECT-only rule (shared with contracts/config-validate.ts validateSshQuery); validators must enable it."
+      "description": "Single read-only SELECT statement: starts with SELECT (case-insensitive), may end with one semicolon, must not contain a second statement. Standard validators enforce this without extension keywords; contracts/config-validate.ts validateSshQuery applies the same rule and rejects the trailing statement.",
+      "pattern": "^\\s*[Ss][Ee][Ll][Ee][Cc][Tt]\\b"
     },
     "poll": {
       "type": "object",

@@ -23,7 +23,7 @@ function verdict(config: unknown): { ok: true } | { ok: false; path: string } {
   }
 }
 
-describe('frozen config schema (contracts/config.schema.json, typed mirror)', () => {
+describe('typed validator (mirror of contracts/config.schema.json; the JSON Schema engine runs in config-corpus.test.ts)', () => {
   it('contains the design §7 sample as an accepted case', () => {
     expect(corpus.cases.some((entry) => entry.id === 'design-section-7-sample' && entry.expect === 'accept')).toBe(true)
   })

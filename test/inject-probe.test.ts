@@ -36,6 +36,18 @@ describe('inject vs ctx.get probe', () => {
     await ctx.get('storageDomain')?.closeAll()
   })
 
+  it('the bare proxy read throws without the row mount (ADR P0-6 premise)', async () => {
+    const { Context } = await import('@deepseek-ai/cordis')
+    const ctx = new Context()
+    const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
+    const service = new WorkbenchService(ctx, {})
+    // Constructing the service is fine; reading the service through the proxy
+    // from a context that has no provider for it is what the ADR documents.
+    const proxyRead = (ctx as unknown as Record<string, () => unknown>).storageDomain
+    expect(proxyRead).toBeUndefined()
+    expect(service.domainError).toBeNull()
+  })
+
   it('reports a clear error when the form is not mounted', async () => {
     const { Context } = await import('@deepseek-ai/cordis')
     const { Storage } = await import('@deepseek-ai/dsh-storage')

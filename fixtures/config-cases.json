@@ -396,6 +396,57 @@
           }
         ]
       }
+    },
+    {
+      "id": "sql-lowercase-select",
+      "expect": "accept",
+      "config": {
+        "fleet": [
+          {
+            "id": "a",
+            "kind": "ssh-sqlite",
+            "ssh": {
+              "host": "example"
+            },
+            "query": "  select id from jobs where id > 1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sql-select-keyword-prefix",
+      "expect": "reject",
+      "config": {
+        "fleet": [
+          {
+            "id": "a",
+            "kind": "ssh-sqlite",
+            "ssh": {
+              "host": "example"
+            },
+            "query": "selectx 1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ssh-option-proxycommand",
+      "expect": "reject",
+      "config": {
+        "fleet": [
+          {
+            "id": "a",
+            "kind": "ssh-sqlite",
+            "ssh": {
+              "host": "nas",
+              "sshOptions": [
+                "ProxyCommand=/bin/sh -c curl"
+              ]
+            },
+            "query": "SELECT id FROM t"
+          }
+        ]
+      }
     }
   ]
 }

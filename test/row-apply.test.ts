@@ -50,6 +50,14 @@ describe('row apply opens the storage domains', () => {
     expect(service.domainError).toBeNull()
     expect(Object.keys(service.domains).sort()).toEqual([...DOMAINS.map((spec) => spec.name)].sort())
     expect(getWorkbenchService()).toBe(service)
+    // Usability, not just presence: a domain closed right after opening would
+    // still count as a key, so write and read one record back through it.
+    const fingerprints = service.domains.workbench_fingerprints as {
+      table(name: string): { put(key: string, value: unknown): Promise<void>; get(key: string): unknown }
+    }
+    const record = { signature: 'sig-row', recordId: 'rec-row', count: 1, lastSeen: '2026-11-07T00:00:00+08:00' }
+    await fingerprints.table('fingerprints').put('sig-row', record)
+    expect(fingerprints.table('fingerprints').get('sig-row')).toMatchObject({ recordId: 'rec-row' })
   })
 
   it('keeps every domain open across a second apply (idempotent open)', async () => {

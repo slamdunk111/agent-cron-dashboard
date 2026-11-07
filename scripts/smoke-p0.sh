@@ -90,24 +90,28 @@ step "6. row activation on a live host" "dsh --profile $PROFILE web --port $BOOT
 # activates (the row reports no error). Deviation from the plan: the bundles
 # were installed with `dsh plugin --profile ... add` (link form), not the GUI
 # `plugin_manager install_bundle`, so no `application: applied` line is produced
-# here (see handoff §4 / report §5 deviation table).
-# NOTE (P0 finding): storage documents
-# never materialise under $HOME/.dsh/storages during these boots, and the only
-# host of `cordis_inspect_*` is the desktop GUI, so the open path is proven by
-# 6b instead; the GUI cross-check stays in handoff §未竟.
+# here (see handoff §7 deviation table).
+# NOTE (P0 finding): storage documents only materialise on the first write, so
+# the file system cannot show the open; the row-path usability is proven by
+# test/row-apply.test.ts instead, and the GUI inspect read stays a handoff item.
 bootlog="$(mktemp)"
 ( dsh --profile "$PROFILE" --no-open --port $BOOT_PORT --host 127.0.0.1 >"$bootlog" 2>&1 & )
-sleep 20
+READY=0
+for _ in $(seq 1 30); do
+  if grep -q "dsh web: http" "$bootlog" 2>/dev/null; then READY=1; break; fi
+  if grep -q "startup failed" "$bootlog" 2>/dev/null; then READY=2; break; fi
+  sleep 1
+done
 # Stop only the server this step started, by its own port.
 for pid in $(ls /proc | grep -E '^[0-9]+$'); do
   cmd="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)" || continue
   case "$cmd" in *"dsh --profile $PROFILE"*"--port $BOOT_PORT"*) kill "$pid" 2>/dev/null;; esac
 done
 { echo "boot output:"; cat "$bootlog"; } | tee -a "$LOG"
-if grep -q "dsh web: http" "$bootlog" && ! grep -q "startup failed" "$bootlog"; then
-  echo "profile composed and served (plugin_manager link install; no 'application: applied' line exists outside the GUI tool)" | tee -a "$LOG"; rc_of 0
+if [ "$READY" -eq 1 ]; then
+  echo "profile composed and served within 30s (plugin_manager link install; no 'application: applied' line exists outside the GUI tool)" | tee -a "$LOG"; rc_of 0
 else
-  rc_of 1; FAILED=1
+  echo "boot did not reach a serving state within 30s (ready=$READY)" | tee -a "$LOG"; rc_of 1; FAILED=1
 fi
 
 step "6b. storage domains open and round-trip" "node scripts/probe-domains.mjs (real json backend in a temp dir)"

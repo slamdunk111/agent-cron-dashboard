@@ -19,65 +19,27 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 
 /**
- * Standard JSON-Schema 2020-12 validation (Ajv).
- *
- * The frozen schema uses `if`/`then` to express per-kind requirements (a
- * `jiuwenswarm-local` source needs `paths`, an `ssh-sqlite` source needs `ssh`
- * and `query`). Ajv treats the `required`/`properties` keywords inside `if` as
- * assertions, which would reject every source whose `kind` is not the branch's
- * `const`. The branches are therefore rewritten to the annotation form the
- * specification prescribes (`properties: {kind: {const: ...}}` alone selects the
- * branch), and `allOf` is unwrapped into a single level.
+ * Standard JSON-Schema 2020-12 validation (Ajv), compiled straight from
+ * `contracts/config.schema.json` with no rewriting: the per-kind requirements
+ * are written as discriminator `if` branches whose `required` sits in
+ * `then`/`else`, which Ajv performs correctly as-is (checked against the whole
+ * corpus). Any future conditional must keep the same shape — put `required`
+ * in `then`, never in `if`.
  */
 function loadValidator(schema) {
   const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module
-  const ajv = new Ajv2020({ allErrors: true, strict: false })
-  // The frozen schema cannot express "starts with SELECT" portably (ECMA-262
-  // has no modifier group, and Ajv anchors `` as a *backspace*, so
-  // `^select` fails on every real query). The rule therefore lives in one
-  // shared custom keyword, used by this validator and by
-  // `contracts/config-validate.ts` validateSshQuery.
-  ajv.addKeyword({
-    keyword: 'x-singleSelect',
-    type: 'string',
-    errors: false,
-    validate: (flag, data) => !flag || typeof data !== 'string' || /^select\b/i.test(data.trim()),
-  })
-  return ajv.compile(normalize(schema))
+  const ajv = new Ajv2020({ allErrors: true, strict: true })
+  return ajv.compile(schema)
 }
 
-function normalize(node) {
-  if (Array.isArray(node)) return node.map(normalize)
-  if (node === null || typeof node !== 'object') return node
-  const copy = {}
-  for (const [key, value] of Object.entries(node)) copy[key] = normalize(value)
-  if (Array.isArray(copy.allOf)) {
-    const flat = copy.allOf.flatMap((branch) => (Array.isArray(branch.allOf) ? branch.allOf : [branch]))
-    delete copy.allOf
-    copy.allOf = flat.map(normalize)
-  }
-  // A conditional branch keeps the discriminator (`const`/`enum` on one
-  // property); its `required` constraints belong to `then`/`else`, never to
-  // `if` (the specification makes them annotations there).
-  for (const keyword of ['if', 'then', 'else']) {
-    const branch = copy[keyword]
-    if (branch !== undefined && typeof branch === 'object' && !Array.isArray(branch)) {
-      // Keep only the discriminator keywords of a conditional branch.
-      const kept = {}
-      if (branch.properties && keyword === 'if') {
-        // Keep the selector properties only when they carry a const/enum.
-        const selector = {}
-        for (const [property, subschema] of Object.entries(branch.properties)) {
-          if (subschema && (subschema.const !== undefined || subschema.enum !== undefined)) selector[property] = subschema
-        }
-        if (Object.keys(selector).length > 0) kept.properties = selector
-      } else if (branch.properties) kept.properties = branch.properties
-      if (branch.required && keyword !== 'if') kept.required = branch.required
-      if (branch.type) kept.type = branch.type
-      copy[keyword] = Object.keys(kept).length > 0 ? kept : branch
-    }
-  }
-  return copy
+/**
+ * A plain, unextended Ajv instance is the contract's real referee: the schema
+ * must be enforceable by a standard 2020-12 validator without registering any
+ * custom keyword (a keyword-free schema is what P5's other consumers would get).
+ */
+function loadPlainValidator(schema) {
+  const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module
+  return new Ajv2020({ allErrors: true, strict: true }).compile(schema)
 }
 
 async function main() {

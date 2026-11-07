@@ -259,8 +259,11 @@ export class WorkbenchService extends Service {
   domainError: string | null = null
 
   constructor(ctx: Context, raw: Config) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cordis 4.1.0 Service takes (ctx, name); the 3rd flag is a runtime-only hint.
-    super(ctx as any, 'workbench')
+    // `Service` in cordis 4.1.0 is typed `(ctx: Context, name?: string)`, and
+    // dsh passes a `Context` whose type identity differs from the published
+    // `@deepseek-ai/cordis` declaration (two copies of the type in the install
+    // tree). This single, documented cast bridges that; it adds no behaviour.
+    super(ctx as unknown as ConstructorParameters<typeof Service>[0], 'workbench')
     this.config = resolveConfig(raw)
     // Published for read-only inspect reads.
     workbenchService = this
@@ -269,14 +272,14 @@ export class WorkbenchService extends Service {
     ctx.effect(() => {
       let disposed = false
       let retry: ReturnType<typeof setInterval> | undefined
-      let closing: Promise<void>[] = []
-      const closeOpened = () => {
-        closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
-      }
+      // The domains stay OPEN for the lifetime of the row; they are closed
+      // exactly once, by this effect's disposer. (A first version closed them
+      // right after opening, which an external probe caught: every read/write
+      // then failed with `closed`. row-apply.test.ts now asserts usability.)
       const opened = () => {
         if (disposed) return
         this.domainError = null
-        closeOpened()
+        ctx.logger?.('workbench')?.info?.('workbench: storage domains opened (%d)', this.domainNames().length)
       }
       void this.openDomains()
         // The domain facility may still be mounting when this row activates
@@ -310,7 +313,9 @@ export class WorkbenchService extends Service {
       return async () => {
         disposed = true
         if (retry !== undefined) clearInterval(retry)
-        await Promise.allSettled(closing)
+        await Promise.allSettled(
+          Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close()),
+        )
       }
     }, 'workbench:domains')
   }

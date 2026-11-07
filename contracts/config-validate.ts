@@ -29,11 +29,15 @@ export class ConfigValidationError extends Error {
 
 const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
 /** Literal credential shapes; a value matching one of these inside a tokenEnv is a leak, not a name. */
-const SECRET_LITERAL_RE = /(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
 const REPO_URL_RE = /^(?:https?:\/\/)?(?:github\.com|gitcode\.com)\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/
 const SOURCE_ID_RE = /^[A-Za-z0-9_.-]+$/
 const SSH_HOST_RE = /^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$/
-const SSH_OPTION_RE = /^[A-Za-z0-9_.:=/,@-]+$/
+/**
+ * ssh options reach the adapter's command line, so only a fixed key allowlist
+ * is accepted: an option such as `ProxyCommand=` would run an arbitrary
+ * program. Same allowlist as the schema's `sshOptions.items.pattern`.
+ */
+const SSH_OPTION_RE = /^(?:ConnectTimeout|BatchMode|StrictHostKeyChecking|ServerAliveInterval|ServerAliveCountMax|IdentityFile|Port|User|KeepAliveInterval|ConnectRetries)=[A-Za-z0-9_.:=/,@-]+$/
 const CRON_RE = /^([0-9*,/-]+ ){4}[0-9*,/-]+$/
 
 const PLATFORMS = ['github', 'gitcode'] as const
@@ -90,7 +94,8 @@ export function validateSshQuery(path: string, value: unknown): string {
 export function validateTokenEnv(path: string, value: unknown): string {
   const name = strAt(path, value, 3, 128)
   if (!TOKEN_ENV_RE.test(name)) throw new ConfigValidationError(path, 'expected an environment variable name (A-Z0-9_ only)')
-  if (SECRET_LITERAL_RE.test(name)) throw new ConfigValidationError(path, 'looks like a credential literal; only environment variable names are accepted')
+  // A credential literal (ghp_..., glpat-..., sk-...) cannot pass the pattern
+  // above, so the pattern is the single guard for both cases.
   return name
 }
 
@@ -166,7 +171,7 @@ function validateFleetSource(path: string, value: unknown): FleetSourceConfigRes
       }
       ssh.sshOptions = value.ssh.sshOptions.map((option, index) => {
         const text = strAt(`${path}.ssh.sshOptions[${index}]`, option, 1, 512)
-        if (!SSH_OPTION_RE.test(text)) throw new ConfigValidationError(`${path}.ssh.sshOptions[${index}]`, 'unexpected characters in ssh option')
+        if (!SSH_OPTION_RE.test(text)) throw new ConfigValidationError(`${path}.ssh.sshOptions[${index}]`, 'ssh option is not on the allowlist (ConnectTimeout/BatchMode/StrictHostKeyChecking/...)')
         return text
       })
     }
