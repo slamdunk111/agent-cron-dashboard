@@ -6,3 +6,10 @@ packages:
 # Approved install scripts (pnpm 10+ blocks them by default).
 allowBuilds:
   esbuild: true
+
+
+# One zod generation only: dsh 0.2.2-rc.1 ships zod 4.4.3 through
+# dsh-storage-domain, and two `$ZodCheck` generations do not type-check
+# together (tsc TS2345 on every domainTable call).
+overrides:
+  zod: 4.4.3

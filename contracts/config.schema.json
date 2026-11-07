@@ -9,17 +9,29 @@
     "identities": {
       "description": "Per-platform identity the workbench watches for.",
       "type": "array",
-      "items": { "$ref": "#/$defs/identity" }
+      "items": {
+        "$ref": "#/$defs/identity"
+      }
     },
-    "watch": { "$ref": "#/$defs/watch" },
+    "watch": {
+      "$ref": "#/$defs/watch"
+    },
     "fleet": {
       "description": "Fleet (cron/scheduled-task) sources.",
       "type": "array",
-      "items": { "$ref": "#/$defs/fleetSource" }
+      "items": {
+        "$ref": "#/$defs/fleetSource"
+      }
     },
-    "poll": { "$ref": "#/$defs/poll" },
-    "analysis": { "$ref": "#/$defs/analysis" },
-    "notify": { "$ref": "#/$defs/notify" }
+    "poll": {
+      "$ref": "#/$defs/poll"
+    },
+    "analysis": {
+      "$ref": "#/$defs/analysis"
+    },
+    "notify": {
+      "$ref": "#/$defs/notify"
+    }
   },
   "$defs": {
     "tokenEnvName": {
@@ -27,22 +39,47 @@
       "minLength": 3,
       "maxLength": 128,
       "pattern": "^[A-Z][A-Z0-9_]*$",
-      "not": { "pattern": "(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)" },
-      "description": "Environment variable name only, upper-case snake case, e.g. GITCODE_TOKEN."
+      "description": "Environment variable name only, upper-case snake case with 3..128 characters (e.g. GITCODE_TOKEN). Credential literals cannot pass the pattern."
     },
     "identity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["platform"],
+      "required": [
+        "platform"
+      ],
       "properties": {
-        "platform": { "enum": ["github", "gitcode"] },
-        "username": { "type": "string", "minLength": 1, "maxLength": 100 },
-        "tokenEnv": { "$ref": "#/$defs/tokenEnvName" }
+        "platform": {
+          "enum": [
+            "github",
+            "gitcode"
+          ]
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "tokenEnv": {
+          "$ref": "#/$defs/tokenEnvName"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "platform": { "const": "gitcode" } }, "required": ["platform"] },
-          "then": { "required": ["username"] }
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "gitcode"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "required": [
+              "username"
+            ]
+          }
         }
       ]
     },
@@ -57,48 +94,142 @@
             "pattern": "^(https?://)?(github\\.com|gitcode\\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(\\.git)?/?$"
           }
         },
-        "issuePollIntervalMs": { "type": "integer", "minimum": 60000, "maximum": 86400000, "default": 300000 }
+        "issuePollIntervalMs": {
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 300000
+        }
       }
     },
     "fleetSource": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "kind"],
+      "required": [
+        "id",
+        "kind"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z0-9_.-]+$" },
-        "kind": { "enum": ["hermes-ssh", "jiuwenswarm-local", "ssh-sqlite"] },
-        "label": { "type": "string", "maxLength": 100 },
-        "enabled": { "type": "boolean", "default": true },
-        "ssh": { "$ref": "#/$defs/fleetSsh" },
-        "paths": { "$ref": "#/$defs/fleetLocalPaths" },
-        "query": { "$ref": "#/$defs/readOnlyQuery" }
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "kind": {
+          "enum": [
+            "hermes-ssh",
+            "jiuwenswarm-local",
+            "ssh-sqlite"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "ssh": {
+          "$ref": "#/$defs/fleetSsh"
+        },
+        "paths": {
+          "$ref": "#/$defs/fleetLocalPaths"
+        },
+        "query": {
+          "$ref": "#/$defs/readOnlyQuery"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "kind": { "enum": ["hermes-ssh", "ssh-sqlite"] } }, "required": ["kind"] },
-          "then": { "required": ["ssh"] }
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "hermes-ssh",
+                  "ssh-sqlite"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "ssh"
+            ]
+          }
         },
         {
-          "if": { "properties": { "kind": { "const": "jiuwenswarm-local" } }, "required": ["kind"] },
-          "then": { "required": ["paths"] }
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "jiuwenswarm-local"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "paths"
+            ]
+          }
         },
         {
-          "if": { "properties": { "kind": { "const": "ssh-sqlite" } }, "required": ["kind"] },
-          "then": { "required": ["ssh", "query"] }
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ssh-sqlite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "ssh",
+              "query"
+            ]
+          }
         }
       ]
     },
     "fleetSsh": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["host"],
+      "required": [
+        "host"
+      ],
       "properties": {
-        "host": { "type": "string", "minLength": 1, "maxLength": 253, "pattern": "^[A-Za-z0-9_.@:-]+$" },
-        "dbPath": { "type": "string", "minLength": 1, "maxLength": 4096 },
-        "errorsLog": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "host": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253,
+          "pattern": "^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$"
+        },
+        "dbPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "errorsLog": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
         "sshOptions": {
           "type": "array",
-          "items": { "type": "string", "pattern": "^[A-Za-z0-9_.:=/,@-]+$" },
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[A-Za-z0-9_.:=/,@-]+$"
+          },
           "maxItems": 8
         }
       }
@@ -106,24 +237,43 @@
     "fleetLocalPaths": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state"],
+      "required": [
+        "state"
+      ],
       "properties": {
-        "state": { "type": "string", "minLength": 1, "maxLength": 4096 }
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
       }
     },
     "readOnlyQuery": {
       "type": "string",
       "minLength": 8,
       "maxLength": 4096,
-      "not": { "pattern": ";[ \\t\\r\\n]*[^ \\t\\r\\n]" },
-      "description": "Single read-only SELECT statement (no trailing second statement, no writes)."
+      "not": {
+        "pattern": ";\\s*[^;\\s]"
+      },
+      "x-singleSelect": true,
+      "description": "Single read-only SELECT statement: starts with SELECT, may end with one semicolon, must not contain a second statement. `x-singleSelect` is the SELECT-only rule (shared with contracts/config-validate.ts validateSshQuery); validators must enable it."
     },
     "poll": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "fleetIntervalMs": { "type": "integer", "minimum": 60000, "maximum": 86400000, "default": 300000 },
-        "backoffMaxMs": { "type": "integer", "minimum": 600000, "maximum": 86400000, "default": 3600000 }
+        "fleetIntervalMs": {
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 300000
+        },
+        "backoffMaxMs": {
+          "type": "integer",
+          "minimum": 600000,
+          "maximum": 86400000,
+          "default": 3600000
+        }
       }
     },
     "analysis": {
@@ -133,23 +283,49 @@
         "llm": {
           "type": "object",
           "additionalProperties": false,
-          "properties": { "enabled": { "type": "boolean", "default": true } }
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            }
+          }
         },
-        "greenRunsToVerify": { "type": "integer", "minimum": 1, "maximum": 20, "default": 3 },
-        "retentionDays": { "type": "integer", "minimum": 7, "maximum": 3650, "default": 90 }
+        "greenRunsToVerify": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 3
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 7,
+          "maximum": 3650,
+          "default": 90
+        }
       }
     },
     "notify": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "actionCards": { "type": "boolean", "default": true },
+        "actionCards": {
+          "type": "boolean",
+          "default": true
+        },
         "digest": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": { "type": "boolean", "default": true },
-            "cron": { "type": "string", "pattern": "^([0-9*,/-]+ ){4}[0-9*,/-]+$", "default": "0 9 * * *" }
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "cron": {
+              "type": "string",
+              "pattern": "^([0-9*,/-]+ ){4}[0-9*,/-]+$",
+              "default": "0 9 * * *",
+              "maxLength": 64
+            }
           }
         }
       }
@@ -158,13 +334,41 @@
       "description": "JSON-Schema-constrained LLM output of the error analyser (P6); also referenced by `contracts/records.ts` IssueAnalysis.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["rootCauseHypothesis", "impact", "suggestedFix", "confidence", "needMoreInfo"],
+      "required": [
+        "rootCauseHypothesis",
+        "impact",
+        "suggestedFix",
+        "confidence",
+        "needMoreInfo"
+      ],
       "properties": {
-        "rootCauseHypothesis": { "type": "string", "minLength": 1 },
-        "impact": { "type": "string", "minLength": 1 },
-        "suggestedFix": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "needMoreInfo": { "type": "array", "items": { "type": "string" } }
+        "rootCauseHypothesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suggestedFix": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "needMoreInfo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     }
   }

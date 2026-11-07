@@ -32,7 +32,7 @@ const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
 const SECRET_LITERAL_RE = /(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
 const REPO_URL_RE = /^(?:https?:\/\/)?(?:github\.com|gitcode\.com)\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/
 const SOURCE_ID_RE = /^[A-Za-z0-9_.-]+$/
-const SSH_HOST_RE = /^[A-Za-z0-9_.@:-]+$/
+const SSH_HOST_RE = /^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$/
 const SSH_OPTION_RE = /^[A-Za-z0-9_.:=/,@-]+$/
 const CRON_RE = /^([0-9*,/-]+ ){4}[0-9*,/-]+$/
 
@@ -68,6 +68,22 @@ function rejectUnknownKeys(path: string, value: Record<string, unknown>, allowed
   for (const key of Object.keys(value)) {
     if (!allowed.includes(key)) throw new ConfigValidationError(`${path}.${key}`, 'unknown property (credentials and free-form fields are not accepted)')
   }
+}
+
+/**
+ * Validate one `ssh-sqlite` query: a single read-only SELECT statement.
+ *
+ * This is the stricter companion of the schema's `readOnlyQuery` (`not:
+ * ;\s*[^;\s]`, i.e. no second statement): a trailing semicolon is tolerated,
+ * and a statement that does not start with SELECT (INSERT/UPDATE/DELETE/DROP/
+ * PRAGMA/ATTACH ...) is refused before any adapter can run it.
+ */
+export function validateSshQuery(path: string, value: unknown): string {
+  const query = strAt(path, value, 8, 4096)
+  const trimmed = query.trim().replace(/;+$/, '')
+  if (!/^select\b/i.test(trimmed)) throw new ConfigValidationError(path, 'expected a read-only SELECT statement')
+  if (trimmed.includes(';')) throw new ConfigValidationError(path, 'expected a single statement (no second statement after SELECT)')
+  return trimmed
 }
 
 /** Validate a tokenEnv field: it must be an environment variable NAME, never a credential literal. */
@@ -162,12 +178,7 @@ function validateFleetSource(path: string, value: unknown): FleetSourceConfigRes
     source.paths = { state: strAt(`${path}.paths.state`, value.paths.state, 1, 4096) }
   }
   if (value.query !== undefined) {
-    const query = strAt(`${path}.query`, value.query, 8, 4096)
-    // A trailing semicolon is tolerated; a second statement is not (mirrors
-    // the schema's `not` pattern `;\s+[^;\s]`).
-    const trimmed = query.trim().replace(/;+$/, '')
-    if (trimmed.includes(';')) throw new ConfigValidationError(`${path}.query`, 'expected a single read-only statement')
-    source.query = trimmed
+    source.query = validateSshQuery(`${path}.query`, value.query)
   }
   if (source.kind === 'hermes-ssh' || source.kind === 'ssh-sqlite') {
     if (source.ssh === undefined) throw new ConfigValidationError(`${path}.ssh`, `required for kind ${source.kind}`)

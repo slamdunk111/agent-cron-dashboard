@@ -16,18 +16,6 @@ import {
 export type { WorkbenchConfig } from './config-validate.ts'
 export { validateWorkbenchConfig, ConfigValidationError, validateTokenEnv } from './config-validate.ts'
 
-/** Token env name: environment variable NAME only, never a credential literal. */
-const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
-/** Values shaped like a real credential are rejected even inside `tokenEnv`. */
-const SECRET_LITERAL_RE = /(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
-
-/** Validate one tokenEnv value of a decoded row (environment variable NAME only). */
-export function checkTokenEnv(value: string, path: string): string {
-  if (!TOKEN_ENV_RE.test(value)) throw new Error(`${path}: tokenEnv must be an environment variable NAME (A-Z0-9_ only)`)
-  if (SECRET_LITERAL_RE.test(value)) throw new Error(`${path}: tokenEnv looks like a credential literal; only environment variable names are accepted`)
-  return value
-}
-
 const identity = z.object({
   platform: z.union(['github', 'gitcode'] as const).required(),
   username: z.string(),
@@ -93,11 +81,7 @@ export const Config = z.object({
     .default({}),
 })
 
-/** Normalize a schemastery-decoded row: `identity.tokenEnv` is re-checked here. */
+/** Normalize a schemastery-decoded row: the typed validator applies the defaults and the rules. */
 export function resolveConfig(raw: unknown): WorkbenchConfig {
-  const resolved = validateWorkbenchConfig(raw ?? {})
-  resolved.identities.forEach((entry, index) => {
-    if (entry.tokenEnv !== undefined) checkTokenEnv(entry.tokenEnv, `$.identities[${index}].tokenEnv`)
-  })
-  return resolved
+  return validateWorkbenchConfig(raw ?? {})
 }

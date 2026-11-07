@@ -12,7 +12,7 @@
 | 契约 | 包内形态 |
 |---|---|
 | `contracts/config-validate.ts` | `packages/agent-cron-dashboard/src/config-validate.ts`（生成副本，文件头标注 GENERATED COPY） |
-| `contracts/config.schema.json` | 不复制：作为规格文档由 `scripts/validate-config.mjs` 与单测读取 |
+| `contracts/config.schema.json` | 不复制：作为规格文档由 `scripts/validate-config.mjs`（Ajv 2020-12）与 `test/config-corpus.test.ts` 读取 |
 | 其余 `contracts/*.ts`（类型） | 不复制：esbuild 构建时按需内联类型；运行时无人依赖 |
 
 同步命令：`pnpm sync:contracts`（写）；`node scripts/sync-contracts.mjs --check`（校验是否漂移，已接入 `scripts/smoke-p0.sh` 步骤 1b 作为验收门的一部分）。

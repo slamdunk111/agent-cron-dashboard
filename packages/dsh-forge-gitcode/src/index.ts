@@ -12,9 +12,8 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 
-/** Token env name: environment variable NAME only, never a credential literal. */
+/** Token env name: environment variable NAME only (3..128 chars), never a credential literal. */
 const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
-const SECRET_LITERAL_RE = /(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
 
 export interface Config {
   /** Name of the environment variable that holds the GitCode access token (default `GITCODE_TOKEN`). */
@@ -31,15 +30,16 @@ export const DEFAULT_CONFIG: Required<Config> = {
 
 /**
  * Validate a row config.
- * @throws Error when `tokenEnv` is not an environment variable name (credential literals are refused).
+ *
+ * Same rule as `contracts/config-validate.ts` validateTokenEnv: the value is an
+ * environment variable NAME (3..128 upper-case characters). Credential literals
+ * cannot pass this pattern, so no separate blacklist is needed.
+ * @throws Error when `tokenEnv` is not an environment variable name.
  */
 export function validateConfig(config: Config): Required<Config> {
   const merged = { ...DEFAULT_CONFIG, ...config }
-  if (typeof merged.tokenEnv !== 'string' || !TOKEN_ENV_RE.test(merged.tokenEnv)) {
-    throw new Error('tokenEnv must be an environment variable NAME (A-Z0-9_ only)')
-  }
-  if (SECRET_LITERAL_RE.test(merged.tokenEnv)) {
-    throw new Error('tokenEnv looks like a credential literal; only environment variable names are accepted')
+  if (typeof merged.tokenEnv !== 'string' || merged.tokenEnv.length < 3 || merged.tokenEnv.length > 128 || !TOKEN_ENV_RE.test(merged.tokenEnv)) {
+    throw new Error('tokenEnv must be an environment variable NAME (A-Z0-9_ only, 3..128 characters)')
   }
   if (typeof merged.host !== 'string' || merged.host.length === 0) throw new Error('host must be a non-empty string')
   return merged

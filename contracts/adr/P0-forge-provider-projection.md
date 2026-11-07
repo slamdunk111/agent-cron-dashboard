@@ -18,3 +18,7 @@
 - P1（实现方，唯一直接接触上游类型的地方）
 - P2（消费方，只依赖投影）
 - P7（UI 读快照，只依赖投影）
+
+## 备注
+
+`$defs.analysisOutput`（`contracts/config.schema.json`，P6 的 LLM 输出约束）目前只有 schema，没有 TS 校验器与语料；由 P6 落地并补测，本批仅登记。

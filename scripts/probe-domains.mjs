@@ -3,10 +3,11 @@
  * Offline domain probe: opens the workbench storage domains against a real
  * temporary dsh storage backend and reads them back.
  *
- * Covers what the profile boot cannot show from outside (the desktop GUI is the
- * only place `cordis_inspect_query` exists, see `../docs/handoff/P0.md` §未竟):
- * `open()` of every declared domain, the `KIND`/`INVALIDO` name rules, and one
- * write/read round trip per domain.
+ * Scope: the STORAGE layer only. It composes the host like dsh-base does
+ * (storage hub, json backend, `storage-domain` form) and opens each declared
+ * domain directly, exercising the domain schemas and one write/read round trip
+ * per domain. The ROW path (the bundle's own `apply` opening all seven) is
+ * proven separately by `test/row-apply.test.ts`.
  *
  * Usage: node scripts/probe-domains.mjs [--json]
  */
@@ -30,9 +31,8 @@ async function main() {
   const ctx = new Context()
   await ctx.plugin(Storage)
   await ctx.plugin(StorageJson, { root: dir })
-  // Mount the domain form the way dsh-base composes it, then drive the bundle
-  // exactly as the loader does: `apply(ctx)` opens `DOMAINS` through the
-  // mounted facility (the same code path the live row takes).
+  // Mount the domain form the way dsh-base composes it, then open the shipped
+  // domain specs directly (row-path coverage lives in test/row-apply.test.ts).
   await ctx.plugin(StorageDomain, { backend: 'json' })
   const rows = []
   const sample = {

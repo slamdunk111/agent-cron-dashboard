@@ -12,7 +12,8 @@
     "build": "node scripts/build-bundles.mjs",
     "sync:contracts": "node scripts/sync-contracts.mjs",
     "probe:domains": "node scripts/probe-domains.mjs",
-    "smoke": "bash scripts/smoke-p0.sh"
+    "smoke": "bash scripts/smoke-p0.sh",
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "~4.1.0",
@@ -22,10 +23,11 @@
     "@deepseek-ai/schemastery": "~3.19.0",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^22.20.5",
+    "ajv": "^8.20.0",
     "chokidar": "^4.0.3",
     "esbuild": "^0.25.12",
     "typescript": "^5.9.3",
     "vitest": "^5.1.0",
-    "zod": "^4.6.7"
+    "zod": "4.4.3"
   }
 }

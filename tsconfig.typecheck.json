@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
+    "allowJs": false
+  },
+  "include": ["contracts/**/*.ts", "packages/*/src/**/*.ts", "packages/*/client/**/*.ts", "test/**/*.ts", "scripts/*.mjs"],
+  "exclude": ["node_modules", "build"]
+}

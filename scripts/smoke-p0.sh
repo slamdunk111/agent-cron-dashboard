@@ -27,6 +27,17 @@ step() { printf '\n== %s\n$ %s\n' "$1" "${2:-}" | tee -a "$LOG"; }
 rc_of() { printf '[rc=%s]\n' "$1" | tee -a "$LOG"; }
 
 FAILED=0
+
+# pnpm resolution: the host has no global pnpm (corepack provides it); dsh's
+# own plugin add needs it on PATH too (see handoff §4.6).
+if command -v pnpm >/dev/null 2>&1; then
+  PNPM="pnpm"
+  run_pnpm() { pnpm "$@"; }
+else
+  PNPM="corepack pnpm"
+  run_pnpm() { corepack pnpm "$@"; }
+fi
+
 step "0. header" "date/host/uptime/load (owner 9b: timing evidence needs a baseline head)"
 { date -Is; uname -sr; uptime; echo "nproc=$(nproc)"; free -g | head -2; } 2>&1 | tee -a "$LOG"
 
@@ -38,13 +49,12 @@ step "1b. contract copies in sync" "node scripts/sync-contracts.mjs --check"
 (cd "$ROOT" && node scripts/sync-contracts.mjs --check) >>"$LOG" 2>&1
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 
+step "1c. unit gate second engine: typecheck" "pnpm typecheck"
+(cd "$ROOT" && run_pnpm run typecheck) >>"$LOG" 2>&1
+rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
+
 step "2. unit tests" "pnpm test"
-PNPM="${PNPM:-pnpm}"
-if ! command -v "$PNPM" >/dev/null 2>&1; then
-  # corepack shim: dsh's own plugin add also needs pnpm on PATH (see handoff).
-  PNPM="corepack pnpm"
-fi
-(cd "$ROOT" && $PNPM test) >>"$LOG" 2>&1
+(cd "$ROOT" && run_pnpm run test) >>"$LOG" 2>&1
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 
 step "3. config corpus (JSON Schema + typed validator)" "node --experimental-strip-types scripts/validate-config.mjs"
@@ -77,7 +87,11 @@ process.exit(ok ? 0 : 1)
 BOOT_PORT=18120
 step "6. row activation on a live host" "dsh --profile $PROFILE web --port $BOOT_PORT"
 # The live boot proves the composed profile loads and every required plugin
-# activates (the row reports no error). NOTE (P0 finding): storage documents
+# activates (the row reports no error). Deviation from the plan: the bundles
+# were installed with `dsh plugin --profile ... add` (link form), not the GUI
+# `plugin_manager install_bundle`, so no `application: applied` line is produced
+# here (see handoff §4 / report §5 deviation table).
+# NOTE (P0 finding): storage documents
 # never materialise under $HOME/.dsh/storages during these boots, and the only
 # host of `cordis_inspect_*` is the desktop GUI, so the open path is proven by
 # 6b instead; the GUI cross-check stays in handoff §未竟.
@@ -91,7 +105,7 @@ for pid in $(ls /proc | grep -E '^[0-9]+$'); do
 done
 { echo "boot output:"; cat "$bootlog"; } | tee -a "$LOG"
 if grep -q "dsh web: http" "$bootlog" && ! grep -q "startup failed" "$bootlog"; then
-  echo "row activated, host serving" | tee -a "$LOG"; rc_of 0
+  echo "profile composed and served (plugin_manager link install; no 'application: applied' line exists outside the GUI tool)" | tee -a "$LOG"; rc_of 0
 else
   rc_of 1; FAILED=1
 fi
@@ -115,11 +129,11 @@ process.exit(ok ? 0 : 1)
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 cat "$INSPECT_LOG" | tee -a "$LOG"
 
-step "8. inspect provider answers on the live host" "dsh headless --json probes the packaged inspect provider"
+step "8. inspect provider manifest answer" "offline node probe of inspectProvider (no live dsh)"
 # The model-facing `cordis_inspect_*` tools only exist inside the GUI `cordis`
-# agent preset; the workspace preset used by headless does not carry them. So
-# the probe imports the same provider object the live host registered and runs
-# its `list` method against a real service constructed from the built bundle.
+# agent preset (headless has none). This step therefore exercises the provider
+# object the row registers, against a service constructed from the built bundle;
+# the live GUI read stays in handoff §未竟 (owner item).
 LIVE_LOG="$(mktemp)"
 node --input-type=module -e "
 const { inspectProvider, WorkbenchService, Config, setWorkbenchService } = await import('file://$BUILD/agent-cron-dashboard/index.js')

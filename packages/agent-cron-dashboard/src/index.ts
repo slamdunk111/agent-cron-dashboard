@@ -1,14 +1,18 @@
 /**
  * Host half of the `agent-cron-dashboard` bundle.
  *
- * P0 delivers the smallest closed loop the later plans build on:
- * config validation (frozen schema in `../../contracts/config.schema.json`),
- * the six storage domains of design §8, and an empty `WorkbenchService`
- * that later plans (P2-P7) fill in node by node.
+ * P0 delivers the smallest closed loop the later plans build on: config
+ * validation (frozen schema in `contracts/config.schema.json`), the **seven**
+ * storage domains of design §8 plus the fleet health domain of §5.3 (a
+ * declared deviation from the plan's "six domains", see ADR P0-2), and an
+ * empty `WorkbenchService` that later plans (P2-P7) fill in node by node.
  */
 import { Context, Service } from '@deepseek-ai/cordis'
 import { defineDomain, domainTable, type DomainFacility } from '@deepseek-ai/dsh-storage-domain'
 import z from 'zod'
+import { CHANGE_LEVELS } from '../../../contracts/events.ts'
+import type { ChangeEvent } from '../../../contracts/events.ts'
+import type { IssueRecord, IssueSnapshot, PrSnapshot } from '../../../contracts/records.ts'
 import { Config as RowConfig, resolveConfig, type WorkbenchConfig } from './config.ts'
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
@@ -24,7 +28,7 @@ const changeEvidence = z.object({
 /** One graded change event (contracts/events.ts ChangeEvent). */
 const changeEvent = z.object({
   level: z.enum(['high', 'medium']),
-  kind: z.string().min(1),
+  kind: z.enum(Object.keys(CHANGE_LEVELS) as [keyof typeof CHANGE_LEVELS, ...(keyof typeof CHANGE_LEVELS)[]]),
   subject: z.object({
     scope: z.enum(['community', 'fleet']),
     key: z.string().min(1),
@@ -34,7 +38,7 @@ const changeEvent = z.object({
   summary: z.string(),
   evidence: z.array(changeEvidence),
   at: iso,
-})
+}) satisfies z.ZodType<ChangeEvent>
 
 /** PR snapshot (contracts/records.ts PrSnapshot). */
 const prSnapshot = z.object({
@@ -53,7 +57,7 @@ const prSnapshot = z.object({
   firstSeenAt: iso,
   lastSeenAt: iso,
   events: z.array(changeEvent).max(50),
-})
+}) satisfies z.ZodType<PrSnapshot>
 
 /** Issue snapshot (contracts/records.ts IssueSnapshot). */
 const issueSnapshot = z.object({
@@ -72,7 +76,7 @@ const issueSnapshot = z.object({
   firstSeenAt: iso,
   lastSeenAt: iso,
   events: z.array(changeEvent).max(50),
-})
+}) satisfies z.ZodType<IssueSnapshot>
 
 /** Fleet job record (contracts/records.ts FleetJobRecord). */
 const fleetJobRecord = z.object({
@@ -130,7 +134,7 @@ const issueRecord = z.object({
     }),
   ),
   verifiedAt: iso.nullable(),
-})
+}) satisfies z.ZodType<IssueRecord>
 
 /** Fingerprint index (contracts/records.ts FingerprintRecord). */
 const fingerprintRecord = z.object({
@@ -225,11 +229,11 @@ export type Config = Partial<WorkbenchConfig>
 export const name = 'workbench'
 
 /**
- * Services this row reads. `storageDomain` is served by the mounted
- * `@deepseek-ai/dsh-storage-domain` form (composed by the `dsh-base` stack);
- * reading it through a `ctx.plugin()` fiber without this declaration throws
- * `cannot get property "storageDomain" without inject` (measured in the
- * offline probe, see handoff §实测).
+ * Services this row reads: `storageDomain`, served by the mounted
+ * `@deepseek-ai/dsh-storage-domain` form (composed by the `dsh-base` stack).
+ * The declaration satisfies dsh's plugin check; the read itself goes through
+ * `ctx.get('storageDomain')`, which works in both the composer and a bare
+ * `Context` (probe results in ADR P0-6, `contracts/adr/P0-inject-and-ctx-get.md`).
  */
 export const inject = ['storageDomain']
 
@@ -255,35 +259,48 @@ export class WorkbenchService extends Service {
   domainError: string | null = null
 
   constructor(ctx: Context, raw: Config) {
-    super(ctx, 'workbench', true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- cordis 4.1.0 Service takes (ctx, name); the 3rd flag is a runtime-only hint.
+    super(ctx as any, 'workbench')
     this.config = resolveConfig(raw)
     // Published for read-only inspect reads.
     workbenchService = this
     // Domains open as an effect of this row, so they close when the row
     // unmounts (dsh's storage facility would close them on unmount anyway).
     ctx.effect(() => {
+      let disposed = false
+      let retry: ReturnType<typeof setInterval> | undefined
       let closing: Promise<void>[] = []
+      const closeOpened = () => {
+        closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
+      }
+      const opened = () => {
+        if (disposed) return
+        this.domainError = null
+        closeOpened()
+      }
       void this.openDomains()
         // The domain facility may still be mounting when this row activates
         // (`storage-domain` injects the `storage` hub), so absence is retried
         // rather than reported as a permanent failure.
-        .then(() => {
-          closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
-        })
+        .then(opened)
         .catch(() => {
+          if (disposed) return
           let attempts = 0
-          const retry = setInterval(() => {
+          retry = setInterval(() => {
+            if (disposed) {
+              if (retry !== undefined) clearInterval(retry)
+              return
+            }
             attempts += 1
             void this.openDomains()
               .then(() => {
-                clearInterval(retry)
-                this.domainError = null
-                closing = Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close())
+                if (retry !== undefined) clearInterval(retry)
+                opened()
                 ctx.logger?.('workbench')?.info?.('workbench: storage domains opened after %d retries', attempts)
               })
               .catch((error: unknown) => {
                 this.domainError = String(error instanceof Error ? error.message : error)
-                if (attempts >= 20) {
+                if (attempts >= 20 && retry !== undefined) {
                   clearInterval(retry)
                   ctx.logger?.('workbench')?.error?.('workbench: storage domains unavailable: %s', this.domainError)
                 }
@@ -291,6 +308,8 @@ export class WorkbenchService extends Service {
           }, 1000)
         })
       return async () => {
+        disposed = true
+        if (retry !== undefined) clearInterval(retry)
         await Promise.allSettled(closing)
       }
     }, 'workbench:domains')
@@ -308,6 +327,7 @@ export class WorkbenchService extends Service {
     const facility = this.ctx.get?.('storageDomain') as DomainFacility | undefined
     if (facility === undefined) throw new Error('workbench: storageDomain facility is not mounted in this profile')
     for (const spec of DOMAINS) {
+      if ((this.domains as Record<string, unknown>)[spec.name] !== undefined) continue
       const domain = await facility.open(spec)
       ;(this.domains as Record<string, unknown>)[spec.name] = domain
     }
@@ -369,6 +389,21 @@ export const inspectProvider = {
 
 /** The mounted service, published for inspect and smoke reads. */
 let workbenchService: WorkbenchService | undefined
+
+/**
+ * Construct the row service the way dsh does (`new WorkbenchService(ctx, cfg)`),
+ * including its domain-opening effect.
+ * @param ctx - the host context the row is mounted on.
+ * @param raw - the row's YAML config.
+ */
+export function makeWorkbenchService(ctx: Context, raw: Config): WorkbenchService {
+  return new WorkbenchService(ctx, raw)
+}
+
+/** Read the mounted instance (read-only; used by the row-path test and inspect). */
+export function getWorkbenchService(): WorkbenchService | undefined {
+  return workbenchService
+}
 
 /** Publish or clear the inspect-visible instance (the smoke probe uses the setter). */
 export function setWorkbenchService(service: WorkbenchService | undefined): void {
