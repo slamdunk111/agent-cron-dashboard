@@ -1,0 +1,67 @@
+/**
+ * Host half of `dsh-forge-gitcode` — the GitCode (api/v5) provider for the
+ * dsh experimental forge registry.
+ *
+ * P0 scope: package skeleton + manifest row registration only. P1 fills in
+ * the provider itself (endpoint probe -> `../docs/gitcode-v5-diff.md` ->
+ * implementation -> contract tests), per `plan-of-plans/P1-forge-gitcode.md`.
+ *
+ * The provider is a plain object (no dsh service), so this module has exactly
+ * one runtime dependency (`cordis`, satisfied by the dsh host) which keeps the
+ * package publishable as a standalone forge provider.
+ */
+import type { Context } from '@deepseek-ai/cordis'
+
+/** Token env name: environment variable NAME only, never a credential literal. */
+const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
+const SECRET_LITERAL_RE = /(?:ghp_|github_pat_|glpat-|sk-|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY-----)/
+
+export interface Config {
+  /** Name of the environment variable that holds the GitCode access token (default `GITCODE_TOKEN`). */
+  tokenEnv?: string
+  /** GitCode web host; `api/v5` calls are derived from it. */
+  host?: string
+}
+
+/** Defaults applied before validation; mirrors `cordis.patch.yml`. */
+export const DEFAULT_CONFIG: Required<Config> = {
+  tokenEnv: 'GITCODE_TOKEN',
+  host: 'gitcode.com',
+}
+
+/**
+ * Validate a row config.
+ * @throws Error when `tokenEnv` is not an environment variable name (credential literals are refused).
+ */
+export function validateConfig(config: Config): Required<Config> {
+  const merged = { ...DEFAULT_CONFIG, ...config }
+  if (typeof merged.tokenEnv !== 'string' || !TOKEN_ENV_RE.test(merged.tokenEnv)) {
+    throw new Error('tokenEnv must be an environment variable NAME (A-Z0-9_ only)')
+  }
+  if (SECRET_LITERAL_RE.test(merged.tokenEnv)) {
+    throw new Error('tokenEnv looks like a credential literal; only environment variable names are accepted')
+  }
+  if (typeof merged.host !== 'string' || merged.host.length === 0) throw new Error('host must be a non-empty string')
+  return merged
+}
+
+/** Capability table placeholder; P1 replaces it with the measured v5 results. */
+export const P0_CAPABILITIES = [
+  { capability: 'repositoryFromRemote', implemented: false, note: 'P1' },
+  { capability: 'changeRequestFromUrl', implemented: false, note: 'P1' },
+  { capability: 'fetch', implemented: false, note: 'P1' },
+] as const
+
+/** Whether a token is present in the environment (never returns the token itself). */
+export function hasToken(config: Required<Config>, env: NodeJS.ProcessEnv = process.env): boolean {
+  return typeof env?.[config.tokenEnv] === 'string' && (env[config.tokenEnv] as string).length > 0
+}
+
+/** Cordis entry: validate the row config; P1 registers the provider with `ctx.forge` here. */
+export function apply(ctx: Context, config: Config): void {
+  const resolved = validateConfig(config)
+  ctx.effect(() => {
+    if (hasToken(resolved)) ctx.logger?.('forge-gitcode')?.info?.('GitCode token present in env %s', resolved.tokenEnv)
+    return () => undefined
+  }, 'forge-gitcode:config')
+}

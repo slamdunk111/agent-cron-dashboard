@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "GitCode forge",
+    "description": "Watches GitCode pull requests through the forge registry: status, checks and mergeability."
+  }
+}

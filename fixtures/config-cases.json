@@ -1,0 +1,155 @@
+{
+  "description": "Config corpus for the frozen workbench schema. Each case is replayed against contracts/config.schema.json (JSON Schema) and contracts/config-validate.ts (typed validator); both engines must agree with `expect`.",
+  "cases": [
+    {
+      "id": "empty-row",
+      "expect": "accept",
+      "config": {}
+    },
+    {
+      "id": "design-section-7-sample",
+      "expect": "accept",
+      "config": {
+        "identities": [
+          { "platform": "github", "username": "nawenyu" },
+          { "platform": "gitcode", "username": "nawenyu", "tokenEnv": "GITCODE_TOKEN" }
+        ],
+        "watch": {
+          "repos": ["https://github.com/nawenyu/dsh-dev", "https://gitcode.com/openJiuwen/jiuwenswarm"],
+          "issuePollIntervalMs": 300000
+        },
+        "fleet": [
+          {
+            "id": "hermes-nas",
+            "kind": "hermes-ssh",
+            "ssh": { "host": "nas", "dbPath": "/root/.hermes/state.db", "errorsLog": "/root/.hermes/logs/errors.log" }
+          },
+          { "id": "jiuwen-gmk", "kind": "jiuwenswarm-local", "paths": { "state": "~/.jiuwenswarm" } },
+          {
+            "id": "any-ssh",
+            "kind": "ssh-sqlite",
+            "ssh": { "host": "example", "dbPath": "/tmp/state.db" },
+            "query": "SELECT id, job_id, occurred_at FROM cron_run_events WHERE id > 0 ORDER BY id"
+          }
+        ],
+        "poll": { "fleetIntervalMs": 300000, "backoffMaxMs": 3600000 },
+        "analysis": { "llm": { "enabled": true }, "greenRunsToVerify": 3, "retentionDays": 90 },
+        "notify": { "actionCards": true, "digest": { "enabled": true, "cron": "0 9 * * *" } }
+      }
+    },
+    {
+      "id": "token-literal-rejected",
+      "expect": "reject",
+      "config": {
+        "identities": [{ "platform": "gitcode", "username": "nawenyu", "token": "glpat-abcdefghijklmnop" }]
+      }
+    },
+    {
+      "id": "token-value-in-tokenEnv",
+      "expect": "reject",
+      "config": {
+        "identities": [{ "platform": "gitcode", "username": "nawenyu", "tokenEnv": "ghp_0123456789abcdefghij" }]
+      }
+    },
+    {
+      "id": "gitcode-tokenEnv-lowercase",
+      "expect": "reject",
+      "config": {
+        "identities": [{ "platform": "gitcode", "username": "nawenyu", "tokenEnv": "gitcode_token" }]
+      }
+    },
+    {
+      "id": "gitcode-without-username",
+      "expect": "reject",
+      "config": {
+        "identities": [{ "platform": "gitcode", "tokenEnv": "GITCODE_TOKEN" }]
+      }
+    },
+    {
+      "id": "unknown-platform",
+      "expect": "reject",
+      "config": {
+        "identities": [{ "platform": "gitee", "username": "nawenyu" }]
+      }
+    },
+    {
+      "id": "unknown-top-level-key",
+      "expect": "reject",
+      "config": { "secrets": { "gitcode": "abc" } }
+    },
+    {
+      "id": "repo-url-not-forge",
+      "expect": "reject",
+      "config": { "watch": { "repos": ["https://gitee.com/nawenyu/dsh-dev"] } }
+    },
+    {
+      "id": "issue-poll-interval-too-small",
+      "expect": "reject",
+      "config": { "watch": { "issuePollIntervalMs": 30000 } }
+    },
+    {
+      "id": "hermes-without-ssh",
+      "expect": "reject",
+      "config": { "fleet": [{ "id": "hermes-nas", "kind": "hermes-ssh" }] }
+    },
+    {
+      "id": "ssh-sqlite-without-query",
+      "expect": "reject",
+      "config": { "fleet": [{ "id": "any-ssh", "kind": "ssh-sqlite", "ssh": { "host": "example" } }] }
+    },
+    {
+      "id": "ssh-sqlite-multi-statement",
+      "expect": "reject",
+      "config": {
+        "fleet": [
+          {
+            "id": "any-ssh",
+            "kind": "ssh-sqlite",
+            "ssh": { "host": "example" },
+            "query": "SELECT 1 FROM t; DELETE FROM t WHERE id > 0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ssh-host-injection",
+      "expect": "reject",
+      "config": { "fleet": [{ "id": "any-ssh", "kind": "ssh-sqlite", "ssh": { "host": "nas; rm -rf /" }, "query": "SELECT id FROM t" }] }
+    },
+    {
+      "id": "jiuwenswarm-without-paths",
+      "expect": "reject",
+      "config": { "fleet": [{ "id": "jiuwen-gmk", "kind": "jiuwenswarm-local" }] }
+    },
+    {
+      "id": "unknown-fleet-kind",
+      "expect": "reject",
+      "config": { "fleet": [{ "id": "x", "kind": "kubernetes-cron" }] }
+    },
+    {
+      "id": "digest-cron-malformed",
+      "expect": "reject",
+      "config": { "notify": { "digest": { "cron": "every morning" } } }
+    },
+    {
+      "id": "digest-cron-five-fields",
+      "expect": "accept",
+      "config": { "notify": { "digest": { "cron": "*/30 8-20 * * 1-5" } } }
+    },
+    {
+      "id": "unknown-analysis-key",
+      "expect": "reject",
+      "config": { "analysis": { "model": "gpt-5" } }
+    },
+    {
+      "id": "green-runs-zero",
+      "expect": "reject",
+      "config": { "analysis": { "greenRunsToVerify": 0 } }
+    },
+    {
+      "id": "poll-type-string",
+      "expect": "reject",
+      "config": { "poll": { "fleetIntervalMs": "300000" } }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+- insert:
+    - id: forge-gitcode
+      name: dsh-forge-gitcode
+      config:
+        tokenEnv: GITCODE_TOKEN

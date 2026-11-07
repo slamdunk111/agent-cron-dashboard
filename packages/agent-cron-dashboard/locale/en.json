@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Workbench",
+    "description": "Watches my community pull requests and issues and the cron jobs of my fleet, with error analysis and resolution tracking."
+  }
+}

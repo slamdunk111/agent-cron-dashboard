@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+
+# esbuild ships a platform binary via its install script; it is needed by
+# scripts/build-bundles.mjs (the dsh loader runs plain JS, see ADR P0-3).
+# Approved install scripts (pnpm 10+ blocks them by default).
+allowBuilds:
+  esbuild: true

@@ -1,0 +1,53 @@
+{
+  "name": "agent-cron-dashboard",
+  "version": "0.1.0",
+  "description": "dsh personal workbench: community PR/issue watch plus cron fleet monitoring with error analysis and resolution tracking.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./client/index.ts",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "src/**/*.ts",
+    "client/**/*.ts",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "cordis",
+    "cron",
+    "monitoring",
+    "github",
+    "gitcode",
+    "workbench"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nawenyu/agent-cron-dashboard.git",
+    "directory": "packages/agent-cron-dashboard"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-storage-domain": "0.2.2-rc.1",
+    "zod": "^4.0.0"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.3"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  }
+}

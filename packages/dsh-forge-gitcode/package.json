@@ -1,0 +1,43 @@
+{
+  "name": "dsh-forge-gitcode",
+  "version": "0.1.0",
+  "description": "GitCode (api/v5) provider for the dsh experimental forge registry: PR/MR status, checks and mergeability.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "src/**/*.ts",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "cordis",
+    "forge",
+    "gitcode",
+    "pull-request"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nawenyu/agent-cron-dashboard.git",
+    "directory": "packages/dsh-forge-gitcode"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.3"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

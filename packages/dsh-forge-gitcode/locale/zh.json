@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "GitCode 托管平台",
+    "description": "通过 forge 注册表盯 GitCode 拉取请求：状态、检查与可合并性。"
+  }
+}

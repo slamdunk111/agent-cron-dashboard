@@ -1,0 +1,7 @@
+# Rows of the agent-cron-dashboard bundle. P2..P7 add their own rows
+# (community seeding/watch, issue polling, change engine + notify, fleet
+# adapters, error pipeline, workbench page) next to these.
+- insert:
+    - id: workbench
+      name: agent-cron-dashboard
+      config: {}
