@@ -257,6 +257,8 @@ export class WorkbenchService extends Service {
   readonly startedAt = new Date().toISOString()
   /** Why storage domains failed to open (inspect-visible), or null while healthy. */
   domainError: string | null = null
+  /** Open in progress; retries join it instead of opening the same domains again. */
+  private opening: Promise<void> | undefined
 
   constructor(ctx: Context, raw: Config) {
     super(ctx, 'workbench')
@@ -329,6 +331,18 @@ export class WorkbenchService extends Service {
    * @throws DomainError when a backend route is missing or a stored record is invalid.
    */
   async openDomains(): Promise<void> {
+    // Single-flight: a slow open overlapping a retry would open the same domain
+    // twice (the facility then answers `already-open` for the second call and
+    // the later handle would replace the first). Retries piggyback on the call
+    // already in progress.
+    this.opening ??= this.openDomainsOnce().finally(() => {
+      this.opening = undefined
+    })
+    await this.opening
+  }
+
+  /** Open every declared domain that this row does not hold yet. */
+  private async openDomainsOnce(): Promise<void> {
     // The `storageDomain` form is mounted by the composed `storage-domain` row
     // under the profile's `storage` hub. Read it through `ctx.get`, which
     // resolves from the plugin's committed services and does not trip the
