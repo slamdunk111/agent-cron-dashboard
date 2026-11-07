@@ -5,13 +5,18 @@
 #
 # Steps (each printed with its command and exit code; output also lands in
 # <handoff-dir>/smoke-p0.log):
-#   1. node scripts/build-bundles.mjs            build step (ADR P0-3)
-#   2. pnpm test                                  unit gate (vitest, corpus in two engines)
-#   3. node scripts/validate-config.mjs           frozen schema vs typed validator corpus
-#   4. dsh --dump-config                          both rows present in the composed tree
-#   5. node --input-type=module -e '...'          the loadable bundles export `apply`/`name`/`Config`
-#   6. dsh web boot on an ephemeral port          the row activates (required plugins all up)
-#   7. dsh headless --json "<inspect prompt>"     cordis_inspect_query lists the seven storage domains
+#   0. header                 date/host/uptime/load baseline (owner 9b rule)
+#   1. build                  node scripts/build-bundles.mjs
+#   1b. contract copies       node scripts/sync-contracts.mjs --check
+#   1c. typecheck             pnpm run typecheck
+#   2. unit tests             pnpm run test (7 files, 91 cases incl. row lifecycle)
+#   3. config corpus          node scripts/validate-config.mjs (plain Ajv 2020-12 + typed)
+#   4. composed profile       dsh --dump-config shows both rows
+#   5. bundle surface         the built bundles export apply/name/Config
+#   6. live boot              dsh web serves AND the row prints "storage domains opened"
+#   6b. storage layer         node scripts/probe-domains.mjs (json backend round trip)
+#   7. inspect manifest       inspectProvider manifest shape
+#   8. inspect answer         offline answer of inspectProvider (GUI read stays a handoff item)
 #
 # Exit code 0 only when every step succeeds.
 set -uo pipefail

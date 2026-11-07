@@ -72,7 +72,9 @@ describe('row apply opens the storage domains', () => {
 })
 
 describe('row unmount closes the domains it opened', () => {
-  it('closes every domain when the row is disposed', async () => {
+  // Storage-layer regression only: this one relies on the storage plugin's own
+  // teardown, so it does NOT stand as evidence for the row disposer.
+  it('storage teardown closes domains after the row is disposed', async () => {
     const ctx = await compose()
     const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = new WorkbenchService(ctx, {})

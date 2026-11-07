@@ -25,9 +25,9 @@ describe('inject vs ctx.get probe', () => {
     await ctx.plugin(StorageJson, { root: mkdtempSync(join(tmpdir(), 'inject-probe-')) })
     await ctx.plugin(StorageDomain, { backend: 'json' })
     expect(ctx.get('storageDomain')).toBeDefined()
-    // The service is constructed on a fresh host that has already opened
-    // services; opening the shipped domains here would collide with the row
-    // suite (single-open per facility), so this probe only pins the read path.
+    // Constructing the service registers its effect, which also starts opening
+    // the shipped domains on this host; the probe therefore only pins the read
+    // path and releases the facility at the end (no assertion on domain state).
     const { WorkbenchService, DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = new WorkbenchService(ctx, {})
     expect(DOMAINS).toHaveLength(7)
@@ -36,7 +36,7 @@ describe('inject vs ctx.get probe', () => {
     await ctx.get('storageDomain')?.closeAll()
   })
 
-  it('the bare proxy read throws without the row mount (ADR P0-6 premise)', async () => {
+  it('the bare proxy read is undefined without the row mount (ADR P0-6)', async () => {
     const { Context } = await import('@deepseek-ai/cordis')
     const ctx = new Context()
     const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
