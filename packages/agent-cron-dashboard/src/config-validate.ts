@@ -22,7 +22,6 @@ export class ConfigValidationError extends Error {
 }
 
 const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
-/** Literal credential shapes; a value matching one of these inside a tokenEnv is a leak, not a name. */
 const REPO_URL_RE = /^(?:https?:\/\/)?(?:github\.com|gitcode\.com)\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/
 const SOURCE_ID_RE = /^[A-Za-z0-9_.-]+$/
 const SSH_HOST_RE = /^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$/
@@ -56,7 +55,11 @@ function boolAt(path: string, value: unknown, fallback: boolean): boolean {
 }
 
 function strAt(path: string, value: unknown, min: number, max: number): string {
-  if (typeof value !== 'string' || value.length < min || value.length > max) {
+  // Code-point length, matching JSON Schema `minLength`/`maxLength` (Ajv counts
+  // code points, not UTF-16 units), so the two engines agree on emoji and
+  // astral-plane input.
+  const length = typeof value === 'string' ? Array.from(value).length : 0
+  if (typeof value !== 'string' || length < min || length > max) {
     throw new ConfigValidationError(path, `expected string of length ${min}..${max}`)
   }
   return value
@@ -78,7 +81,9 @@ function rejectUnknownKeys(path: string, value: Record<string, unknown>, allowed
  */
 export function validateSshQuery(path: string, value: unknown): string {
   const query = strAt(path, value, 8, 4096)
-  const trimmed = query.trim().replace(/;+$/, '')
+  // Leading whitespace is allowed (schema `^\s*[Ss][Ee][Ll][Ee][Cc][Tt]\b`);
+  // trailing semicolons and whitespace are tolerated.
+  const trimmed = query.trim().replace(/[\s;]+$/, '')
   if (!/^select\b/i.test(trimmed)) throw new ConfigValidationError(path, 'expected a read-only SELECT statement')
   if (trimmed.includes(';')) throw new ConfigValidationError(path, 'expected a single statement (no second statement after SELECT)')
   return trimmed

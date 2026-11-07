@@ -98,7 +98,8 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^(https?://)?(github\\.com|gitcode\\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(\\.git)?/?$"
+            "pattern": "^(https?://)?(github\\.com|gitcode\\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(\\.git)?/?$",
+            "maxLength": 2048
           }
         },
         "issuePollIntervalMs": {
@@ -281,7 +282,7 @@
       "not": {
         "pattern": ";\\s*[^;\\s]"
       },
-      "description": "Single read-only SELECT statement: starts with SELECT (case-insensitive), may end with one semicolon, must not contain a second statement. Standard validators enforce this without extension keywords; contracts/config-validate.ts validateSshQuery applies the same rule and rejects the trailing statement.",
+      "description": "Single read-only SELECT statement: starts with SELECT (case-insensitive), may end with trailing semicolons and whitespace, and must not contain a second statement. Enforced by standard 2020-12 validators (no extension keywords); contracts/config-validate.ts validateSshQuery applies the same rule, and P5 must additionally open the database read-only (mode=ro URI), because SELECT can still call side-effecting SQLite functions.",
       "pattern": "^\\s*[Ss][Ee][Ll][Ee][Cc][Tt]\\b"
     },
     "poll": {

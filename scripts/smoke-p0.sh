@@ -86,14 +86,9 @@ process.exit(ok ? 0 : 1)
 
 BOOT_PORT=18120
 step "6. row activation on a live host" "dsh --profile $PROFILE web --port $BOOT_PORT"
-# The live boot proves the composed profile loads and every required plugin
-# activates (the row reports no error). Deviation from the plan: the bundles
-# were installed with `dsh plugin --profile ... add` (link form), not the GUI
-# `plugin_manager install_bundle`, so no `application: applied` line is produced
-# here (see handoff §7 deviation table).
-# NOTE (P0 finding): storage documents only materialise on the first write, so
-# the file system cannot show the open; the row-path usability is proven by
-# test/row-apply.test.ts instead, and the GUI inspect read stays a handoff item.
+# Asserts the row's own line `workbench: storage domains opened (N)`, printed by
+# the service once its seven domains are open — not just that HTTP serves
+# (handoff §4-9: the web profile filters plugin info logs, so the row echoes it).
 bootlog="$(mktemp)"
 ( dsh --profile "$PROFILE" --no-open --port $BOOT_PORT --host 127.0.0.1 >"$bootlog" 2>&1 & )
 READY=0
@@ -102,14 +97,21 @@ for _ in $(seq 1 30); do
   if grep -q "startup failed" "$bootlog" 2>/dev/null; then READY=2; break; fi
   sleep 1
 done
-# Stop only the server this step started, by its own port.
+# Give the row's domain-open effect a further window, then look for its log line.
+DOMAINS_OPENED=0
+for _ in $(seq 1 20); do
+  if grep -q "workbench: storage domains opened" "$bootlog" 2>/dev/null; then DOMAINS_OPENED=1; break; fi
+  sleep 1
+done
 for pid in $(ls /proc | grep -E '^[0-9]+$'); do
   cmd="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)" || continue
   case "$cmd" in *"dsh --profile $PROFILE"*"--port $BOOT_PORT"*) kill "$pid" 2>/dev/null;; esac
 done
-{ echo "boot output:"; cat "$bootlog"; } | tee -a "$LOG"
-if [ "$READY" -eq 1 ]; then
-  echo "profile composed and served within 30s (plugin_manager link install; no 'application: applied' line exists outside the GUI tool)" | tee -a "$LOG"; rc_of 0
+{ echo "boot output:"; cat "$bootlog"; echo "row open line found: $DOMAINS_OPENED"; } | tee -a "$LOG"
+if [ "$READY" -eq 1 ] && [ "$DOMAINS_OPENED" -eq 1 ]; then
+  echo "profile served and the row reported its storage domains open" | tee -a "$LOG"; rc_of 0
+elif [ "$READY" -eq 1 ]; then
+  echo "profile served, but the row did not report its domains open (log level may hide info)" | tee -a "$LOG"; rc_of 1; FAILED=1
 else
   echo "boot did not reach a serving state within 30s (ready=$READY)" | tee -a "$LOG"; rc_of 1; FAILED=1
 fi

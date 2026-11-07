@@ -259,11 +259,7 @@ export class WorkbenchService extends Service {
   domainError: string | null = null
 
   constructor(ctx: Context, raw: Config) {
-    // `Service` in cordis 4.1.0 is typed `(ctx: Context, name?: string)`, and
-    // dsh passes a `Context` whose type identity differs from the published
-    // `@deepseek-ai/cordis` declaration (two copies of the type in the install
-    // tree). This single, documented cast bridges that; it adds no behaviour.
-    super(ctx as unknown as ConstructorParameters<typeof Service>[0], 'workbench')
+    super(ctx, 'workbench')
     this.config = resolveConfig(raw)
     // Published for read-only inspect reads.
     workbenchService = this
@@ -272,47 +268,53 @@ export class WorkbenchService extends Service {
     ctx.effect(() => {
       let disposed = false
       let retry: ReturnType<typeof setInterval> | undefined
-      // The domains stay OPEN for the lifetime of the row; they are closed
-      // exactly once, by this effect's disposer. (A first version closed them
-      // right after opening, which an external probe caught: every read/write
-      // then failed with `closed`. row-apply.test.ts now asserts usability.)
+      // Every open attempt (first one and each retry) is tracked so disposal
+      // can wait for an in-flight open to settle before closing whatever it
+      // opened; otherwise a mid-open unmount leaks the domains opened after
+      // the disposer already took its snapshot.
       const opened = () => {
         if (disposed) return
         this.domainError = null
-        ctx.logger?.('workbench')?.info?.('workbench: storage domains opened (%d)', this.domainNames().length)
+        // Also printed to stdout: the web profile keeps only diagnostics logs
+        // under ~/.dsh/logs, so acceptance checks need a visible line.
+        const line = 'workbench: storage domains opened (' + this.domainNames().length + ')'
+        ctx.logger?.('workbench')?.info?.(line)
+        console.log(line)
       }
-      void this.openDomains()
-        // The domain facility may still be mounting when this row activates
-        // (`storage-domain` injects the `storage` hub), so absence is retried
-        // rather than reported as a permanent failure.
-        .then(opened)
-        .catch(() => {
-          if (disposed) return
-          let attempts = 0
-          retry = setInterval(() => {
-            if (disposed) {
-              if (retry !== undefined) clearInterval(retry)
-              return
-            }
-            attempts += 1
-            void this.openDomains()
-              .then(() => {
-                if (retry !== undefined) clearInterval(retry)
-                opened()
-                ctx.logger?.('workbench')?.info?.('workbench: storage domains opened after %d retries', attempts)
-              })
-              .catch((error: unknown) => {
-                this.domainError = String(error instanceof Error ? error.message : error)
-                if (attempts >= 20 && retry !== undefined) {
-                  clearInterval(retry)
-                  ctx.logger?.('workbench')?.error?.('workbench: storage domains unavailable: %s', this.domainError)
+      const attempts: Promise<void>[] = []
+      const attempt = () => {
+        const pending = this.openDomains()
+        attempts.push(pending)
+        void pending
+          .then(() => {
+            if (disposed) return
+            if (retry !== undefined) clearInterval(retry)
+            opened()
+          })
+          .catch((error: unknown) => {
+            if (disposed) return
+            this.domainError = String(error instanceof Error ? error.message : error)
+            if (retry === undefined) {
+              // The domain facility may still be mounting when this row
+              // activates (`storage-domain` injects the `storage` hub), so
+              // absence is retried rather than treated as permanent.
+              retry = setInterval(() => {
+                if (disposed) {
+                  if (retry !== undefined) clearInterval(retry)
+                  return
                 }
-              })
-          }, 1000)
-        })
+                attempt()
+              }, 1000)
+            }
+          })
+      }
+      attempt()
       return async () => {
         disposed = true
         if (retry !== undefined) clearInterval(retry)
+        // Let every open attempt still in flight finish (a retry may be revisiting
+        // domains the first attempt already opened), then close what the row holds.
+        await Promise.allSettled(attempts)
         await Promise.allSettled(
           Object.values(this.domains).map((domain) => (domain as { close(): Promise<void> }).close()),
         )

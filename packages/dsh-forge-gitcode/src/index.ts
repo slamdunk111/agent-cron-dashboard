@@ -12,7 +12,11 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 
-/** Token env name: environment variable NAME only (3..128 chars), never a credential literal. */
+/**
+ * Token env name rule. The same rule lives in `contracts/config-validate.ts`
+ * validateTokenEnv (mirrored into the main bundle by `pnpm sync:contracts`); a
+ * note in ADR P0-4 records why a package-local copy is kept here.
+ */
 const TOKEN_ENV_RE = /^[A-Z][A-Z0-9_]*$/
 
 export interface Config {

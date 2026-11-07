@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 
-// Storage domains are single-open per facility; each test closes the ones it
-// opened so the next test can open them again on its own composition.
+// Storage domains are single-open per facility: each test composes its own host
+// and opens the domains itself; `afterAll` releases the leftovers.
 
 /**
  * Row-path proof: compose the host exactly as dsh-base does (storage hub, json
@@ -68,5 +68,39 @@ describe('row apply opens the storage domains', () => {
     await service.openDomains()
     expect(Object.keys(service.domains)).toHaveLength(7)
     expect(service.domainError).toBeNull()
+  })
+})
+
+describe('row unmount closes the domains it opened', () => {
+  it('closes every domain when the row is disposed', async () => {
+    const ctx = await compose()
+    const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
+    const service = new WorkbenchService(ctx, {})
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    const fingerprints = service.domains.workbench_fingerprints as {
+      table(name: string): { put(key: string, value: unknown): Promise<void>; get(key: string): unknown }
+    }
+    await fingerprints.table('fingerprints').put('sig-unmount', {
+      signature: 'sig-unmount',
+      recordId: 'rec-unmount',
+      count: 1,
+      lastSeen: '2026-11-07T00:00:00+08:00',
+    })
+    expect(fingerprints.table('fingerprints').get('sig-unmount')).toBeDefined()
+    // Dispose the row: dsh calls the service's disposer on row unmount.
+    await ctx.fiber.dispose()
+    expect(service.domainNames()).toHaveLength(7)
+    expect(() => fingerprints.table('fingerprints').get('sig-unmount')).toThrow(/closed/)
+  })
+
+  it('opens nothing more after disposal (retry timer is cleared)', async () => {
+    const ctx = await compose()
+    const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
+    const service = new WorkbenchService(ctx, {})
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    await ctx.fiber.dispose()
+    const snapshot = Object.keys(service.domains).length
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+    expect(Object.keys(service.domains).length).toBe(snapshot)
   })
 })

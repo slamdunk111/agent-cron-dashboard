@@ -32,16 +32,6 @@ function loadValidator(schema) {
   return ajv.compile(schema)
 }
 
-/**
- * A plain, unextended Ajv instance is the contract's real referee: the schema
- * must be enforceable by a standard 2020-12 validator without registering any
- * custom keyword (a keyword-free schema is what P5's other consumers would get).
- */
-function loadPlainValidator(schema) {
-  const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module
-  return new Ajv2020({ allErrors: true, strict: true }).compile(schema)
-}
-
 async function main() {
   const schema = JSON.parse(readFileSync(resolve(root, 'contracts/config.schema.json'), 'utf8'))
   const corpus = JSON.parse(readFileSync(resolve(root, 'fixtures/config-cases.json'), 'utf8'))

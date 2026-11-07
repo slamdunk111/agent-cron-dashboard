@@ -20,3 +20,7 @@
 ## 受影响 plan
 
 - P1..P7：需要运行时校验/类型时，从 `contracts/` 改，然后跑 `pnpm sync:contracts`；禁直接改副本。
+
+## 备注：forge 包的 tokenEnv 规则副本
+
+`packages/dsh-forge-gitcode/src/index.ts` 因同一原因（安装时复制包目录、包外相对路径不可达）保留了一份 `TOKEN_ENV_RE`（3..128 大写名字）。它是契约规则的**第二处实现**，两处必须同步修改；主包用生成副本、forge 包用手写副本，`pnpm sync:contracts --check` 只覆盖主包那份。若将来把 forge 包改为依赖主包，可收敛为一处。
