@@ -31,5 +31,6 @@ GitCode（`https://gitcode.com/api/v5`）的 `dsh-experimental-forge` provider�
 ## 已知限制
 
 - CI 只能给一条合成检查项 `ci (N tasks)`，无逐检查状态与链接。
-- `unresolvedThreads` 恒为 0（无逐线程解析态端点）；`reviewDecision` 只由审批计数推导。
+- `unresolvedThreads` 恒为 0（无逐线程解析态端点）。
+- `reviewDecision` 只由审批计数推导（`approvers >= required` → `approved`，否则 `review-required`）；**GitCode 没有 reviews 端点（`/pulls/{n}/reviews` 404），因此 `changes-requested` 无法判定，本 provider 从不产出该值**。
 - 时间戳缺失时 GitCode 发 `""` 而非 `null`，映射按非空字符串判定。

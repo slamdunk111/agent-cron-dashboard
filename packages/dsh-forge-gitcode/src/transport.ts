@@ -96,11 +96,24 @@ export async function request(
   // The token is read from the environment by the caller and never logged.
   if (features.token !== undefined && features.token.length > 0) headers['private-token'] = features.token
   try {
-    const response = await doFetch(url, { method: 'GET', headers, signal: deadline.signal, redirect: 'follow' })
+    // `redirect: 'manual'`: a token must never be forwarded by a redirect the
+    // caller's URL did not name (a served host could bounce to any domain).
+    const response = await doFetch(url, { method: 'GET', headers, signal: deadline.signal, redirect: 'manual' })
     const max = features.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES
     const text = await response.text()
     if (text.length > max) {
       return { ok: false, failure: { code: 'too-large', message: `response is ${text.length} bytes, limit ${max}` } }
+    }
+    if (response.status >= 300 && response.status < 400) {
+      // A redirected read is refused rather than followed, so credentials stay
+      // on the host that was asked for.
+      return {
+        ok: false,
+        failure: {
+          code: 'unavailable',
+          message: `redirected (${response.status}) to ${response.headers.get('location') ?? 'unknown'}; refusing to follow`,
+        },
+      }
     }
     if (!response.ok) return { ok: false, failure: failureOf(response.status, text, `HTTP ${response.status}`) }
     return { ok: true, status: response.status, text }

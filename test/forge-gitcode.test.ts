@@ -339,13 +339,63 @@ describe('files pagination and no-token fallback (C4)', () => {
   it('reads public repositories with no token at all (clip below 400/403)', async () => {
     const headersSeen: { privateToken?: string }[] = []
     const impl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
       headersSeen.push({ privateToken: (init?.headers as Record<string, string> | undefined)?.['private-token'] })
+      // The files read must answer an array; a single PR object makes the
+      // provider fail (which is the C3 behaviour, not what this case checks).
+      if (url.includes('/files')) return Response.json([{ filename: 'f', additions: 1, deletions: 0 }])
       return Response.json(pullOpen)
     }) as unknown as typeof fetch
-    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: undefined })
+    // `token: ''` means "definitely no token"; leaving it undefined would fall
+    // back to the environment and make the case host-dependent.
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: '' })
     const result = await provider.fetch([ref], signalOf())
     expect((result.get(snapshotKey(ref)) as ChangeRequestSnapshot).state).toBe('open')
     expect(headersSeen.every((entry) => entry.privateToken === undefined)).toBe(true)
+  })
+})
+
+describe('P1 review fixes R2 (redirects, payload shape, ci branch)', () => {
+  it('refuses a redirect instead of forwarding credentials (C1 residual)', async () => {
+    const calls: string[] = []
+    const impl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      calls.push(url)
+      if (init?.redirect !== 'manual') throw new Error(`expected redirect:manual, got ${String(init?.redirect)}`)
+      return new Response('', { status: 302, headers: { location: 'https://evil.example/steal' } })
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: 'secret-token' })
+    const result = await provider.fetch([ref], signalOf())
+    expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).not.toContain('evil.example')
+  })
+
+  it('fails when a files page answers 200 with a non-list body (C3 residual)', async () => {
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.includes('/files')) return Response.json({ message: 'nope' })
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+  })
+
+  it('maps ci_state_passed=false with zero tasks to none, not failure (M-M3)', () => {
+    const noTasks = snapshotOf(
+      { ...pullOpen, check_tasks_num: 0, mergeable_state: { ...(pullOpen.mergeable_state as Record<string, unknown>), ci_state_passed: false } },
+      ref,
+    )
+    expect(noTasks.checksRollup).toBe('none')
+  })
+
+  it('never emits changes-requested even when the guard fails with approvals (M-C2)', () => {
+    const snapshot = snapshotOf(
+      { ...pullOpen, mergeable_state: { approval_required_reviewers_count: 2, approval_approvers_result: 1, approval_reviewers_required_passed: false } },
+      ref,
+    )
+    expect(snapshot.reviewDecision).not.toBe('changes-requested')
+    expect(['approved', 'review-required', 'none']).toContain(snapshot.reviewDecision)
   })
 })
 

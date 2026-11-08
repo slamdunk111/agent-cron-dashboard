@@ -202,7 +202,11 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       const parsed = parseJson(result.text)
       if (!parsed.ok) return parsed.failure
       const rows = parsed.value as GitCodeFileJson[]
-      if (!Array.isArray(rows) || rows.length === 0) break
+      if (!Array.isArray(rows)) {
+        // A 200 that is not a file list makes the counts unknowable.
+        return { code: 'unavailable', message: `unexpected files payload on page ${page}` }
+      }
+      if (rows.length === 0) return countFileLines(all)
       all.push(...rows)
       if (rows.length < config.filesPageSize) return countFileLines(all)
       if (page === 10) {
