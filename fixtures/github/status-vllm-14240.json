@@ -1,0 +1,12 @@
+{
+  "state": "success",
+  "total_count": 2,
+  "check_total_count": 12,
+  "check_conclusions": [
+    "failure",
+    "skipped",
+    "success"
+  ],
+  "_capturedAt": "2026-11-08T13:33:25.200711+08:00",
+  "_sha": "62e093545a3d502a402a7bc36bfd157a5b562c39"
+}

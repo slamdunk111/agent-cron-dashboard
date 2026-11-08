@@ -1,0 +1,54 @@
+{
+  "number": 9722,
+  "state": "open",
+  "draft": false,
+  "mergeable": true,
+  "merged_at": "",
+  "closed_at": "",
+  "created_at": "2026-11-08T07:37:27+08:00",
+  "updated_at": "2026-11-08T09:50:03+08:00",
+  "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/9722",
+  "title": "【致命】fix(supervisor): delivery ledger and placeholder card against silent replies",
+  "check_tasks_num": null,
+  "user": {
+    "login": "nawenyu139"
+  },
+  "head": {
+    "ref": "fix/p6-silent-sowallow",
+    "sha": "1fd31b48df025ebe32cbb8a2484a6bdb45962788",
+    "label": "fix/p6-silent-sowallow"
+  },
+  "base": {
+    "ref": "develop"
+  },
+  "labels": [
+    {
+      "name": "sig/jiuwenswarm"
+    },
+    {
+      "name": "stat/needs-squash"
+    },
+    {
+      "name": "openJiuwen-cla/yes"
+    },
+    {
+      "name": "AI-Reviewed"
+    },
+    {
+      "name": "ci-successful"
+    }
+  ],
+  "mergeable_state": {
+    "ci_state_passed": true,
+    "conflict_passed": true,
+    "work_in_progress_passed": true,
+    "mr_state_passed": true,
+    "merged_by_user_passed": false,
+    "merge_by_self_passed": false,
+    "check_tasks_num": 1,
+    "reason": {
+      "merged_by_user_passed": "You are in project members list, but do not have PUSH permission, please check it."
+    }
+  },
+  "_capturedAt": "2026-11-08T13:21:20.048688+08:00"
+}

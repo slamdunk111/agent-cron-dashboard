@@ -12,6 +12,8 @@ export type ChangeLevel = 'high' | 'medium'
 
 /** Community-side change kinds (PR + issue, design §4.4). */
 export type CommunityChangeKind =
+  /** First observation of a change request: the engine sees a snapshot pair whose `before` is null (P2 seeds, P4 emits; ADR P2-1). */
+  | 'pr-seeded'
   | 'pr-ci-failed'
   | 'pr-review-changes-requested'
   | 'pr-conflicting'
@@ -79,6 +81,8 @@ export interface ChangeEvent {
 
 /** Static severity table used by {@link classifyChange}. Keys are change kinds. */
 export const CHANGE_LEVELS: Readonly<Record<ChangeKind, ChangeLevel>> = Object.freeze({
+  // First observation is digest material only; the engine never notifies for it.
+  'pr-seeded': 'medium',
   'pr-ci-failed': 'high',
   'pr-review-changes-requested': 'high',
   'pr-conflicting': 'high',
@@ -104,4 +108,21 @@ export const CHANGE_LEVELS: Readonly<Record<ChangeKind, ChangeLevel>> = Object.f
 /** Look up the notification level of a change kind. */
 export function classifyChange(kind: ChangeKind): ChangeLevel {
   return CHANGE_LEVELS[kind]
+}
+
+/**
+ * One polling result handed to the change engine: the snapshot before and after
+ * a poll (P2 writes these, P4 reads them). `before === null` means "first
+ * observation", which is what makes a `pr-seeded` event; the engine must not
+ * notify for that pair.
+ */
+export interface SnapshotPair<T = unknown> {
+  /** Storage key of the subject, e.g. `github/o/r/12`. */
+  readonly key: string
+  /** Snapshot the pair started from; null on first observation. */
+  readonly before: T | null
+  /** Snapshot the poll produced. */
+  readonly after: T
+  /** ISO 8601 of the poll that produced `after`. */
+  readonly at: string
 }
