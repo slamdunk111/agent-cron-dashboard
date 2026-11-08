@@ -273,8 +273,9 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
   }
   // Any note (skip, truncation, page failure) is a named degradation; only a
   // total failure without a single item is `down`.
-  const gitcodeState: SeedHealth['state'] =
-    gitcodeProblems.length === 0 ? 'up' : seeded.some((item) => item.platform === 'gitcode') || !gitcodeProblems.some((entry) => /HTTP|failed|not a JSON list/.test(entry)) ? 'degraded' : 'down'
+  // A platform that was skipped outright (identity down) is `down`, not `degraded`.
+  const skipped = gitcodeProblems.some((entry) => /skipped/.test(entry))
+  const gitcodeState: SeedHealth['state'] = gitcodeProblems.length === 0 ? 'up' : skipped ? 'down' : 'degraded'
 
   const health: SeedHealth[] = [
     { ...githubHealth, state: githubState, message: githubProblems.length === 0 ? null : [...githubProblems, ...note].join('; ') },

@@ -454,3 +454,43 @@ export function apply(ctx: Context, raw: Config = {}): void {
     }
   }, 'workbench:announce')
 }
+
+/**
+ * Community surface (P2): the seeding/watch building blocks and the
+ * redact/identity helpers the smoke script composes with.
+ */
+export {
+  resolveIdentities,
+  effectiveLogin,
+  redact,
+  redact as redactLine,
+  tokenOf,
+  type PlatformIdentity,
+  type IdentityOptions,
+} from './community/identity.ts'
+export {
+  seedPullRequests,
+  parseRepo,
+  lastPageOf,
+  dedupe,
+  seededKey,
+  seedCursorToken,
+  type SeededPr,
+  type SeedOutcome,
+  type SeedHealth,
+} from './community/seeding.ts'
+export { GithubProvider, fetchGithub, snapshotOf, rollupOf, mergeabilityOf, reviewDecisionOf, githubKey } from './community/github.ts'
+export { forgeWatchSource, makeGitCodeWatchSource } from './community/gitcode-watch.ts'
+export {
+  PrWatchService,
+  makePrWatchService,
+  createMemoryTables,
+  capabilityNotes,
+  writeCapabilities,
+  watchKey,
+  QUEUE_CAPACITY,
+  type WatchRef,
+  type WatchSource,
+  type WatchUpdate,
+  type PrWatchOptions,
+} from './community/pr-watch.ts'

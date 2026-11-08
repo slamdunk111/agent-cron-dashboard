@@ -183,7 +183,8 @@ describe('seeding: page rules and author filter match the fixtures', () => {
     })
     expect(outcome.seeded).toHaveLength(0)
     const health = outcome.health.find((row) => row.sourceId === 'community:seed:gitcode')
-    expect(health?.state).toBe('degraded')
+    // A platform skipped for good (identity down) is reported as `down`.
+    expect(health?.state).toBe('down')
     expect(health?.message).toContain('GitCode seeding skipped')
   })
 
@@ -383,6 +384,51 @@ describe('pr watch: first observation, queue and crash recovery', () => {
     expect(queue.pairs).toHaveLength(QUEUE_CAPACITY)
     expect(queue.pairs.some((entry: { before: unknown }) => entry.before === null)).toBe(true)
     expect(queue.dropped).toBeGreaterThan(0)
+  })
+
+  it('marks a change dropped when the queue is full of first-observation pairs', async () => {
+    const tables = memoryTables()
+    const { source: watchSource, emit } = fakeSource()
+    const service = new PrWatchService({ prTable: tables.prTable, cursors: tables.cursors, sources: { gitcode: watchSource }, log: () => {} })
+    const key = watchKey(ref)
+    const poll = snapshotAt('a1')
+    const queue = {
+      pairs: Array.from({ length: QUEUE_CAPACITY }, (_, index) => ({ key, before: null, after: { ...poll, headSha: `f${index}` }, at: '2026-11-08T08:00:00Z' })),
+      dropped: 0,
+      applied: QUEUE_CAPACITY,
+      nextSeq: QUEUE_CAPACITY + 1,
+      pending: null,
+      lastApplied: null,
+    }
+    tables.cursors.put(`${key}:queue`, { token: JSON.stringify(queue), updatedAt: 'x' })
+    tables.prTable.put(key, snapshotOfStored(ref, poll))
+    service.applyWatchSet([ref])
+    await emit({ key, fetchedAt: Date.UTC(2026, 10, 8, 8, 30, 0), snapshot: snapshotAt('a2') })
+    const after = JSON.parse(tables.cursors.get(`${key}:queue`)?.token ?? '{}')
+    expect(after.pairs).toHaveLength(QUEUE_CAPACITY)
+    expect(after.dropped).toBe(1)
+    expect(tables.prTable.get(key)?.headSha).toBe('a2')
+  })
+
+  it('recovers a pending first observation after a restart and counts its retries', async () => {
+    const tables = memoryTables()
+    const { source: watchSource, emit } = fakeSource()
+    const key = watchKey(ref)
+    const poll = snapshotAt('a1')
+    // Marker written, snapshot missing (crash before step 3): the retry re-queues.
+    tables.cursors.put(`${key}:queue`, {
+      token: JSON.stringify({ pairs: [], dropped: 0, applied: 0, nextSeq: 2, pending: { seq: 1, snapshot: snapshotOfStored(ref, poll), at: '2026-11-08T08:00:00Z', retries: 1 }, lastApplied: null }),
+      updatedAt: 'x',
+    })
+    const service = new PrWatchService({ prTable: tables.prTable, cursors: tables.cursors, sources: { gitcode: watchSource }, log: () => {} })
+    service.applyWatchSet([ref])
+    await emit({ key, fetchedAt: Date.UTC(2026, 10, 8, 8, 0, 0), snapshot: poll })
+    // Snapshot existed? no: firstObservation wrote it, so the marker queues next round.
+    await emit({ key, fetchedAt: Date.UTC(2026, 10, 8, 8, 10, 0), snapshot: poll })
+    const queue = JSON.parse(tables.cursors.get(`${key}:queue`)?.token ?? '{}')
+    expect(queue.pending).toBeNull()
+    expect(queue.pairs.some((entry: { before: unknown }) => entry.before === null)).toBe(true)
+    expect(queue.applied).toBeGreaterThanOrEqual(1)
   })
 
   it('drains the queue without touching the snapshot or the applied cursor', async () => {

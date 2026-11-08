@@ -30,7 +30,7 @@ export interface GithubUpdate {
 }
 
 /** Minimal local redaction for the default sink (callers may inject a stricter one). */
-function redactLine(line: string): string {
+export function redactLine(line: string): string {
   return line
 }
 
@@ -221,7 +221,11 @@ export function spawnGhApi(path: string): Promise<string> {
   return new Promise((resolvePromise, reject) => {
     void (async () => {
       const { spawn } = await import('node:child_process')
-      const child = spawn('gh', ['api', path], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 })
+      const { existsSync } = await import('node:fs')
+      const { homedir } = await import('node:os')
+      const { resolve } = await import('node:path')
+      const local = resolve(homedir(), '.local', 'bin', 'gh')
+      const child = spawn(existsSync(local) ? local : 'gh', ['api', path], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 })
       let out = ''
       let err = ''
       child.stdout?.on('data', (chunk: Buffer) => {
@@ -373,3 +377,4 @@ export class GithubProvider {
     }
   }
 }
+

@@ -146,7 +146,9 @@ export class PrWatchService {
   constructor(options: PrWatchOptions) {
     this.options = options
     const tokens = Object.values(options.env ?? {}).filter((value): value is string => typeof value === 'string' && value.length > 0)
-    this.log = options.log ?? ((line: string) => console.log(redact(line, tokens)))
+    this.log =
+      options.log ??
+      ((line: string) => console.log(line.includes('refused') || line.includes('invalid token') ? redact(line, tokens.filter((value) => typeof value === 'string' && value.length >= 12)) : line))
   }
 
   /** Number of active watches. */
@@ -245,7 +247,7 @@ export class PrWatchService {
     this.lastRoundAt.set(platform, fetchedAt)
     const next = (this.rounds.get(platform) ?? 0) + 1
     this.rounds.set(platform, next)
-    this.log(`round#${next} platform=${platform} key=${ref.owner}/${ref.repo}#${ref.number}`)
+    this.log(`round#${next} platform=${platform} key=${ref.owner}/${ref.repo} pr=${ref.number}`)
   }
 
   /** First observation: pending marker first, snapshot second, pair third. */
@@ -312,10 +314,13 @@ export class PrWatchService {
     }
     const seq = queue.nextSeq
     let working = this.makeRoom({ ...queue, pending: queue.pending, nextSeq: seq + 1 })
-    const full = working.pairs.length >= QUEUE_CAPACITY && working.dropped === queue.dropped
+    const full = working.pairs.length >= QUEUE_CAPACITY
     if (full) {
-      // Capacity table, change pair × "all first" cell: write only the snapshot.
-      this.log(`health community:${ref.platform}:pr:${ref.owner}/${ref.repo}/${ref.number} state=degraded message="queue-full"`)
+      // Capacity table, change pair × "all first" cell: the pair is dropped and
+      // counted (P4 may miss this change); the snapshot still advances.
+      const dropped: QueueRecord = { ...working, dropped: queue.dropped + 1, nextSeq: seq }
+      await this.writeQueue(key, dropped)
+      this.log(`health community:${ref.platform}:pr:${ref.owner}/${ref.repo}/${ref.number} state=degraded message="queue-full dropped"`)
       await this.options.prTable.put(key, { ...after, lastSeenAt: this.nowIso() })
       return
     }
@@ -380,4 +385,37 @@ export function writeCapabilities(): 'unsupported' {
 /** Number of capabilities the constant carries (read by the inspect surface). */
 export function capabilityCount(): number {
   return GITCODE_CAPABILITIES.length
+}
+
+/** In-memory table pair the smoke script drives (never used by the row itself). */
+export function createMemoryTables(): {
+  prTable: PrTable
+  cursors: CursorTable
+  prs: Map<string, PrSnapshot>
+  cursorsMap: Map<string, { token: string; updatedAt: string }>
+} {
+  const prs = new Map<string, PrSnapshot>()
+  const cursorsMap = new Map<string, { token: string; updatedAt: string }>()
+  return {
+    prs,
+    cursorsMap,
+    prTable: {
+      get: (key) => prs.get(key),
+      put: async (key, value) => {
+        prs.set(key, value)
+      },
+    },
+    cursors: {
+      get: (key) => cursorsMap.get(key),
+      put: async (key, value) => {
+        cursorsMap.set(key, value)
+      },
+      delete: async (key) => cursorsMap.delete(key),
+    },
+  }
+}
+
+/** Build the watch service with the row's defaults. */
+export function makePrWatchService(options: PrWatchOptions): PrWatchService {
+  return new PrWatchService(options)
 }

@@ -13,12 +13,18 @@
  *   node scripts/fixtures-capture.mjs --gitcode openJiuwen/jiuwenswarm --out fixtures/gitcode
  */
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
 const at = new Date().toISOString()
+
+function GH_BIN() {
+  // dsh profiles may lack ~/.local/bin on PATH.
+  const local = resolve(homedir(), '.local', 'bin', 'gh')
+  return existsSync(local) ? local : 'gh'
+}
 
 function argOf(argv, name, fallback) {
   const index = argv.indexOf(name)
@@ -26,7 +32,7 @@ function argOf(argv, name, fallback) {
 }
 
 async function ghJson(apiPath) {
-  const out = execFileSync('gh', ['api', '-H', 'Accept: application/vnd.github+json', apiPath], { encoding: 'utf8', timeout: 40_000 })
+  const out = execFileSync(GH_BIN(), ['api', '-H', 'Accept: application/vnd.github+json', apiPath], { encoding: 'utf8', timeout: 40_000 })
   return JSON.parse(out)
 }
 
@@ -63,7 +69,7 @@ async function captureGithub(argv) {
   const checks = await ghJson(`repos/${repo}/commits/${sha}/check-runs`)
   const reviews = await ghJson(`repos/${repo}/pulls/${pr}/reviews`)
   const listUrl = `repos/${repo}/pulls?state=open&per_page=50&page=1`
-  const list = execFileSync('gh', ['api', '-H', 'Accept: application/vnd.github+json', listUrl], { encoding: 'utf8', timeout: 40_000 })
+  const list = execFileSync(GH_BIN(), ['api', '-H', 'Accept: application/vnd.github+json', listUrl], { encoding: 'utf8', timeout: 40_000 })
   writeFileSync(resolve(outDir, `pull-${pr}.json`), JSON.stringify(slimPull(pull, `GET ${listUrl.replace(/\?.*/, '')}/${pr}`), null, 2) + '\n')
   writeFileSync(
     resolve(outDir, `status-${repo.split('/')[1].toLowerCase()}-${pr}.json`),

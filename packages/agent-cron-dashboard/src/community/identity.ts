@@ -67,7 +67,13 @@ export function spawnGh(args: readonly string[]): Promise<string> {
   return new Promise((resolvePromise, reject) => {
     void (async () => {
       const { spawn } = await import('node:child_process')
-      const child = spawn('gh', [...args], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 20_000 })
+      const { existsSync } = await import('node:fs')
+      const { homedir } = await import('node:os')
+      const { resolve } = await import('node:path')
+      // dsh profiles may run with a PATH that lacks ~/.local/bin.
+      const local = resolve(homedir(), '.local', 'bin', 'gh')
+      const binary = existsSync(local) ? local : 'gh'
+      const child = spawn(binary, [...args], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 20_000 })
       let out = ''
       let err = ''
       child.stdout?.on('data', (chunk: Buffer) => {
@@ -243,7 +249,10 @@ export async function resolveIdentities(options: IdentityOptions): Promise<Platf
   // Every line leaves through the one exit, already redacted: the GitCode host
   // can echo a token slot back (the offline stand-in for G2 does exactly that).
   const tokens = [tokenOf(options.env, github?.tokenEnv), tokenOf(options.env, gitcode?.tokenEnv)]
-  const log = options.log ?? ((line: string) => console.log(redact(line, tokens)))
+  const longTokens = tokens.filter((value): value is string => typeof value === 'string' && value.length >= 12)
+  const log =
+    options.log ??
+    ((line: string) => console.log(line.includes('refused') || line.includes('invalid token') ? redact(line, longTokens) : line))
   for (const identity of identities) {
     log(`identity ${identity.platform} state=${identity.state} message="${identity.message ?? ''}"`)
   }

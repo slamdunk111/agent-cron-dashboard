@@ -13,12 +13,18 @@
  *   node scripts/p2-oracle.mjs --mode probe-perpage
  *   node scripts/p2-oracle.mjs --mode mitm-none --out ../docs/handoff/p2-oracle-anon.json
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 
 const PER_PAGE = 50
 const GITCODE_MAX_PAGES = 3
+
+function GH_BIN() {
+  // dsh profiles may lack ~/.local/bin on PATH.
+  const local = resolve(homedir(), '.local', 'bin', 'gh')
+  return existsSync(local) ? local : 'gh'
+}
 
 function argOf(argv, name, fallback) {
   const index = argv.indexOf(name)
@@ -57,7 +63,7 @@ async function listOpenAuthored(repo, login, mode) {
   if (repo.host === 'github.com') {
     const { execFileSync } = await import('node:child_process')
     const apiPath = `repos/${repo.owner}/${repo.name}/pulls?state=open&per_page=${PER_PAGE}&page=1`
-    const out = execFileSync('gh', ['api', '-H', 'Accept: application/vnd.github+json', apiPath], { encoding: 'utf8', timeout: 40_000 })
+    const out = execFileSync(GH_BIN(), ['api', '-H', 'Accept: application/vnd.github+json', apiPath], { encoding: 'utf8', timeout: 40_000 })
     const rows = JSON.parse(out)
     const numbers = rows.filter((row) => row.user?.login === login).map((row) => row.number)
     return { numbers, pages: 1, note: null }
