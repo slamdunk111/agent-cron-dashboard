@@ -9,7 +9,7 @@
 #   1. build                  node scripts/build-bundles.mjs
 #   1b. contract copies       node scripts/sync-contracts.mjs --check
 #   1c. typecheck             pnpm run typecheck
-#   2. unit tests             pnpm run test (8 files, 92 cases incl. row lifecycle)
+#   2. unit tests             pnpm run test (per-file counts printed as TOTAL)
 #   3. config corpus          node scripts/validate-config.mjs (plain Ajv 2020-12 + typed)
 #   4. composed profile       dsh --dump-config shows both rows
 #   5. bundle surface         the built bundles export apply/name/Config
