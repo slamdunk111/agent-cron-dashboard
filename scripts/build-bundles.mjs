@@ -31,7 +31,9 @@ const PACKAGES = [
     dir: 'packages/dsh-forge-gitcode',
     entry: 'src/index.ts',
     out: 'index.js',
-    externals: ['cordis', '@deepseek-ai/cordis'],
+    // The contract shapes are types only; the experimental-forge type module is
+    // also type-only at runtime, so importing it is free of a real dependency.
+    externals: ['cordis', '@deepseek-ai/cordis', '@deepseek-ai/dsh-experimental-forge'],
   },
   {
     dir: 'packages/agent-cron-dashboard',

@@ -1,0 +1,480 @@
+diff --git a/jiuwenswarm/server/wire_truncate.py b/jiuwenswarm/server/wire_truncate.py
+index 830fd7446dc5ed17119f1a4163279cd80f4dcdf5..df865531c53933038eef19c6136db25f4d863b1d 100644
+--- a/jiuwenswarm/server/wire_truncate.py
++++ b/jiuwenswarm/server/wire_truncate.py
+@@ -179,27 +179,101 @@ def _compact_wire_metadata_value(value: Any) -> Any:
+     return _truncate_string_by_bytes(str(value), _HISTORY_WIRE_METADATA_STRING_LIMIT)
+ 
+ 
+-def _sanitize_history_wire_value(value: Any, *, depth: int = 0) -> Any:
+-    """Recursively bound a value for the wire: strings, lists, depth."""
++class _WireTruncationStats:
++    """Counts the value-level cuts that leave no marker at the cut site.
++
++    String cuts append ``" [truncated]"`` in place, so they describe
++    themselves. List trimming and depth overflow are otherwise silent, so a
++    caller passing this accumulator gets them stamped onto the owning mapping
++    through ``<key>_truncated`` siblings and a record-level ``truncated``.
++    """
++
++    __slots__ = ("list_cuts", "depth_cuts")
++
++    def __init__(self) -> None:
++        self.list_cuts = 0
++        self.depth_cuts = 0
++
++    @property
++    def truncated(self) -> bool:
++        return bool(self.list_cuts or self.depth_cuts)
++
++    @property
++    def marks(self) -> tuple[int, int]:
++        """Snapshot for before/after comparison around one field."""
++        return (self.list_cuts, self.depth_cuts)
++
++
++def _sanitize_mapping_items(
++    fields: dict[Any, Any],
++    *,
++    child_depth: int,
++    stats: _WireTruncationStats | None = None,
++) -> dict[str, Any]:
++    """Sanitize every value of one mapping and stamp truncation siblings.
++
++    A value that lost data anywhere in its subtree (a trimmed list or a depth
++    cut) gets a ``<key>_truncated: true`` sibling. A pre-set falsy marker is
++    upgraded, because a payload may ship ``foo_truncated: false`` and a real
++    cut must not stay invisible behind it; a pre-set truthy marker is kept
++    as-is (the live path already emits ``raw_output_truncated``).
++    """
++    original = {str(key): value for key, value in fields.items()}
++    sanitized: dict[str, Any] = {}
++    cut_fields: list[str] = []
++    for name, value in original.items():
++        if stats is None:
++            sanitized[name] = _sanitize_history_wire_value(value, depth=child_depth)
++            continue
++        before = stats.marks
++        sanitized[name] = _sanitize_history_wire_value(value, depth=child_depth, stats=stats)
++        if stats.marks != before:
++            cut_fields.append(name)
++    if stats is not None:
++        for name in cut_fields:
++            marker = f"{name}_truncated"
++            if not sanitized.get(marker):
++                sanitized[marker] = True
++    return sanitized
++
++
++def _sanitize_record_fields(fields: dict[Any, Any], *, child_depth: int) -> dict[str, Any]:
++    """Sanitize one record's top-level fields and stamp record-level truncation."""
++    stats = _WireTruncationStats()
++    sanitized = _sanitize_mapping_items(fields, child_depth=child_depth, stats=stats)
++    if stats.truncated:
++        sanitized["truncated"] = True
++    return sanitized
++
++
++def _sanitize_history_wire_value(
++    value: Any,
++    *,
++    depth: int = 0,
++    stats: _WireTruncationStats | None = None,
++) -> Any:
++    """Recursively bound a value for the wire: strings, lists, depth.
++
++    ``stats`` is optional and only reports cuts that would otherwise be
++    silent: list trimming and depth overflow.
++    """
+     if depth > _HISTORY_WIRE_DEPTH_LIMIT:
++        if stats is not None:
++            stats.depth_cuts += 1
+         return "<truncated>"
+     if isinstance(value, str):
+         return _truncate_string_by_bytes(value, _HISTORY_WIRE_STRING_LIMIT)
+     if isinstance(value, dict):
+-        return {
+-            str(key): _sanitize_history_wire_value(item, depth=depth + 1)
+-            for key, item in value.items()
+-        }
+-    if isinstance(value, list):
+-        return [
+-            _sanitize_history_wire_value(item, depth=depth + 1)
+-            for item in value[:_HISTORY_WIRE_LIST_LIMIT]
+-        ]
+-    if isinstance(value, tuple):
+-        return [
+-            _sanitize_history_wire_value(item, depth=depth + 1)
+-            for item in value[:_HISTORY_WIRE_LIST_LIMIT]
++        return _sanitize_mapping_items(value, child_depth=depth + 1, stats=stats)
++    if isinstance(value, (list, tuple)):
++        items = list(value)
++        sanitized = [
++            _sanitize_history_wire_value(item, depth=depth + 1, stats=stats)
++            for item in items[:_HISTORY_WIRE_LIST_LIMIT]
+         ]
++        if stats is not None and len(items) > _HISTORY_WIRE_LIST_LIMIT:
++            stats.list_cuts += 1
++        return sanitized
+     return value
+ 
+ 
+@@ -240,6 +314,26 @@ def _minimal_history_record_for_wire(record: dict[str, Any]) -> dict[str, Any]:
+     return minimal
+ 
+ 
++def _record_without_mcp_app(record: dict[str, Any]) -> dict[str, Any]:
++    """Shallow copy of ``record`` with ``raw_output.mcp_app`` removed.
++
++    The MCP App block is restored byte-for-byte after sanitizing
++    (``_restore_mcp_app_block``), so its own lists and depth must not feed the
++    truncation stats: a marker inside a block the client receives in full
++    would describe data that was never cut.
++    """
++    raw_output = record.get("raw_output")
++    block = raw_output.get("mcp_app") if isinstance(raw_output, dict) else None
++    if not isinstance(block, dict):
++        return record
++    return {
++        **record,
++        "raw_output": {
++            key: value for key, value in raw_output.items() if key != "mcp_app"
++        },
++    }
++
++
+ def _restore_mcp_app_block(original: dict[str, Any], sanitized: dict[str, Any]) -> None:
+     """Keep an MCP App tool result (``raw_output.mcp_app``) byte-for-byte.
+ 
+@@ -256,16 +350,31 @@ def _restore_mcp_app_block(original: dict[str, Any], sanitized: dict[str, Any])
+ 
+ 
+ def _sanitize_history_record_for_wire(record: Any) -> dict[str, Any]:
+-    """Sanitize one history record, collapsing if it exceeds the per-record budget."""
++    """Sanitize one history record, collapsing if it exceeds the per-record budget.
++
++    List and depth cuts are stamped with ``<key>_truncated`` siblings and a
++    record-level ``truncated: true`` so a restored record is never silently
++    incomplete. The MCP App block stays out of the stats because it is
++    restored verbatim below.
++
++    Markers never decide the collapse: when the marked record overflows the
++    budget, the unmarked sanitized form is measured again, and a record that
++    fits without them is served unmarked instead of being collapsed to a stub.
++    Otherwise a near-budget record (typically one carrying an MCP App block)
++    would lose that block purely to a few marker bytes.
++    """
+     if not isinstance(record, dict):
+         return {"content": _sanitize_history_wire_value(record), "truncated": True}
+-    sanitized = _sanitize_history_wire_value(record)
+-    if not isinstance(sanitized, dict):
+-        return {"content": str(sanitized), "truncated": True}
++    source = _record_without_mcp_app(record)
++    sanitized = _sanitize_record_fields(source, child_depth=1)
+     _restore_mcp_app_block(record, sanitized)
+     if _json_wire_size(sanitized) <= _HISTORY_WIRE_RECORD_MAX_BYTES:
+         return sanitized
+-    return _collapse_oversized_history_record(sanitized)
++    unmarked = _sanitize_history_wire_value(source)
++    _restore_mcp_app_block(record, unmarked)
++    if _json_wire_size(unmarked) <= _HISTORY_WIRE_RECORD_MAX_BYTES:
++        return unmarked
++    return _collapse_oversized_history_record(unmarked)
+ 
+ 
+ def split_history_record_for_stream(
+@@ -303,12 +412,11 @@ def split_history_record_for_stream(
+         # chat.final 无可用 string content → 走 sanitize（内部会 collapse 到元数据 stub）
+         return [_sanitize_history_record_for_wire(record)]
+ 
+-    # 元数据照常 sanitize；content 保留原文
+-    metadata = {
+-        key: _sanitize_history_wire_value(value)
+-        for key, value in record.items()
+-        if key != "content"
+-    }
++    # 元数据照常 sanitize（含截断标记）；content 保留原文
++    metadata = _sanitize_record_fields(
++        {key: value for key, value in record.items() if key != "content"},
++        child_depth=0,
++    )
+     full = {**metadata, "content": content}
+ 
+     if _json_wire_size(full) <= _HISTORY_WIRE_RECORD_MAX_BYTES:
+@@ -771,6 +879,7 @@ __all__ = [
+     "_coerce_int",
+     "_truncate_string_by_bytes",
+     "_compact_wire_metadata_value",
++    "_WireTruncationStats",
+     "_sanitize_history_wire_value",
+     "_collapse_oversized_history_record",
+     "_minimal_history_record_for_wire",
+diff --git a/tests/unit_tests/agentserver/test_history_wire_truncation_markers.py b/tests/unit_tests/agentserver/test_history_wire_truncation_markers.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..7cdebf9d55d9cea8498bce16ccf4f050a0eb5ba9
+--- /dev/null
++++ b/tests/unit_tests/agentserver/test_history_wire_truncation_markers.py
+@@ -0,0 +1,238 @@
++"""Wire markers for list / depth truncation in restored history records.
++
++Before these markers, ``_sanitize_history_wire_value`` trimmed lists to
++``_HISTORY_WIRE_LIST_LIMIT`` and replaced anything past
++``_HISTORY_WIRE_DEPTH_LIMIT`` with ``"<truncated>"`` without telling anyone, so
++a reopened session showed structured fields that no longer matched the record
++on disk. The tests below pin the markers and the shapes the frontend parses
++(arrays stay arrays, so its ``Array.isArray`` guards keep working).
++"""
++
++import json
++
++from jiuwenswarm.server import wire_truncate
++
++
++def _record(**fields):
++    record = {
++        "id": "rec-1",
++        "role": "assistant",
++        "event_type": "chat.tool_result",
++        "content": "ok",
++    }
++    record.update(fields)
++    return record
++
++
++def _marker_keys(value):
++    """Every ``truncated`` / ``*_truncated`` key anywhere in ``value``."""
++    found = []
++    if isinstance(value, dict):
++        for key, item in value.items():
++            if key == "truncated" or key.endswith("_truncated"):
++                found.append(key)
++            found.extend(_marker_keys(item))
++    elif isinstance(value, list):
++        for item in value:
++            found.extend(_marker_keys(item))
++    return found
++
++
++def _contains_depth_sentinel(value):
++    if value == "<truncated>":
++        return True
++    if isinstance(value, dict):
++        return any(_contains_depth_sentinel(item) for item in value.values())
++    if isinstance(value, list):
++        return any(_contains_depth_sentinel(item) for item in value)
++    return False
++
++
++def test_over_limit_list_keeps_array_shape_and_marks_parent():
++    record = _record(raw_output={"items": [{"idx": index} for index in range(150)]})
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    items = wire["raw_output"]["items"]
++    # Array.isArray-guarded frontend readers keep rendering the prefix.
++    assert isinstance(items, list)
++    assert len(items) == 100
++    assert items[0] == {"idx": 0}
++    assert wire["raw_output"]["items_truncated"] is True
++    assert wire["raw_output_truncated"] is True
++    assert wire["truncated"] is True
++
++
++def test_list_at_limit_is_not_marked():
++    record = _record(raw_output={"items": list(range(100))})
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert len(wire["raw_output"]["items"]) == 100
++    assert "items_truncated" not in wire["raw_output"]
++    assert "raw_output_truncated" not in wire
++    assert "truncated" not in wire
++
++
++def test_depth_cut_keeps_sentinel_and_marks_the_path():
++    nested = {"leaf": [1, 2, 3]}
++    for _ in range(12):
++        nested = {"child": nested}
++    record = _record(raw_output=nested)
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert _contains_depth_sentinel(wire["raw_output"])
++    assert wire["raw_output_truncated"] is True
++    assert wire["truncated"] is True
++
++
++def test_chat_final_split_chunks_carry_metadata_markers():
++    record = {
++        "id": "final-1",
++        "event_type": "chat.final",
++        "content": "x" * (200 * 1024),
++        "files": {"uploaded_images": [{"path": f"/tmp/{index}.png"} for index in range(150)]},
++    }
++
++    chunks = wire_truncate.split_history_record_for_stream(record)
++
++    assert len(chunks) > 1
++    for chunk in chunks:
++        assert chunk["truncated"] is True
++        assert chunk["files_truncated"] is True
++        assert isinstance(chunk["files"]["uploaded_images"], list)
++        assert len(chunk["files"]["uploaded_images"]) == 100
++        assert chunk["_part"]["record_id"] == "final-1"
++
++
++def test_preset_true_marker_is_preserved():
++    # The live rail already emits raw_output_truncated when it trims the
++    # payload on the way out (stream_event_rail.py).
++    record = _record(raw_output={"items": list(range(150))}, raw_output_truncated=True)
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["raw_output_truncated"] is True
++    assert wire["raw_output"]["items_truncated"] is True
++
++
++def test_preset_false_marker_is_upgraded():
++    # Tool payloads ship falsy flags like global_file_ops_truncated: false; a
++    # real cut must not hide behind them.
++    record = _record(
++        raw_output={"items": list(range(150)), "items_truncated": False},
++        raw_output_truncated=False,
++    )
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["raw_output"]["items_truncated"] is True
++    assert wire["raw_output_truncated"] is True
++
++
++def test_mcp_app_only_overflow_leaves_no_markers():
++    deep = {"a": {"b": {"c": {"d": {"e": {"f": {"g": 24.5}}}}}}}
++    record = {
++        "event_type": "chat.tool_result",
++        "tool_call_id": "call_1",
++        "raw_output": {
++            "result": "ok",
++            "mcp_app": {
++                "server": "s",
++                "tool": "t",
++                "toolResult": {"structuredContent": deep, "items": list(range(150))},
++            },
++        },
++    }
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    tool_result = wire["raw_output"]["mcp_app"]["toolResult"]
++    assert tool_result["structuredContent"] == deep
++    assert tool_result["items"] == list(range(150))
++    assert _marker_keys(wire) == []
++
++
++def test_markers_never_force_collapse_of_a_record_that_fits():
++    # The unmarked record is 65463 bytes; the 74 bytes of markers would push it
++    # over the 64 KiB budget and collapse it, dropping the MCP App block. The
++    # unmarked form is served instead, so the block survives at the cost of the
++    # markers in this narrow band.
++    record = {
++        "event_type": "chat.tool_result",
++        "id": "r",
++        "raw_output": {"items": [1] * 150, "mcp_app": {"blob": "z" * 65066}},
++    }
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["raw_output"]["mcp_app"]["blob"] == "z" * 65066
++    assert len(wire["raw_output"]["items"]) == 100
++    assert "truncated" not in wire
++    assert "raw_output_truncated" not in wire
++    assert wire_truncate._json_wire_size(wire) <= wire_truncate._HISTORY_WIRE_RECORD_MAX_BYTES
++
++
++def test_markers_never_force_collapse_without_mcp_app():
++    limit = wire_truncate._HISTORY_WIRE_RECORD_MAX_BYTES
++    probe = {
++        "event_type": "chat.tool_result",
++        "id": "r",
++        "raw_output": {"items": [1] * 150, "pad": [], "note": ""},
++    }
++    # Bulk padding stays under the 100-item cap; the note tunes the last bytes.
++    probe["raw_output"]["pad"] = ["x"] * 100
++    one_char = wire_truncate._json_wire_size(wire_truncate._sanitize_history_wire_value(probe))
++    length = 1 + (limit - one_char) // 100  # 100 items grow 100 bytes per char
++    probe["raw_output"]["pad"] = ["x" * length] * 100
++    current = wire_truncate._json_wire_size(wire_truncate._sanitize_history_wire_value(probe))
++    probe["raw_output"]["note"] = "y" * (limit - current)
++    # Unmarked lands exactly on the budget; the markers would overflow it.
++    assert wire_truncate._json_wire_size(
++        wire_truncate._sanitize_history_wire_value(probe)
++    ) == limit
++    assert wire_truncate._json_wire_size(
++        wire_truncate._sanitize_record_fields(probe, child_depth=1)
++    ) > limit
++
++    wire = wire_truncate._sanitize_history_record_for_wire(probe)
++
++    assert "raw_output" in wire
++    assert wire["raw_output"]["pad"] == probe["raw_output"]["pad"]
++    assert wire["raw_output"]["note"] == probe["raw_output"]["note"]
++    assert "truncated" not in wire
++    assert wire_truncate._json_wire_size(wire) == limit
++
++
++def test_record_over_budget_without_markers_still_collapses():
++    record = {
++        "event_type": "chat.tool_result",
++        "id": "r",
++        "raw_output": {"items": [1] * 150, "mcp_app": {"blob": "z" * 65145}},
++    }
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["truncated"] is True
++    assert "raw_output" not in wire
++
++
++def test_oversized_marked_record_still_collapses_within_budget():
++    record = _record(raw_output={"items": ["x" * 1024 for _ in range(150)]})
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["truncated"] is True
++    assert "raw_output" not in wire
++    size = len(json.dumps(wire, ensure_ascii=False).encode("utf-8"))
++    assert size <= wire_truncate._HISTORY_WIRE_RECORD_MAX_BYTES
++
++
++def test_string_truncation_keeps_suffix_without_record_flag():
++    record = _record(content="y" * 40_000)
++
++    wire = wire_truncate._sanitize_history_record_for_wire(record)
++
++    assert wire["content"].endswith("[truncated]")
++    assert "truncated" not in wire
+diff --git a/tests/unit_tests/test_mcp_apps.py b/tests/unit_tests/test_mcp_apps.py
+index 2bec0909a0d7909db27d1732d7396609fe02531c..2b768f02026ed718cd0986338295dfbc4d46fea6 100644
+--- a/tests/unit_tests/test_mcp_apps.py
++++ b/tests/unit_tests/test_mcp_apps.py
+@@ -221,6 +221,20 @@ def test_history_wire_keeps_deep_mcp_app_data_intact():
+     assert tool_result["structuredContent"] == deep  # no "<truncated>" at depth > 8
+     assert len(tool_result["items"]) == 150  # no 100-item list cap
+ 
++    # The block is restored verbatim, so nothing inside it may leave a marker:
++    # a truncated flag here would describe data the client actually received in
++    # full, and the extra bytes could push a near-budget record into collapse.
++    def marker_keys(value):
++        if isinstance(value, dict):
++            return [
++                key for key in value if key == "truncated" or key.endswith("_truncated")
++            ] + [marker for item in value.values() for marker in marker_keys(item)]
++        if isinstance(value, list):
++            return [marker for item in value for marker in marker_keys(item)]
++        return []
++
++    assert marker_keys(wire) == []
++
+ 
+ def test_history_wire_oversized_mcp_app_record_still_collapses():
+     from jiuwenswarm.server import wire_truncate

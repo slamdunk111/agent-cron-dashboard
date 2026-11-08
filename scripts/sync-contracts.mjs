@@ -10,7 +10,7 @@
  * Usage: node scripts/sync-contracts.mjs [--check]
  *   --check  exits 1 when a generated copy is stale (used by the smoke gate)
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -30,6 +30,19 @@ const COPIES = [
  */
 `,
   },
+  {
+    from: 'contracts/forge-provider.ts',
+    to: 'packages/dsh-forge-gitcode/src/contracts.ts',
+    banner: `/**
+ * Frozen forge provider contract (projection of
+ * \`@deepseek-ai/dsh-experimental-forge\` types).
+ *
+ * GENERATED COPY: the source of truth is \`contracts/forge-provider.ts\` in the
+ * release repository; \`pnpm sync:contracts\` copies it into the package so the
+ * published bundle is self-contained (ADR P0-4).
+ */
+`,
+  },
 ]
 
 let stale = 0
@@ -39,7 +52,7 @@ for (const copy of COPIES) {
   const body = source.replace(/^\/\*\*[\s\S]*?\*\/\s*/, '')
   const expected = `${copy.banner}${body}`
   const target = resolve(root, copy.to)
-  const current = readFileSync(target, 'utf8')
+  const current = existsSync(target) ? readFileSync(target, 'utf8') : ''
   if (current === expected) {
     console.log(`ok   ${copy.to}`)
     continue
