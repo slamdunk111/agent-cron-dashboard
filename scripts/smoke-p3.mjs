@@ -26,8 +26,20 @@ import { resolve } from 'node:path'
 
 async function loadModule() {
   const built = resolve(import.meta.dirname, '../build/packages/agent-cron-dashboard/index.js')
-  return import(built)
+  // The built bundle shares `process.argv` with this script (V8 copy-on-write
+  // across process boundaries on this host: a child writing its own argv is
+  // then seen by its parent's stale snapshot). Snapshot the arguments before
+  // the bundle starts and reset them right after, so a subprocess cannot
+  // smuggle its words into `argOf()`.
+  const saved = [...process.argv]
+  const loaded = await import(built)
+  process.argv.length = 0
+  process.argv.push(...saved)
+  return loaded
 }
+
+/** The bundle's own transport, wrapped so the log shows each request's latency. */
+let httpGet = undefined
 
 function argOf(argv, name, fallback) {
   const index = argv.indexOf(name)
@@ -74,6 +86,73 @@ function environmentHeader(at) {
     console.log(`env_state OK ratio=${ratio.toFixed(3)}`)
   }
   return ratio <= 1
+}
+
+/** Log-only transport for GitCode: every request leaves one latency line, then goes to `fetchHttpGet`. */
+function gitcodeLoggingTransport(mode) {
+  return {
+    async get(url, headers) {
+      const started = Date.now()
+      try {
+        // `--gitcode-transport=curl` routes the same call through the system curl
+        // (fixed argv, token via --config on stdin): a diagnostic arm for hosts
+        // whose TLS handshake stalls inside `fetch` only.
+        if (mode === 'curl') return curlGet(url, headers)
+        return await httpGet.get(url, headers)
+      } finally {
+        console.log(`step http host=${url.includes('gitcode.com') ? 'gitcode' : 'github'} path=${url.replace(/^https:\/\/[^/]+/, '').split('?')[0]} took=${String(Date.now() - started)}ms at=${new Date().toISOString()}`)
+      }
+    },
+  }
+}
+
+/** One GET through the system curl (no shell): headers via a private config file under the OS temp dir. */
+function curlGet(url, headers) {
+  const { execFileSync } = process.getBuiltinModule('node:child_process')
+  const { writeFileSync, unlinkSync } = process.getBuiltinModule('node:fs')
+  const { tmpdir } = process.getBuiltinModule('node:os')
+  const configPath = `${tmpdir()}/p3-curl-${String(Date.now())}.conf`
+  const lines = Object.entries(headers).map(([key, value]) => `header = "${key}: ${String(value).replace(/"/g, '')}"`).join('\n')
+  writeFileSync(configPath, lines, { mode: 0o600 })
+  try {
+    const marker = '\n__P3HEADERS__'
+    const out = execFileSync('curl', ['-s', '--max-time', '25', '-K', configPath, '-w', `${marker}%{http_code}`, url], { encoding: 'utf8', timeout: 30_000, maxBuffer: 64 * 1024 * 1024 })
+    const at = out.lastIndexOf(marker)
+    const status = Number(out.slice(at + marker.length)) || 0
+    return { status, text: out.slice(0, at), headers: {} }
+  } finally {
+    unlinkSync(configPath)
+  }
+}
+
+/**
+ * GitHub goes through the `gh`-owned credential: the readers receive a transport
+ * that forwards to `gh api` (same five request kinds the module makes), so the
+ * smoke never assembles an Authorization header itself.
+ */
+function githubCliTransport(env) {
+  const token = ghToken(env)
+  if (token.length === 0) return undefined
+  return {
+    async get(url, headers) {
+      const pathStart = url.indexOf('/') + 3
+      const path = url.slice(url.indexOf('/', pathStart))
+      const { execFileSync } = process.getBuiltinModule('node:child_process')
+      const { existsSync } = process.getBuiltinModule('node:fs')
+      const local = resolve(homedir(), '.local', 'bin', 'gh')
+      const args = ['api', '-i', ...Object.entries({ ...headers, 'X-GitHub-Api-Version': '2022-11-28' }).map(([key, value]) => ['-H', `${key}: ${value}`]).flat(), `https://api.github.com${path}`.replace('https://api.github.com', '')]
+      const out = execFileSync(existsSync(local) ? local : 'gh', args, { encoding: 'utf8', timeout: 60_000 })
+      const split = out.includes('\r\n\r\n') ? out.indexOf('\r\n\r\n') + 4 : out.indexOf('\n\n') + 2
+      const head = out.slice(0, split).split(/\r?\n/)
+      const status = Number((head[0] ?? '').split(' ')[1] ?? 0)
+      const picked = {}
+      for (const line of head.slice(1)) {
+        const at = line.indexOf(':')
+        if (at > 0) picked[line.slice(0, at).trim().toLowerCase()] = line.slice(at + 1).trim()
+      }
+      return { status, text: out.slice(split), headers: picked }
+    },
+  }
 }
 
 /** The offline GitCode stand-in for G2 (no network; echoes the token so redact must catch it). */
@@ -171,6 +250,7 @@ function dumpRound(bundle, tables, round, platform, at) {
 
 async function main(argv) {
   const bundle = await loadModule()
+  httpGet = bundle.fetchHttpGet()
   const config = configOf(argOf(argv, '--config', resolve(import.meta.dirname, '../fixtures/p3-smoke-config.yaml')))
   const startedAt = new Date().toISOString()
   console.log(`smoke p3 start=${startedAt} window_minutes=${argOf(argv, '--window-minutes', '10')} config_interval_ms=${config.intervalMs}`)
@@ -183,18 +263,22 @@ async function main(argv) {
   const githubStandInMode = offline || argv.includes('--github-stand-in')
   const windowMinutes = Number(argOf(argv, '--window-minutes', '10'))
   const tickSeconds = Number(argOf(argv, '--tick-seconds', '30'))
+  const roundPromiseMs = Number(argOf(argv, '--round-timeout-seconds', '60')) * 1000
   const env = { ...process.env }
   const tokenEnvName = config.identities[1].tokenEnv
   if (noToken) env[tokenEnvName] = process.env.P3_CANARY ?? 'XAI_P3_CANARY'
   const gitcodeToken = noToken ? env[tokenEnvName] : (process.env[tokenEnvName] ?? readTokenFile())
   if (!noToken && gitcodeToken.length > 0) env[tokenEnvName] = gitcodeToken
 
+  console.log(`step identities start=${new Date().toISOString()}`)
   const identities = await bundle.resolveIdentities({
     identities: config.identities,
     env,
     transport: noToken ? gitcodeStandIn(env.GITCODE_TOKEN) : undefined,
     log: (line) => console.log(redactWith(bundle, line, [gitcodeToken])),
   })
+
+  console.log(`step identities done=${new Date().toISOString()} gh=${String(identities[0]?.state)} gc=${String(identities[1]?.state)}`)
   const tables = bundle.createIssueMemoryTables()
   const pairs = []
   const handle = bundle.startIssueWatch({
@@ -202,8 +286,12 @@ async function main(argv) {
     env,
     identities,
     tables,
-    transport: githubStandInMode ? githubStandIn() : undefined,
+    // GitHub reads go through the authenticated REST path (the same five
+    // request kinds the readers make); GitCode goes through the log-only
+    // transport wrapper so each request leaves a latency line.
+    transport: githubStandInMode ? githubStandIn() : gitcodeLoggingTransport(argOf(argv, '--gitcode-transport', 'fetch')),
     githubHeaders: githubStandInMode ? {} : githubHeaders(env),
+    githubTransport: githubStandInMode ? undefined : githubCliTransport(env),
     autostart: false,
     log: (line) => console.log(redactWith(bundle, line, [gitcodeToken])),
     onPair: (pair) => {
@@ -219,14 +307,32 @@ async function main(argv) {
       )
     },
   })
-  console.log(`issue interval_ms=${handle.intervalMs} pairs_capacity=${bundle.QUEUE_CAPACITY}`)
+  console.log(`issue interval_ms=${handle.intervalMs} pairs_capacity=${bundle.QUEUE_CAPACITY} round_timeout_ms=${String(roundPromiseMs)}`)
 
+  console.log(`step handle built=${new Date().toISOString()}`)
   const deadline = Date.now() + windowMinutes * 60_000
   let round = 0
   while (Date.now() < deadline) {
     round += 1
     const roundAt = new Date().toISOString()
-    const outcomes = await handle.runner.pollRound()
+    console.log(`step round ${String(round)} start=${roundAt}`)
+    // Poll the two platforms in parallel with a per-round timer of their own, so
+    // a stuck host can neither hang the window nor oocupy the round renderer.
+    const platforms = ['github', 'gitcode']
+    const outcomes = await Promise.all(
+      platforms.map(async (platform) => {
+        const result = await Promise.race([
+          handle.service.pollOnce(platform),
+          new Promise((resolvePromise) => setTimeout(() => resolvePromise('TIMEOUT'), roundPromiseMs)),
+        ])
+        if (result === 'TIMEOUT') {
+          console.log(`round_timeout platform=${platform} after=${String(roundPromiseMs)}ms at=${new Date().toISOString()}`)
+          return { platform, ok: false, considered: 0, changed: 0, queued: 0, timedOut: true, at: new Date().toISOString() }
+        }
+
+        return { ...result, platform, at: roundAt }
+      }),
+    )
     // Rounds first, then one dump: the gate reads the LAST queue line per key.
     for (const outcome of outcomes) console.log(`issue ${outcome.platform} ok=${String(outcome.ok)} considered=${outcome.considered} changed=${outcome.changed} queued=${outcome.queued} at=${roundAt}`)
     for (const platform of ['github', 'gitcode']) dumpRound(bundle, tables, round, platform, roundAt)

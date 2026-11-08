@@ -33,6 +33,8 @@ export interface IssueSourceOptions {
   readonly log?: (line: string) => void
   /** GitHub request headers (the credential of the host's choice). */
   readonly githubHeaders?: Readonly<Record<string, string>>
+  /** GitHub reads may use their own transport (the `gh`-credential path); GitCode always uses `transport`. */
+  readonly githubTransport?: HttpGet
 }
 
 export interface IssueSourcesResult {
@@ -55,6 +57,7 @@ type ListAnswer = PollResult<IssueListAnswer>
 export function makeIssueSources(options: IssueSourceOptions): IssueSourcesResult {
   const now = options.now ?? (() => new Date())
   const transport = options.transport ?? fetchHttpGet()
+  const githubTransport = options.githubTransport ?? transport
   const sources: Partial<Record<NonNullable<Platform>, IssuePlatformSource>> = {}
   const unavailable: Partial<Record<NonNullable<Platform>, string>> = {}
   const githubLogin = options.identities.find((identity) => identity.platform === 'github' && identity.state !== 'down')?.login
@@ -63,7 +66,7 @@ export function makeIssueSources(options: IssueSourceOptions): IssueSourcesResul
   let listReads = 0
 
   // ---- GitHub ----------------------------------------------------------------
-  const githubReader = (login: string): GithubIssueReader => new GithubIssueReader({ login, transport, now, headers: options.githubHeaders })
+  const githubReader = (login: string): GithubIssueReader => new GithubIssueReader({ login, transport: githubTransport, now, headers: options.githubHeaders })
   let cachedList: { at: number; answer: ListAnswer } | undefined
   sources.github = {
     async list(): Promise<ListAnswer> {
@@ -100,7 +103,10 @@ export function makeIssueSources(options: IssueSourceOptions): IssueSourcesResul
     .map((url) => /^(?:https?:\/\/)?gitcode\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(url.trim()))
     .flatMap((match) => (match === null ? [] : [{ owner: match[1], repo: match[2] }]))
   if (token === undefined) {
-    unavailable.gitcode = `${gitcodeIdentity?.message ?? 'GitCode identity unavailable'}; api/v5 /user/issues answers 400 when the private-token header is missing`
+    // The line names both slots: the message the identity produced (it quotes
+    // `no token in GITCODE_TOKEN` when the variable is merely absent) and the
+    // header the host requires for the seed read.
+    unavailable.gitcode = `${gitcodeIdentity?.message ?? `GitCode identity unavailable; no token in ${tokenEnvName}`}; api/v5 /user/issues answers 400 when the private-token header is missing`
   } else {
     const reader = new GitcodeIssueReader({ token, transport, now, log: options.log })
     sources.gitcode = {
@@ -135,7 +141,8 @@ export function makeIssueSources(options: IssueSourceOptions): IssueSourcesResul
       },
     }
     if ((gitcodeIdentity?.state ?? 'down') === 'down') {
-      unavailable.gitcode = gitcodeIdentity?.message ?? 'GitCode identity unavailable'
+      // Identity refused (token present but rejected) still names the header slot.
+      unavailable.gitcode = `${gitcodeIdentity?.message ?? 'GitCode identity unavailable'}; api/v5 /user/issues answers 400 when the private-token header is missing`
     }
   }
 

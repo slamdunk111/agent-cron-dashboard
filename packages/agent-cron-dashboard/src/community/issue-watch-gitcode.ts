@@ -102,7 +102,9 @@ export class GitcodeIssueReader {
 
   private async get(url: string): Promise<{ response: HttpGetResponse } | { failure: IssueFailure }> {
     try {
+      this.options.log?.(`http gitcode ${url.replace(/^https:\/\/[^/]+/u, '')} at=${(this.options.now ?? (() => new Date()))().toISOString()}`)
       const response = await this.transport.get(url, { Accept: 'application/json', 'private-token': this.options.token })
+      this.options.log?.(`http gitcode ${url.replace(/^https:\/\/[^/]+/u, '')} done status=${String(response.status)} at=${(this.options.now ?? (() => new Date()))().toISOString()}`)
       if (response.status !== 200) return { failure: failureOf(response.status) }
       return { response }
     } catch (error) {

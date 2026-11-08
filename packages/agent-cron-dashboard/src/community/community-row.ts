@@ -157,6 +157,8 @@ export interface StartIssueWatchOptions {
   readonly identities: readonly PlatformIdentity[]
   readonly tables: IssueTables
   readonly transport?: HttpGet
+  /** Overrides the GitHub transport only (the `gh`-credential path in the smoke). */
+  readonly githubTransport?: HttpGet
   readonly now?: () => Date
   readonly log?: (line: string) => void
   /** P4 hook; absent means pairs are persisted only. */
@@ -189,6 +191,7 @@ export function startIssueWatch(options: StartIssueWatchOptions): IssueWatchHand
     identitiesConfig: options.config.identities,
     env: options.env,
     transport: options.transport,
+    githubTransport: options.githubTransport,
     now,
     repos: options.config.watch.repos,
     log,

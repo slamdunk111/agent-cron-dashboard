@@ -93,6 +93,8 @@ export interface IssueWatchOptions {
   readonly repos?: readonly string[]
   /** Issues whose detail read skips older entries once the budget is spent (round shape of plan §3). */
   readonly maxDetailPerRound?: number
+  /** Reads in flight per platform within one round (default 2; GitCode sends no rate-limit header). */
+  readonly readConcurrency?: number
 }
 
 /** Diffed fields (see the module comment for why `updatedAt` is not one). */
@@ -264,62 +266,85 @@ export class IssueWatchService {
     // ---- detail + comments ---------------------------------------------------
     const keys = [...set].map((key) => keyOfKey(key))
     const budget = this.options.maxDetailPerRound ?? Number.POSITIVE_INFINITY
-    for (const ref of keys.slice(0, budget)) {
-      const key = issueKey(ref)
-      const cached = this.cache.get(key)
-      try {
-        const detailResult = await source.detail(ref, cached?.etag)
-        if (!detailResult.ok) {
-          ok = false
-          cursor = this.bumpFailureRecord(cursor, `detail ${detailResult.failure.code} ${detailResult.failure.message}`)
-          this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="detail ${detailResult.failure.code}: ${detailResult.failure.message}"`)
-          continue
-        }
-        consideredInRound += 1
-        const stored = this.options.issueTable.get(key)
-        if (detailResult.value === 'unchanged' && stored !== undefined) {
-          // 304: the host says the answer did not move, so every graded field
-          // (ETag coverage: title/labels/assignees/comments/updated_at/state)
-          // is unchanged by definition; no snapshot write, no comment read.
-          continue
-        }
-        const detail = detailResult.value === 'unchanged' ? undefined : detailResult.value
-        if (detail === undefined) continue
-        const previousCache = this.cache.get(key)
-        let lastComment: LastComment | undefined
-        const commentsMoved = stored === undefined ? detail.comments > 0 : detail.comments !== stored.comments || (previousCache !== undefined && previousCache.updatedAt !== detail.updatedAt)
-        if (commentsMoved && detail.comments > 0) {
-          const commentResult = await source.lastComment(ref, detail.comments)
-          if (commentResult.ok) {
-            lastComment = commentResult.value
-          } else {
-            ok = false
-            this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="comments ${commentResult.failure.code}: ${commentResult.failure.message}"`)
-            // Keep the previous answer rather than pretending there is none.
-            if (stored !== undefined) lastComment = { by: stored.lastCommentBy, at: stored.lastCommentAt }
+    // Same-platform subjects are read two at a time: GitCode sends no
+    // rate-limit header and each read is ~0.3-0.6 s, so a sequential pass over
+    // 61 open issues would not fit the window; different platforms never share
+    // a batch (their hosts are independent).
+    const batchSize = this.options.readConcurrency ?? 2
+    const batches: IssueRef[][] = []
+    for (const target of keys.slice(0, budget)) {
+      const last = batches[batches.length - 1]
+      if (last === undefined || last.length >= batchSize || last[0].platform !== target.platform) batches.push([target])
+      else last.push(target)
+    }
+    for (const batch of batches) {
+      const outcomes = await Promise.all(
+        batch.map(async (ref) => {
+          const key = issueKey(ref)
+          const cached = this.cache.get(key)
+          const failureLines: string[] = []
+          const step = { ok: true, considered: 0, changed: 0, queued: 0 }
+          let commentCursor: { by: string | null; at: string | null } | undefined
+          try {
+            const detailResult = await source.detail(ref, cached?.etag)
+            if ('failure' in detailResult) {
+              step.ok = false
+              failureLines.push(`detail ${detailResult.failure.code} ${detailResult.failure.message}`)
+              this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="detail ${detailResult.failure.code}: ${detailResult.failure.message}"`)
+            } else {
+              const stored = this.options.issueTable.get(key)
+              if (detailResult.value === 'unchanged' && stored !== undefined) {
+                // 304: the host says the answer did not move, so every graded
+                // field (ETag coverage) is unchanged by definition; no write, no
+                // comment read.
+              } else if (detailResult.value !== 'unchanged') {
+                const detail = detailResult.value
+                step.considered += 1
+                const previousCache = this.cache.get(key)
+                let lastComment: LastComment | undefined
+                const commentsMoved = stored === undefined ? detail.comments > 0 : detail.comments !== stored.comments || (previousCache !== undefined && previousCache.updatedAt !== detail.updatedAt)
+                if (commentsMoved && detail.comments > 0) {
+                  const commentResult = await source.lastComment(ref, detail.comments)
+                  if (commentResult.ok) {
+                    lastComment = commentResult.value
+                  } else {
+                    step.ok = false
+                    this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="comments ${commentResult.failure.code}: ${commentResult.failure.message}"`)
+                    // Keep the previous answer rather than pretending there is none.
+                    if (stored !== undefined) lastComment = { by: stored.lastCommentBy, at: stored.lastCommentAt }
+                  }
+                } else if (detail.comments === 0) {
+                  lastComment = { by: null, at: null }
+                } else if (stored !== undefined) {
+                  lastComment = { by: stored.lastCommentBy, at: stored.lastCommentAt }
+                }
+                const after = this.buildSnapshot(ref, detail, lastComment, stored)
+                const pair = await this.apply(ref, stored, after, detail)
+                if (pair !== null) {
+                  step.changed += 1
+                  if (pair.queued) step.queued += 1
+                }
+                this.cache.set(key, { updatedAt: detail.updatedAt, etag: detail.etag, lastCommentBy: after.lastCommentBy, lastCommentAt: after.lastCommentAt })
+                commentCursor = { by: after.lastCommentBy, at: after.lastCommentAt }
+              }
+            }
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            step.ok = false
+            this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="watch error: ${message}"`)
           }
-        } else if (detail.comments === 0) {
-          lastComment = { by: null, at: null }
-        } else if (stored !== undefined) {
-          lastComment = { by: stored.lastCommentBy, at: stored.lastCommentAt }
+          return { ref, key, step, failureLines, commentCursor }
+        }),
+      )
+      for (const outcome of outcomes) {
+        consideredInRound += outcome.step.considered
+        changed += outcome.step.changed
+        queued += outcome.step.queued
+        if (!outcome.step.ok) ok = false
+        for (const line of outcome.failureLines) cursor = this.bumpFailureRecord(cursor, line)
+        if (outcome.commentCursor !== undefined) {
+          cursor = { ...cursor, lastComments: { ...cursor.lastComments, [outcome.key]: outcome.commentCursor } }
         }
-        const after = this.buildSnapshot(ref, detail, lastComment, stored)
-        const pair = await this.apply(ref, stored, after, detail)
-        if (pair !== null) {
-          changed += 1
-          if (pair.queued) queued += 1
-        }
-        this.cache.set(key, {
-          updatedAt: detail.updatedAt,
-          etag: detail.etag,
-          lastCommentBy: after.lastCommentBy,
-          lastCommentAt: after.lastCommentAt,
-        })
-        cursor = { ...cursor, lastComments: { ...cursor.lastComments, [key]: { by: after.lastCommentBy, at: after.lastCommentAt } } }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        ok = false
-        this.log(`health community:issue:${platform}:${ref.owner}/${ref.repo}/${String(ref.number)} state=degraded message="watch error: ${message}"`)
       }
     }
 

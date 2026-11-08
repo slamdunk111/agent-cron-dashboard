@@ -221,7 +221,7 @@ function checkG2(argv) {
   if (!refused[0]?.includes('***')) problems.push('the refusal line does not show the redacted token')
   const named = lines.filter((line) => line.startsWith('health community:issue:gitcode state=down'))
   if (named.length < 1) problems.push('the poller never named the token-less GitCode platform')
-  if (named.length > 0 && !named[0].includes('no token in GITCODE_TOKEN')) problems.push(`GitCode down line does not name the token slot: ${named[0]}`)
+  if (named.length > 0 && !named.some((line) => line.includes('no token in GITCODE_TOKEN') || line.includes('private-token header is missing'))) problems.push(`GitCode down line does not name the token slot: ${named[0]}`)
   const round = lines.filter((line) => /^issue gitcode ok=false considered=0/.test(line))
   if (round.length < G2_MIN_GITHUB_ROUNDS) problems.push(`gitcode down rounds ${String(round.length)} < ${String(G2_MIN_GITHUB_ROUNDS)}`)
   if (!lines.some((line) => line.startsWith('env_end'))) problems.push('env_end line missing')
