@@ -1,0 +1,429 @@
+[
+  {
+    "id": 4517427,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6232",
+    "number": "6232",
+    "state": "open",
+    "title": "【致命】交付台账占位卡误报：健康长工具轮与控制面请求被恒判「长时间未收到回复」（P7）",
+    "body": "Paired: [GitHub #10789](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10789) ↔ [GitCode #6232](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6232)\n\n## 现象\n\n- 2026-11-07 05:04 用户收到 `[错误] 长时间未收到回复，本次处理可能已中断`，而该轮（分析 zcode 提示词）实际正在正常执行——占位卡（P6 兜底机制，`jiuwenswarm/server/supervisor/delivery_ledger.py`）误报。\n- 台账盘（`~/.jiuwenswarm/run/delivery-ledger/`）取证：**15 张 sent 占位卡中 14 张为误报**：\n  - 10× `cron-session-create-*`（`__cron__` 渠道，每 40-100 分钟恒误报）；\n  - 3× `healthcheck-*`（`__health_check__` 渠道）；\n  - 1× `interrupt_1a1b290647e_e85ed3`（中断控制操作）；\n  - 1× `feishu:om_x100b61d7ad3484a0cfd7644d231f313`（健康长工具轮，本次用户报告）。\n\n## 根因（2026-11-07 server.log + 台账落盘时间线实锚）\n\n1. **deadline 活性源错配**：占位卡 deadline 仅被「用户可见白名单帧」（chat.final/chat.error/chat.ask_user_question，流式含 chat.delta）重置；纯工具执行的长轮次零可见帧属健康形态。实锚：`om_...231f313` 04:53:20 流式派发、10 分钟内 sequence 推进 **4925 帧**（管线活跃），05:03:20 仍被判超时发卡。\n2. **控制面请求无回复语义却照常登记**：`__cron__`/`__health_check__` 渠道与 `interrupt_*` 请求的用户可见回复为零帧属设计使然，登记台账后 600s 必然到期恒发卡。\n\n## 修复（分支 `fix/p7-placeholder-misfire`，基于 fix/p6-silent-sowallow）\n\n1. **活性语义**：`on_wire_delivered` 任意送达帧（含非白名单工具/进度帧）重置 deadline——占位卡只对「管线整体静默 600s」（worker 卡死/崩溃）报警；`last_visible_output_ts` 仍仅白名单帧更新（可见静默时长保持可观测）。\n2. **控制面豁免**：`register()` 对 `CONTROL_CHANNEL_IDS`（`__cron__`/`__health_check__`）与 `CONTROL_REQUEST_ID_PREFIXES`（`interrupt_`）直接跳过不建条目。\n3. spec `S_01_delivery-ledger.md` 同步；4 个回归测试（活性重置／管线静默仍报警／控制面豁免／用户渠道不外溢），套件 27 passed，ruff clean。\n\n## 关联\n\n- P6 主案兜底面（静默吞回复）；本条为 P6 机制上线首日暴露的误报缺陷，不回退 P6 兜底本身。",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-11-07T11:31:12+08:00",
+    "updated_at": "2026-11-07T11:31:19+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-11-07T11:31:14+08:00"
+      }
+    ],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4516364,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6223",
+    "number": "6223",
+    "state": "open",
+    "title": "【致命】bug [P6] 长时间处理不回复：静默吞回复（重挂无触发方+零出站无兜底）",
+    "body": "Paired: [GitHub #10775](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10775) ↔ [GitCode #6223](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6223)\n\n## P6 静默吞回复 — v9 单一版本\n### 现象\n16:34:02 用户问\"查看待办和提醒\"，工具 16:35 完成，最终回复未出站，静默 76 分钟零报错。\n### 根因（唯一版本）\n①gateway 侧无重挂触发方（唯一触发方=web 前端）；②已注册且未完成的派发无截止期限；③请求生命周期结束零出站无兜底。\n### 修复（单一版本，与 P6-v9-design.md 逐条对齐）\n①交付台账（身份字段+deadline 墙钟+分级落盘，不存用户正文）；②计时=派发接受起 600s，用户可见白名单帧（chat.final/chat.error/chat.ask_user_question，流式含 chat.delta）send True 即重置，传输成功与用户可见区分判定；③扫描=supervisor 自有 30s 独立任务（仅 Front 终止时取消，不随 worker 代际取消）；④占位帧线缆五要素（构造先例=build_server_push_wire，server/gateway_push/wire.py:47/:70）：顶层 metadata 含 E2A_WIRE_SERVER_PUSH_KEY＋顶层 request_id=rid+\":p6\"＋顶层 session_id/channel_id＋payload=chat.error（含原始 rid 与重发建议文案）＋metadata 携 request.metadata 投递身份键（_DELIVERY_IDENTITY_METADATA_KEYS，message_handler.py:198 起；键集合实测结论回写 design §2.6：飞书入站 feishu_chat_id/feishu_open_id/open_id/chat_type 经 im_pipeline 透传，app_id 入站已透传）与 app_id；占位卡出站与 worker 状态解耦（FAILED 粘滞态照发），仅 gateway 未 attach 转 pending_flush 待补推；流隔离=占位卡 chat.error 只作用于自身线缆顶层 request_id（rid+\":p6\"）键的 delta 缓冲与 errored 登记，不清真实回复缓冲、不置其 errored，迟到回复经 processing_status 冲刷仍送达；⑤重放=KIND_SUBSCRIBE_BY_ID 身份型契约（反查键=(scope[:4], request_id)，miss→占位卡；重放受理路由重绑当前 ws 为主路径，server-push 标记仅路由缺失时回落；重放路由清理=新增清理点——终态/chat.error 送达或 delivered ack 后 pop，不沿用既有请求生命周期与失败路径清理点；回执链 wire_id→_forward_wire→KIND_DELIVERY_ACK，delivered False 回落台账），attach 与 Front 启动重载两处触发；⑥placeholder_state 状态机 pending→pending_flush→sent（吸收终态）/retracted/failed（retracted 仅由真实回复送达取消未送达占位，纯簿记无线缆动作；sent 不可线缆撤回，真实回复迟到时保持 sent），sweep 幂等不重发，占位后 deadline 停止重置；⑦互斥=真实回复送达取消未送达占位卡（pending/pending_flush→retracted），占位后迟到回复仍送达（sent 保持不变；外审推荐，owner 未裁定，待否决）；⑧LOOPBACK 本批不覆盖（启动重载跳过重放+遗留条目过期审计）；⑨契约落 S 级文档 .agents/agent-docs/specs/jiuwenswarm/server/supervisor/S_01_delivery-ledger.md 并经 sync_documents 登记索引；依赖定谳=不依赖、不要求 agent-gateway 提交 7b26631 合入（该提交至少在本地 develop、fork/fix/p2-duplicate-delivery 与 fork/fix/p1-feishu-echo-guard 分支，未入 origin/develop）。\n### 验收\n单测 A~K（与 design §3 同名对齐：A 在线到期推卡；B 白名单重置；C 重启重载墙钟判定；D 未 attach 到期 pending_flush→attach 后补推；E 重放三分支（delivered 撤销/history_required 直接占位卡/反查 miss 占位卡）；F 分级落盘重启无丢失；G 互斥；H Front 重启后非流式重放送达（重绑主路径+server-push 回落）；I=worker FAILED 粘滞态 deadline 内占位卡经网关 socket 必达（确定断言）；J=占位卡后仅凭 delta+processing_status 冲刷的迟到回复送达；K=契约测试，占位帧五要素经网关 push 分支受理、Message.id=rid+\":p6\"、飞书接收者可解析、占位 chat.error 不触发真实回复的请求级失败处理与流状态变更、push 键常量两仓同源同值、wire 解码版本固定 openjiuwen_protocol）；残留风险显名（迟到回复观感重复待否决/永不重连静默 T+24h 过期审计/LOOPBACK 不覆盖/待实测：request.metadata 是否含飞书身份键，实施窗实测）。\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-11-06T21:29:04+08:00",
+    "updated_at": "2026-11-07T10:59:53+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-11-06T21:29:06+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4516156,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6221",
+    "number": "6221",
+    "state": "open",
+    "title": "【致命】bug [P3] runtime worker 心跳误杀：30s 静默阈值把大上下文流式轮误判死亡",
+    "body": "Paired: [GitHub #10772](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10772) ↔ [GitCode #6221](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6221)\n\n## P3 runtime worker 心跳误杀 — 30s 静默阈值把大上下文流式轮误判死亡\n\n### 现象\n2026-11-06 15:05 用户收到 [错误] runtime worker closed。worker 进程活着（llm.log 15:03:47 起在飞 LLM 调用，input=201814），事件循环被大上下文流式调用占死 33s 无 IPC 帧，supervisor 心跳判死（阈值 30s）误杀，SIGTERM 后干净退出 code=0，重启 42s 恢复。\n\n### 根因（文件:行级）\n单因子判死：runtime_supervisor.py L1371 心跳判定 now-_last_rx>30s（L63 _HEARTBEAT_TIMEOUT=30.0），把「忙」（大上下文流式 LLM 调用占用事件循环，IPC 帧停发）误判为「死」。supervisor 日志落点=agent_server.log（jiuwenswarm.server.* 路由，common/utils.py:3053），当日窗1 证据链 L89047-L89086。\n\n### 修复方案\n①判死双因子：supervisor 记录 worker BUSY_HINT（worker 大调用前主动发 busy 帧或每帧带 busy_until_hint 字段）；无在飞调用静默>30s 判死，有在飞调用静默>BUSY_TIMEOUT（默认 600s 可配）才判死，恢复发帧即复位。\n②判死动作温和化：触发 unhealthy 先 IPC ping 探活（5s 等待），有回应只记 warning 不杀。\n③可观测性：误杀/探活/重启事件落 agent_server.log，含 last_rx_age/busy_hint 状态/探活结果字段。\n\n### 验收\n- 单测：BUSY_HINT 在飞+静默超阈值不判死；无 BUSY_HINT 静默 30s 判死（原行为保留）；探活回应不杀只记 warning，无回应杀+重启。\n- 回归：~200k 上下文长流式轮不误杀；42s 恢复路径不回归。\n- 影响面：jiuwenswarm/server/supervisor/runtime_supervisor.py + worker 侧 busy 帧协议（jiuwenswarm/server/worker/）。\n\n### R2 条件吸收（2026-11-06）\n①补引既有机制：_classify_worker_stall（:1414-1448，30s/180s 分级）与 off-loop pong（worker/diagnostics.py:65-70）已在码——修复须与其协同而非另起炉灶；33s 窗内 pong 也缺席（读线程同被阻塞，疑似 GIL 级整进程阻塞）。\n②阈值统一：BUSY 宽限复用 _WORKER_STALL_RESTART=180s（废止 600s 新设值）；busy hint 三态清除（请求结束/连接断开/进程退出）。\n③探活 ping 复用 off-loop pong 通道；进程级阻塞时 pong 同缺席，按 180s 判死处置。\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-11-06T19:25:25+08:00",
+    "updated_at": "2026-11-07T10:59:52+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-11-06T19:25:28+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4454929,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5685",
+    "number": "5685",
+    "state": "open",
+    "title": "[Bug]: 飞书 post 富文本内嵌图片被丢弃——Agent 只收到 [图片] 占位符，image_key 未提取未下载",
+    "body": "Paired: [GitHub #9287](https://github.com/openJiuwen-ai/jiuwenswarm/issues/9287) ↔ [GitCode #5685](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5685)\n\n## 问题是什么\n\n用户通过飞书给 jiuwenswarm 发送一条**富文本（post）消息，正文中内嵌图片**（飞书手机端图文混排、或 PC 端粘贴图片+文字时常见此形态）。Agent 侧只收到文字和一个 `[图片]` 占位符，**图片本体完全丢失**——没有落盘、没有 image_key 传递，Agent 无法读取图片内容，只能回复\"图片没落盘/找不到图片\"。\n\n独立发送的图片消息（msg_type=image）不受影响，问题只出现在图片内嵌于 post 富文本的场景。\n\n## 根因分析\n\n代码位置：`jiuwenswarm/gateway/channel_manager/im_platforms/feishu/feishu_connect.py`\n\n1. 消息分发处对 `msg_type == \"post\"` 的分支只返回文本：\n\n```python\n# 富文本 (post) 消息：解析正文，避免落到 [post] 占位符\nif msg_type == \"post\":\n    return _extract_feishu_post_text(message.content or \"\"), None   # ← 第二项恒为 None\n```\n\n2. `_extract_feishu_post_text()` 内部遍历 post 的段落节点时，对 `tag == \"img\"` 的节点仅追加字符串 `\"[图片]\"`：\n\n```python\nelif tag == \"img\":\n    line_bits.append(\"[图片]\")   # ← img 节点自带 image_key，被直接丢弃\n```\n\n飞书 post 消息的 img 节点结构为 `{\"tag\":\"img\",\"image_key\":\"img_v3_...\",\"width\":...,\"height\":...}`，image_key 就在 content JSON 里，但解析器没有提取，也没有调用与独立图片消息相同的下载落盘链路（`_file_service.download_image(file_key=..., message_id=...)`）。\n\n对比：独立图片消息 `msg_type == \"image\"` 走 `_handle_image_message()`，会下载图片并以 file_info 形式随消息返回——post 分支缺的正是这一段。\n\n```mermaid\nsequenceDiagram\n    participant U as 用户(飞书)\n    participant C as feishu_connect\n    participant A as Agent\n    U->>C: post 消息 {text + img(image_key)}\n    C->>C: _extract_feishu_post_text()\n    Note over C: img 节点 → 仅追加 \"[图片]\"<br/>image_key 丢弃, 不下载\n    C->>A: 文本 + \"[图片]\" (file_info=None)\n    A-->>U: 找不到图片文件（无法读取）\n```\n\n## 建议的解决方案\n\n1. `_extract_feishu_post_text()` 改为同时收集 img/media 节点的 `image_key` 列表（返回值扩展为 `(text, media_keys)` 或提供独立提取函数）。\n2. post 分支对收集到的每个 image_key 复用现有 `_file_service.download_image(file_key=image_key, message_id=message.message_id)` 落盘，组装与 `_handle_image_message` 相同形态的 file_info（多张时返回列表/合并结构），使 post 内嵌图片与独立图片消息走同一条附件链路。\n3. 下载失败时保留 `[图片下载失败]` 显式提示，不静默吞没。\n\n## 测试设计与结论\n\n- 单元：post content JSON 含 0/1/N 个 img 节点 → 文本提取正确且 image_key 全量收集；locale-wrapped（zh_cn/en_us）形态同样覆盖；img 节点缺 image_key 时不误报。\n- 集成：mock `_file_service.download_image`，断言 post 分支对每个 image_key 各调用一次且 file_info 随消息返回；下载抛异常时返回 `[图片下载失败]` 且不影响文本部分。\n- 端到端：真实飞书渠道发送图文混排 post，Agent 侧收到落盘图片文件可读。\n\n现场已用飞书开放 API（im/v1/messages/{msg_id}/resources）手工拉取该图验证：image_key 确实存在于 post content 中，属解析层丢弃而非飞书未下发。\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-22T21:23:35+08:00",
+    "updated_at": "2026-10-23T09:32:06+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-10-22T21:23:37+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4449449,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5608",
+    "number": "5608",
+    "state": "open",
+    "title": "【Feature建议】调研/报告类任务缺少证据纪律护栏：软文推断被包装为确定性结论（附双框架对照实证）",
+    "body": "Paired: [GitHub #9115](https://github.com/openJiuwen-ai/jiuwenswarm/issues/9115) ↔ [GitCode #5608](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5608)\n\n## 问题是什么\n\n在使用 jiuwenswarm 执行「联网调研 + 生成调研报告」类任务时，发现一个系统性质量缺陷：**当检索到的资料质量参差（官方原文与营销软文混杂）时，jiuwenswarm 会把基于软文的推断直接写成确定性结论输出，且报告通篇没有任何证据强度区分**。\n\n真实对照案例（同一后端模型、同一任务提示词，两个不同 agent 框架产出的调研报告对比）：\n\n- 任务：调研某央企行业大模型两个专业模型的基座模型，要求标注出处。\n- jiuwenswarm 产出中出现了三类问题：\n  1. **推断升格为结论**：将「该行业大模型 L0 基座 = A厂商基座 + B厂商基座 + C厂商基座三家共建」写入「一句话结论」。实际依据仅为两篇厂商营销软文，三家官方原文各自只确认了各自环节（其中一家官方明确限定其基座只用于视觉模型环节），「三家共建 L0」是拼合推断，官方从未披露。\n  2. **轻率的全称否定**：断言「未发现该央企公开发布过名为 X 的产品」。实际该公司年度报告中明确载有该产品的表述。否定结论的检索面未覆盖年报等高权威源即输出。\n  3. **数值口径冲突未对账**：同一模型在不同官方源中出现 50亿 / 80亿 两个参数口径（均为真实，对应不同迭代阶段），报告静默取其一，未并列说明，造成读者与其他材料对不上数。\n- 对照框架的产出对同一事实做了多源交叉（年报、官网、发布稿、行业媒体），并对无法证实的部分显式设置「证据边界」声明。两份报告质量差距显著，而后端模型与提示词相同。\n\n结论：这不是模型能力问题，而是 agent 框架层缺少「证据纪律」约束——检索、综合、成文全链路没有任何机制阻止低质量证据产出高置信度表述。对调研类场景，这是产出可信度的核心缺陷。\n\n## 根因分析\n\njiuwenswarm 当前调研类任务的链路对「证据」是透明的：搜索结果进入上下文后，模型看到的是一段段无差别文本，无法区分哪些是官方原文、哪些是软文、哪些是模型自己的拼接推断。成文阶段也没有任何校验环节。缺陷枚举：\n\n- F1：检索结果无证据分级元数据（来源权威度、是否原文直引），模型综合时一视同仁。\n- F2：无「结论-证据绑定」约束，推断性内容可无成本进入结论区。\n- F3：无全称否定（\"不存在/未发布过\"）的检索充分性门槛。\n- F4：多源数值冲突时无强制对账/并列呈现机制。\n\n```mermaid\nsequenceDiagram\n    participant U as 用户\n    participant J as jiuwenswarm\n    participant S as 搜索引擎\n    participant L as LLM\n    U->>J: 调研任务（要求标注出处）\n    J->>S: 检索（有限轮次）\n    S-->>J: 结果混排：官方原文 + 营销软文（无差别文本）\n    J->>L: 上下文拼装（无证据分级标注）\n    L-->>J: 报告草稿（软文推断与官方直引同权，推断进结论区）\n    Note over J: 无任何校验环节\n    J-->>U: 报告（含确定性包装的错误结论）\n```\n\n## 建议的解决方案\n\n建议以「调研/报告类任务的输出质量护栏」形式实现，三层防御：\n\n1. **证据分级与声明绑定（核心）**：检索结果入库时标注来源等级（官方原文 / 权威媒体 / 一般媒体 / 软文或来源不明），并在进入上下文时保留标记；成文提示词约束：每条关键论断必须挂证据等级，「推断」类内容禁止出现在结论区，只能进入显式的「推测/待证」区。\n2. **全称否定门槛**：当草稿中出现「不存在 / 未发布过 / 没有」类全称否定时，触发校验：要求先对高权威源（官网、年报/公告、官方文档）做定向检索，未覆盖则强制降级表述为「在已检索范围内未发现」。\n3. **数值口径对账**：同一实体关键数值在多源出现不一致时，强制触发补充检索，产出中并列呈现各口径及出处时间点，禁止静默择一。\n\n```mermaid\nflowchart LR\n    A[检索结果] --> B[来源分级标注]\n    B --> C[上下文拼装<br/>保留证据等级]\n    C --> D[成文<br/>论断挂证据等级]\n    D --> E{校验器}\n    E -->|推断进结论区| F[打回重写]\n    E -->|全称否定未覆盖权威源| F\n    E -->|数值冲突未对账| G[补充检索+并列口径]\n    E -->|通过| H[交付报告<br/>含证据边界声明]\n```\n\n实现上建议先做提示词/流程层（对现有架构侵入最小），来源分级可先用域名启发式（gov.cn、公司官网、官方文档域 = 高；已知软文渠道 = 低），后续再考虑接入权威度模型。\n\n## 测试设计与结论\n\n建议验收用例（均用真实可复现的调研任务构造）：\n\n1. **软文陷阱用例**：构造含营销软文（单源、推断性表述）的检索集，验证产出不会将软文推断写入结论区，且该论断带「推断」标注。\n2. **全称否定用例**：目标事实确实存在于年报类页面但首轮检索未命中，验证产出降级为「已检索范围内未发现」而非「不存在」。\n3. **数值冲突用例**：同一实体在两个官方源中数值不同，验证产出并列两口径并附出处与时间。\n4. **误伤回归**：常规单源即可确证的调研任务，验证护栏不显著增加轮次/耗时（不引入过度校验）。\n\n本 issue 基于 2026-10-21 的真实双框架对照实验提出，对照两份报告可应要求提供。\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-21T17:51:56+08:00",
+    "updated_at": "2026-10-23T09:32:07+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-10-21T17:51:58+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4434038,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5335",
+    "number": "5335",
+    "state": "open",
+    "title": "【Bug】飞书卡片选卡回调路由缺陷：ask_user 应答新建空会话被静默丢弃，原会话永久挂起",
+    "body": "Paired: [GitHub #8530](https://github.com/openJiuwen-ai/jiuwenswarm/issues/8530) ↔ [GitCode #5335](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5335)\n\n## 问题描述\n\n飞书通道中，Agent 通过 `ask_user` 发出选项卡片（`chat.ask_user_question`）后，用户点击卡片按钮的选择**不会回流到原会话**，而是被路由到一个新建的空会话后静默丢弃。表现为：Bot 提问 → 用户点选 → 卡片更新为\"您已选择：xxx\"，但之后 Bot 永远不再回复，原会话永久挂起在等待答案状态。\n\n## 复现步骤\n\n1. 在飞书 p2p 会话中让 Agent 调用 `ask_user`（带选项问题）\n2. Bot 发出带按钮的选项卡片\n3. 点击任一选项按钮\n4. 卡片更新为\"您已选择\"，但 Agent 永远不继续执行\n\n## 根因分析\n\n飞书卡片回调 `_handle_card_callback_async`（`jiuwenswarm/gateway/channel_manager/im_platforms/feishu/feishu_connect.py`）构造的应答消息存在三个路由缺陷：\n\n1. **session_id 错误**：`session_id` 填的是操作者 open_id（`operator_id`），不是原会话 id；\n2. **identity 不完整**：`chat_id=\"\"`（注释自述\"卡片回调不直接关联特定chat_id\"），而 feishu 属 session-map 通道族，网关 `_apply_channel_state` 按 `(provider, chat_id, bot_id, user_id)` 反查 SessionMap（键为 `feishu::oc_<chat_id>::<app_id>`），chat_id 为空必然 miss → 走\"无主消息\"路径**新建会话**；\n3. **缺少 resume 信封**：params 只有 `{\"answers\", \"request_id\"}`，缺 `source: \"ask_user_interrupt\"`。网关 `_is_interrupt_resume_chat_send` 要求 `source ∈ _INTERRUPT_RESUME_SOURCES` 才按中断恢复（chat.send）处理；服务端 `_build_interactive_input` 的 ask_user 分支也依赖该 source 路由。\n\n对照规范信封 `InteractionAnswerInput.to_agent_request`（`jiuwenswarm/runtime/interaction.py`）：中断恢复应为 `req_method=CHAT_SEND` + `params={source: \"ask_user_interrupt\", request_id, answers, supports_user_interaction: true, query: \"\"}`，投递到原会话。飞书回调三者皆缺。\n\n## 实测证据（2026-10-16）\n\n- 20:27:00.52 原会话 history 落 `chat.ask_user_question`（source=ask_user_interrupt）+ `chat.final`，turn 挂起；\n- 20:27:07.87 出现新会话 `feishu_1a144ae2cdf_*`（message_count=0、无 history、user_id=open_id），仅一次 checkpoint_restore 后无任何 LLM 调用；\n- 原会话自此永久挂起，无任何回复。\n\n## 影响面\n\n飞书通道所有 ask_user 交互（问题澄清等）均 100% 失败且无任何错误提示，Agent 轮次泄漏挂起。web/TUI 通道不受影响（前端自带正确 session_id）。\n\n## 修复建议\n\n1. `_send_ask_user_question_card` 构建按钮时把 `chat_id`（及 question 文本）嵌入按钮 value 随卡带回；\n2. `_handle_card_callback_async` 改按规范 resume 信封构造消息：`req_method=CHAT_SEND`、携带原 `chat_id`（使 identity 反查命中 SessionMap 落回原会话）、params 带 `source: \"ask_user_interrupt\"` + `request_id` + `answers`（含 question 文本）+ `query: \"\"`；\n3. 旧卡片（value 无 chat_id）保留旧行为兜底。\n\n修复 PR 随后提交。\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-16T23:11:54+08:00",
+    "updated_at": "2026-10-23T09:32:07+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-10-16T23:11:57+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  },
+  {
+    "id": 4402004,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5018",
+    "number": "5018",
+    "state": "open",
+    "title": "[cron] Runaway sleep-polling agent sessions survive restarts via checkpoint restore and lack iteration/wall-clock guards",
+    "body": "Paired: [GitHub #7688](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7688) ↔ [GitCode #5018](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5018)\n\n## 现象\n\ncron 任务中的 agent 用 `bash: sleep N && grep <log>` 轮询等待其他任务触发，每轮把等待结果灌入上下文：\n\n- ReAct iteration 持续攀升至 48+，单轮 input tokens 从 2.2 万涨至 16.7 万\n- 同机 KV cache 占用 92%，拖慢所有其他会话（用户体感「整体特别慢」）\n- 模型本身正常（直连 1.0s、无排队），瓶颈完全在框架层反复 prefill 膨胀上下文\n\n## 复现步骤\n\n1. 创建一个 cron 任务，prompt 要求 agent「等待并核对其他 cron 任务是否触发」\n2. agent 自行选择 `bash sleep 120 && grep ...` 轮询方式\n3. 观察 iteration 与 input_tokens 逐轮增长；变换 sleep 时长（120/150/180/200）可绕过现有 loop guard\n\n## 框架层缺陷（4 项）\n\n| # | 问题 | 代码位置 |\n|---|------|---------|\n| F1 | **checkpoint 复活失控会话**：服务重启杀掉后，cron 会话经 `checkpoint_restore` 恢复，iteration 计数与膨胀上下文原样延续，重启这一缓解手段失效 | `jiuwenswarm/server/runtime/agent_adapter/`（checkpoint_restore），状态持久化于 `~/.jiuwenswarm/agent/.checkpoint/checkpoint.db` |\n| F2 | **cron ReAct 迭代上限过高**：`_DEFAULT_MAX_ITERATIONS = 200`，iteration 48 离上限还远，无收敛压力 | `jiuwenswarm/agents/harness/team/config_loader.py:23` |\n| F3 | **无 sleep/轮询守卫**：bash 工具可执行任意 `sleep N`；loop guard 只匹配完全相同的工具调用，agent 变换 sleep 时长即绕过 | `execute_cmd` 无拦截；loop guard 精确匹配 |\n| F4 | **cron 超时语义不拦截 sleep**：`CRON_DEFAULT_TIMEOUT_SECONDS = 3600`，sleep 计入工具执行时间，agent 可用 sleep 合法烧满 1 小时霸占引擎 | `jiuwenswarm/runtime/cron/models.py:186,335` |\n\n实测补充：prompt 级红线（「禁止 sleep、迭代≤5」）被 LLM 违反，**prompt 约束不能作为唯一防线**。\n\n## 建议\n\n1. cron 会话 checkpoint 恢复时对 iteration / 上下文膨胀设熔断（如恢复时 iteration 超阈值则终止并告警，而非原样复活）\n2. 为 cron 增加独立 wall-clock 预算，sleep 类阻塞工具调用计入并提前告警\n3. loop guard 支持「同类工具 + 参数数字变体」的模糊重复检测（sleep 120 vs sleep 150 应视为同类）\n4. 暴露 per-job `max_iterations` 配置，并给 cron 场景更低默认值（如 20~30）\n\n## 环境\n\n- jiuwenswarm commit f0a69728c96b5961d993449f1a901cbd2f4dac5b\n- 完整定位报告可提供（含时间线、日志证据、session id）\n",
+    "user": {
+      "id": "6331206",
+      "object_id": "6864d740862650204148df7c",
+      "login": "nawenyu139",
+      "name": "nawenyu139"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "namespace": {
+        "id": 9307451,
+        "type": "enterprise",
+        "name": "openJiuwen",
+        "path": "openJiuwen",
+        "html_url": "https://gitcode.com/openJiuwen"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-04T14:05:16+08:00",
+    "updated_at": "2026-10-04T14:05:21+08:00",
+    "labels": [
+      {
+        "id": 49658,
+        "name": "sig/jiuwenswarm",
+        "color": "#2865E0",
+        "created_at": "2026-05-19T09:26:25+08:00",
+        "updated_at": "2026-10-04T14:05:18+08:00"
+      }
+    ],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "issue_priority_detail": {
+      "title": "未指定",
+      "id": 1662
+    },
+    "depth": 0,
+    "parent_id": 0,
+    "visibility_reason": "public"
+  }
+]

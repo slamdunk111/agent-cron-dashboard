@@ -1,0 +1,66 @@
+{
+  "id": 4517427,
+  "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6232",
+  "number": "6232",
+  "state": "open",
+  "title": "【致命】交付台账占位卡误报：健康长工具轮与控制面请求被恒判「长时间未收到回复」（P7）",
+  "body": "Paired: [GitHub #10789](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10789) ↔ [GitCode #6232](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6232)\n\n## 现象\n\n- 2026-11-07 05:04 用户收到 `[错误] 长时间未收到回复，本次处理可能已中断`，而该轮（分析 zcode 提示词）实际正在正常执行——占位卡（P6 兜底机制，`jiuwenswarm/server/supervisor/delivery_ledger.py`）误报。\n- 台账盘（`~/.jiuwenswarm/run/delivery-ledger/`）取证：**15 张 sent 占位卡中 14 张为误报**：\n  - 10× `cron-session-create-*`（`__cron__` 渠道，每 40-100 分钟恒误报）；\n  - 3× `healthcheck-*`（`__health_check__` 渠道）；\n  - 1× `interrupt_1a1b290647e_e85ed3`（中断控制操作）；\n  - 1× `feishu:om_x100b61d7ad3484a0cfd7644d231f313`（健康长工具轮，本次用户报告）。\n\n## 根因（2026-11-07 server.log + 台账落盘时间线实锚）\n\n1. **deadline 活性源错配**：占位卡 deadline 仅被「用户可见白名单帧」（chat.final/chat.error/chat.ask_user_question，流式含 chat.delta）重置；纯工具执行的长轮次零可见帧属健康形态。实锚：`om_...231f313` 04:53:20 流式派发、10 分钟内 sequence 推进 **4925 帧**（管线活跃），05:03:20 仍被判超时发卡。\n2. **控制面请求无回复语义却照常登记**：`__cron__`/`__health_check__` 渠道与 `interrupt_*` 请求的用户可见回复为零帧属设计使然，登记台账后 600s 必然到期恒发卡。\n\n## 修复（分支 `fix/p7-placeholder-misfire`，基于 fix/p6-silent-sowallow）\n\n1. **活性语义**：`on_wire_delivered` 任意送达帧（含非白名单工具/进度帧）重置 deadline——占位卡只对「管线整体静默 600s」（worker 卡死/崩溃）报警；`last_visible_output_ts` 仍仅白名单帧更新（可见静默时长保持可观测）。\n2. **控制面豁免**：`register()` 对 `CONTROL_CHANNEL_IDS`（`__cron__`/`__health_check__`）与 `CONTROL_REQUEST_ID_PREFIXES`（`interrupt_`）直接跳过不建条目。\n3. spec `S_01_delivery-ledger.md` 同步；4 个回归测试（活性重置／管线静默仍报警／控制面豁免／用户渠道不外溢），套件 27 passed，ruff clean。\n\n## 关联\n\n- P6 主案兜底面（静默吞回复）；本条为 P6 机制上线首日暴露的误报缺陷，不回退 P6 兜底本身。",
+  "user": {
+    "html_url": "https://gitcode.com/nawenyu139",
+    "id": "6864d740862650204148df7c",
+    "object_id": "6864d740862650204148df7c",
+    "login": "nawenyu139",
+    "name": "nawenyu139"
+  },
+  "assignees": [],
+  "repository": {
+    "id": 9297832,
+    "full_name": "openJiuwen/jiuwenswarm",
+    "path": "jiuwenswarm",
+    "name": "jiuwenswarm",
+    "description": "JiuwenSwarm 是一款基于openJiuwen开发的智能AI Agent，它能够将大语言模型的强大能力，通过你日常使用的各类通讯应用，直接延伸至你的指尖。",
+    "created_at": "2026-03-02T10:30:24+08:00",
+    "updated_at": "2026-05-18T10:52:35+08:00",
+    "assigner": {},
+    "paas": ""
+  },
+  "created_at": "2026-11-07T11:31:12+08:00",
+  "updated_at": "2026-11-07T11:31:19+08:00",
+  "finished_at": "",
+  "labels": [
+    {
+      "id": 49658,
+      "name": "sig/jiuwenswarm",
+      "color": "#2865E0",
+      "created_at": "2026-05-19T09:26:25+08:00",
+      "updated_at": "2026-11-07T11:31:14+08:00"
+    }
+  ],
+  "issue_state": "TODO",
+  "comments": 2,
+  "custom_fields": [
+    {
+      "field_name": "关联分支",
+      "field_type": "select_single",
+      "field_visibility": 1,
+      "field_values": []
+    }
+  ],
+  "issue_type": "Experience-Feedback",
+  "priority": 1,
+  "issue_state_detail": {
+    "title": "TODO",
+    "serial": 0,
+    "id": 3499
+  },
+  "issue_type_detail": {
+    "title": "Experience-Feedback",
+    "id": 2853,
+    "is_system": false
+  },
+  "issue_priority_detail": {
+    "title": "未指定",
+    "id": 1662
+  },
+  "visibility_reason": "public"
+}

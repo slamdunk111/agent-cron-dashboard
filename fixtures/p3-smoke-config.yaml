@@ -1,0 +1,15 @@
+# Run config of the P3 real-machine gate (plan §4: "my issues" poller).
+# GitHub: the search list is the seed (one page, 50 items; measured 34 rows on
+# 2026-11-08T18:23Z). GitCode: `/user/issues` needs the token; when it is
+# missing the platform is named `down` (never silently skipped).
+identities:
+  - platform: github
+    username: slamdunk111
+  - platform: gitcode
+    username: nawenyu139
+    tokenEnv: GITCODE_TOKEN
+watch:
+  repos:
+    - https://github.com/dptech-corp/Uni-Core
+    - https://gitcode.com/openJiuwen/jiuwenswarm
+  issuePollIntervalMs: 60000

@@ -1,0 +1,49 @@
+[
+  {
+    "url": "https://api.github.com/repos/MemTensor/MemOS/issues/comments/6497645464",
+    "html_url": "https://github.com/MemTensor/MemOS/issues/2538#issuecomment-6497645464",
+    "issue_url": "https://api.github.com/repos/MemTensor/MemOS/issues/2538",
+    "id": 6497645464,
+    "node_id": "IC_kwDOPHuKoM8AAAABg0ozmA",
+    "user": {
+      "login": "slamdunk111",
+      "id": 57564782,
+      "node_id": "MDQ6VXNlcjU3NTY0Nzgy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57564782?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/slamdunk111",
+      "html_url": "https://github.com/slamdunk111",
+      "followers_url": "https://api.github.com/users/slamdunk111/followers",
+      "following_url": "https://api.github.com/users/slamdunk111/following{/other_user}",
+      "gists_url": "https://api.github.com/users/slamdunk111/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/slamdunk111/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/slamdunk111/subscriptions",
+      "organizations_url": "https://api.github.com/users/slamdunk111/orgs",
+      "repos_url": "https://api.github.com/users/slamdunk111/repos",
+      "events_url": "https://api.github.com/users/slamdunk111/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/slamdunk111/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "created_at": "2026-10-29T13:13:07Z",
+    "updated_at": "2026-10-29T13:13:07Z",
+    "body": "Confirmed on our side: `@memtensor/memos-local-plugin` 2.0.21 is now published on npm (`dist-tags.latest = 2.0.21`, checked today), and it carries the V4 producer-owned message-source fix from #2519 — which is exactly the root cause this issue reported (recall messages using the retired `kind: \"plugin\"` wrapper instead of a producer-owned source kind under `SESSION_FORMAT_VERSION = 4`).\n\nTwo follow-ups from this thread we'll track on our side:\n\n1. The remaining DSH peer-range gap (`>=0.1.0-rc.5 <0.2.0` in 2.0.21, so `0.2.x` bundle compatibility checks still fail) — noted as tracked in #2520 / #2541; our 0.2.x installs keep the `\"snapshot\"`-style local pin until that lands.\n2. @chichi233's Windows Desktop trace (turn-fatal, session survives, clean session logs) is the clearest blast-radius documentation in this thread — worth folding into the release notes verification for the Windows path, as it also identifies the general anti-pattern (deciding source shape from a module constant instead of the live session) in sibling plugins.\n\nThanks for the fix and for keeping the issue open for the compatibility work — no further action needed from us on the original V4 rejection itself.",
+    "author_association": "NONE",
+    "pin": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/MemTensor/MemOS/issues/comments/6497645464/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "performed_via_github_app": null,
+    "minimized": null
+  }
+]

@@ -494,3 +494,68 @@ export {
   type WatchUpdate,
   type PrWatchOptions,
 } from './community/pr-watch.ts'
+/**
+ * Community surface (P3): the issue poller, both readers and the row binder.
+ */
+export {
+  IssueWatchService,
+  makeIssueWatchService,
+  createIssueMemoryTables,
+  issueKey,
+  issueDiffers,
+  isForeignReply,
+  parseIssueRepos,
+  emptyIssueQueue,
+  ISSUE_DIFF_FIELDS,
+  type IssueWatchOptions,
+  type IssueTable,
+  type IssueQueueRecord,
+  type PlatformCursorRecord,
+} from './community/issue-watch.ts'
+export {
+  GithubIssueReader,
+  lastPageOfLink,
+  repoFromApiUrl,
+  GITHUB_LIST_PER_PAGE,
+  type GithubIssueJson,
+  type GithubSearchItem,
+} from './community/issue-watch-github.ts'
+export {
+  GitcodeIssueReader,
+  issueNumberOf,
+  labelNamesOf,
+  GITCODE_ISSUE_PER_PAGE,
+  type GitcodeIssueJson,
+} from './community/issue-watch-gitcode.ts'
+export {
+  makeIssueSources,
+  GITHUB_LIST_REFRESH_MS,
+  type IssueSourceOptions,
+  type IssueSourcesResult,
+} from './community/issue-sources.ts'
+export {
+  IssuePollRunner,
+  startIssueWatch,
+  type IssueWatchHandle,
+  type RoundOutcome,
+  type StartIssueWatchOptions,
+} from './community/community-row.ts'
+export {
+  fetchHttpGet,
+  parseJson,
+  retryAfterMs,
+  rateLimitRemaining,
+  rateLimitResetMs,
+  type HttpGet,
+  type HttpGetResponse,
+} from './community/http-get.ts'
+export type {
+  IssueDetail,
+  IssueFailure,
+  IssueListAnswer,
+  IssuePlatformSource,
+  IssueRef,
+  LastComment,
+  ListedIssue,
+  PollResult,
+} from './community/issue-types.ts'

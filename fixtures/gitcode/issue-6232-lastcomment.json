@@ -1,0 +1,22 @@
+[
+  {
+    "id": 198947964,
+    "body": "### 欢迎来到 openJiuwen 社区\nHey [@nawenyu139](https://gitcode.com/nawenyu139) , 感谢你对社区的贡献.\n#### 机器人使用手册\n有关指令的使用，可以点击 **[此处](https://gitcode.com/openJiuwen/community/blob/main/zh/content/robot/%E7%A4%BE%E5%8C%BA%E5%91%BD%E4%BB%A4%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3.md)** 查看详情。开发人员可以在每个PR或Issue下方评论特定指令来触发机器人任务。\n#### 联系指引\n有疑问可以联系 SIG: **[jiuwenswarm](https://gitcode.com/openJiuwen/community/blob/main/sigs/jiuwenswarm/sig-info.yaml)** ,\n维护者是： [@douran](https://gitcode.com/douran), [@xinyu-jiuwen](https://gitcode.com/xinyu-jiuwen) ,\n审核者是： [@Jiuwen_Yankee](https://gitcode.com/Jiuwen_Yankee), [@alan_cheng](https://gitcode.com/alan_cheng), [@blooms195](https://gitcode.com/blooms195), [@chenchunzhou](https://gitcode.com/chenchunzhou), [@chenmaxqian](https://gitcode.com/chenmaxqian), [@cyz95](https://gitcode.com/cyz95), [@deyang](https://gitcode.com/deyang), [@gcw_xJSJ32Ge](https://gitcode.com/gcw_xJSJ32Ge), [@huenrui_](https://gitcode.com/huenrui_), [@hy592070616](https://gitcode.com/hy592070616), [@kdgmpw](https://gitcode.com/kdgmpw), [@wangxiaolong100](https://gitcode.com/wangxiaolong100), [@xiaowenzihwl](https://gitcode.com/xiaowenzihwl), [@xiaoyao42](https://gitcode.com/xiaoyao42), [@yangzequ](https://gitcode.com/yangzequ), [@zepinzhang](https://gitcode.com/zepinzhang), [@zzhang-fr](https://gitcode.com/zzhang-fr) .",
+    "user": {
+      "html_url": "https://gitcode.com/openJiuwen-bot",
+      "id": "68efbe75d3e71e35266cc152",
+      "object_id": "68efbe75d3e71e35266cc152",
+      "login": "openJiuwen-bot",
+      "name": "openJiuwen-bot"
+    },
+    "target": {
+      "issue": {
+        "id": 4517427,
+        "title": "",
+        "number": 6232
+      }
+    },
+    "created_at": "2026-11-07T11:31:15+08:00",
+    "updated_at": "2026-11-07T11:31:15+08:00"
+  }
+]

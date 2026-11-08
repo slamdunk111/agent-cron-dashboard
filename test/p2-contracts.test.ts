@@ -28,9 +28,10 @@ describe('ADR P2-2: capability contract constant', () => {
 })
 
 describe('ADR P2-1: first-observation kind and snapshot pair', () => {
-  it('adds exactly one kind, graded medium', () => {
+  it('adds exactly one kind, graded medium (P3 later adds `issue-seeded`, ADR P3-1)', () => {
     expect(CHANGE_LEVELS['pr-seeded']).toBe('medium')
-    expect(Object.keys(CHANGE_LEVELS)).toHaveLength(21)
+    // 22 = 20 before P2 + `pr-seeded` (P2-1) + `issue-seeded` (P3-1).
+    expect(Object.keys(CHANGE_LEVELS)).toHaveLength(22)
   })
 
   it('SnapshotPair keeps before nullable for the first observation', () => {

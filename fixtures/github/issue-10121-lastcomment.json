@@ -1,0 +1,49 @@
+[
+  {
+    "url": "https://api.github.com/repos/code-yeongyu/oh-my-openagent/issues/comments/6605074134",
+    "html_url": "https://github.com/code-yeongyu/oh-my-openagent/issues/10121#issuecomment-6605074134",
+    "issue_url": "https://api.github.com/repos/code-yeongyu/oh-my-openagent/issues/10121",
+    "id": 6605074134,
+    "node_id": "IC_kwDOQheEEc8AAAABibFu1g",
+    "user": {
+      "login": "slamdunk111",
+      "id": 57564782,
+      "node_id": "MDQ6VXNlcjU3NTY0Nzgy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57564782?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/slamdunk111",
+      "html_url": "https://github.com/slamdunk111",
+      "followers_url": "https://api.github.com/users/slamdunk111/followers",
+      "following_url": "https://api.github.com/users/slamdunk111/following{/other_user}",
+      "gists_url": "https://api.github.com/users/slamdunk111/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/slamdunk111/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/slamdunk111/subscriptions",
+      "organizations_url": "https://api.github.com/users/slamdunk111/orgs",
+      "repos_url": "https://api.github.com/users/slamdunk111/repos",
+      "events_url": "https://api.github.com/users/slamdunk111/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/slamdunk111/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "created_at": "2026-11-03T13:27:52Z",
+    "updated_at": "2026-11-03T13:27:52Z",
+    "body": "Re-checked on the current version, as requested.\n\n**Environment**\n- `omo --version`: `omo 5.1.59 (engine: senpi 2026.11.2-3; scheme nodef)` (standalone binary `omo-linux-x64`, freshly downloaded from the v5.1.59 release)\n- OS: Linux x86_64 (kernel 7.0.0-31-generic), Node v22.23.2 available but the standalone binary was used\n- Steps (in an isolated `REVIEW_HARNESS_HOME`-style slot, `/tmp` project dir):\n\n**Connection-reset half** — acknowledged; awaiting senpi#5512 (still open as of today, `merged: false`). We'll re-verify our long-run supervisor behavior once it lands.\n\n**Resume half — still reproduces on 5.1.59.** Exact repro:\n\n```\n$ omo -p --session-id c0ffee0001 \"Remember the word MANGO. Reply with exactly: DONE-A\"\nDONE-A\n$ omo -p --session-id c0ffee0002 \"Remember the word PAPAYA. Reply with exactly: DONE-B\"\nDONE-B\n$ omo -p -r c0ffee0001 \"What single word did I ask you to remember earlier in this session? Answer with just the word.\"\n```\n\nWhat the `-r` invocation prints and then does: it renders the interactive session picker inside `-p` mode, listing both sessions, and waits for input that never comes in a headless context —\n\n```\nctrl+s sort · ctrl+n named · ctrl+d delete · ctrl+p path (off)\n\n>                                                                              \n\n› Remember the word PAPAYA. Reply with exactly: DONE-B                      2 3m\n  Remember the word MANGO. Reply with exactly: DONE-A                       2 3m\n\n────────────────────────────────────────────────────────────────────────────────\n```\n\n(no answer ever printed; killed after 60 s in the sandbox, exit 124. On 5.1.33 the same hang sat ~1 h at ~100% CPU — same failure, longer window.)\n\nSession ids: two sessions in the same project session dir, `2026-11-03T13-18-11-435Z_c0ffee0001.jsonl` and `2026-11-03T13-18-31-986Z_c0ffee0002.jsonl` under `~/.omo/agent/sessions/--tmp-omo59x-proj--/`. The `-r c0ffee0001` run printed the picker with **both** sessions listed and selected neither; it never echoed the requested session id as \"resuming\".\n\nContrast, same binary, same dir:\n\n```\n$ omo -p --session-id c0ffee0001 \"What single word did I ask you to remember earlier in this session? Answer with just the word.\"\nMANGO\n```\n\nSo `--session-id` resume is correct on 5.1.59 (right session, right context), while `-p -r <id>` is still broken: the resume picker hijacks headless mode instead of resolving the named session. Our workaround (`--session-id` on every invocation) keeps working, but the `-r` semantics in `-p` mode — resolve the id, or fail loudly — would remain worth fixing.\n\nNo keys or tokens in the outputs above.\n",
+    "author_association": "NONE",
+    "pin": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/code-yeongyu/oh-my-openagent/issues/comments/6605074134/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "performed_via_github_app": null,
+    "minimized": null
+  }
+]

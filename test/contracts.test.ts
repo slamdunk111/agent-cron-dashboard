@@ -24,15 +24,17 @@ describe('change event grades (design §4.4)', () => {
     expect(classifyChange('error-record-verified')).toBe('medium')
   })
 
-  it('grades the first-observation kind as digest-only (ADR P2-1)', () => {
+  it('grades the first-observation kinds as digest-only (ADR P2-1, P3-1)', () => {
     expect(classifyChange('pr-seeded')).toBe('medium')
+    expect(classifyChange('issue-seeded')).toBe('medium')
   })
 
   it('covers every declared kind exactly once and nothing else', () => {
     const kinds = Object.keys(CHANGE_LEVELS) as ChangeKind[]
-    // 20 keys before P2 (13 community + 7 fleet); `pr-seeded` is the one ADR'd
-    // addition, so the table now carries 21.
-    expect(kinds).toHaveLength(21)
+    // 20 keys before P2 (13 community + 7 fleet); `pr-seeded` (ADR P2-1) and
+    // `issue-seeded` (ADR P3-1) are the two ADR'd additions, so the table
+    // now carries 22.
+    expect(kinds).toHaveLength(22)
     for (const kind of kinds) expect(['high', 'medium']).toContain(CHANGE_LEVELS[kind])
   })
 })

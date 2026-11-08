@@ -50,3 +50,30 @@ export const GITCODE_CAPABILITIES: readonly ProviderCapability[] = Object.freeze
 export const GITCODE_UNSUPPORTED = Object.freeze(
   GITCODE_CAPABILITIES.filter((entry) => !entry.implemented).map((entry) => entry.capability),
 )
+
+/** One issue-side read (not a `ProviderCapability`: the forge table above covers change requests only). */
+export interface GitcodeIssueCapability {
+  readonly capability: 'gitcodeIssueListMine' | 'gitcodeIssueSearch'
+  readonly implemented: boolean
+  readonly note: string
+}
+
+/**
+ * Issue-side read surface measured by P3 (ADR P3-1, `../docs/probes/p3-gitcode-issues.md`).
+ *
+ * The forge provider table above covers change requests only; the issue poller
+ * is a separate reader, so its findings live in their own list. Order is
+ * meaningful: the poller uses the first entry and never the second.
+ */
+export const GITCODE_ISSUE_CAPABILITIES: readonly GitcodeIssueCapability[] = Object.freeze([
+  {
+    capability: 'gitcodeIssueListMine',
+    implemented: true,
+    note: 'GET /api/v5/user/issues?filter=created&state=all; token required (anonymous answers 400 private-token); 61 rows measured 2026-11-08T18:25Z',
+  },
+  {
+    capability: 'gitcodeIssueSearch',
+    implemented: true,
+    note: 'GET /api/v5/search/issues?q=author:<me>; 22 rows for the same subject vs 61 from /user/issues, rows carry no user field, per_page > 50 answers 400: implemented but NOT used as a seed (coverage unknown)',
+  },
+] as const)

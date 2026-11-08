@@ -14,6 +14,8 @@ export type ChangeLevel = 'high' | 'medium'
 export type CommunityChangeKind =
   /** First observation of a change request: the engine sees a snapshot pair whose `before` is null (P2 seeds, P4 emits; ADR P2-1). */
   | 'pr-seeded'
+  /** First observation of an issue: same pair rule as `pr-seeded` (P3 seeds, P4 emits; ADR P3-1). */
+  | 'issue-seeded'
   | 'pr-ci-failed'
   | 'pr-review-changes-requested'
   | 'pr-conflicting'
@@ -83,6 +85,7 @@ export interface ChangeEvent {
 export const CHANGE_LEVELS: Readonly<Record<ChangeKind, ChangeLevel>> = Object.freeze({
   // First observation is digest material only; the engine never notifies for it.
   'pr-seeded': 'medium',
+  'issue-seeded': 'medium',
   'pr-ci-failed': 'high',
   'pr-review-changes-requested': 'high',
   'pr-conflicting': 'high',

@@ -121,8 +121,50 @@ async function captureGitcode(argv) {
   console.log(`captured GitCode fixtures for ${target} at ${at}`)
 }
 
+/**
+ * The P3 capture itself: issue lists and detail/comment pairs, both platforms.
+ * @returns exit code (0 when every write happened).
+ */
+async function captureP3(argv) {
+  const out = argOf(argv, '--out', 'fixtures')
+  const issueDir = resolve(root, out, 'gitcode')
+  const ghDir = resolve(root, out, 'github')
+  const gitcode = readFileSync(resolve(homedir(), '.gitcode_token'), 'utf8').trim()
+  const GET = async (url, headers) => (await fetch(url, { headers: { ...headers, Accept: 'application/json' }, redirect: 'manual' })).json()
+  const gc = (path) => GET(`https://gitcode.com/api/v5/${path}`, { 'private-token': gitcode })
+  const mine = await gc('user/issues?filter=created&state=all&per_page=500&page=1')
+  writeFileSync(resolve(issueDir, 'user-issues-jiuwenswarm.json'), `${JSON.stringify(mine.filter((row) => row.repository?.full_name === 'openJiuwen/jiuwenswarm'), null, 2)}\n`)
+  writeFileSync(resolve(issueDir, 'user-issues-closed-sample.json'), `${JSON.stringify(mine.filter((row) => row.state === 'closed').slice(0, 1), null, 2)}\n`)
+  console.log(`gitcode user/issues rows=${String(mine.length)} at=${at}`)
+  const repoSearch = await gc(`search/issues?q=${encodeURIComponent('repo:openJiuwen/jiuwenswarm')}`)
+  writeFileSync(resolve(issueDir, 'search-issues-jiuwenswarm.json'), `${JSON.stringify(repoSearch.filter((row) => row.repository?.full_name === 'openJiuwen/jiuwenswarm'), null, 2)}\n`)
+  const search = await gc('search/issues?q=author:nawenyu139')
+  writeFileSync(resolve(issueDir, 'search-issues-author.json'), `${JSON.stringify(search, null, 2)}\n`)
+  const detail = await gc('repos/openJiuwen/jiuwenswarm/issues/6232')
+  const comments = await gc('repos/openJiuwen/jiuwenswarm/issues/6232/comments?per_page=1&page=1')
+  writeFileSync(resolve(issueDir, 'issue-6232.json'), `${JSON.stringify(detail, null, 2)}\n`)
+  writeFileSync(resolve(issueDir, 'issue-6232-lastcomment.json'), `${JSON.stringify(comments, null, 2)}\n`)
+  const closedRow = mine.find((row) => row.state === 'closed')
+  const closedDetail = await gc(`repos/${closedRow.repository.full_name}/issues/${String(Number(closedRow.number))}`)
+  writeFileSync(resolve(issueDir, 'issue-52.json'), `${JSON.stringify(closedDetail, null, 2)}\n`)
+  const gh = async (path) => JSON.parse(execFileSync(GH_BIN(), ['api', '-H', 'Accept: application/vnd.github+json', path], { encoding: 'utf8', timeout: 40_000 }))
+  for (const [repo, number] of [['MemTensor/MemOS', 2538], ['code-yeongyu/oh-my-openagent', 10121]]) {
+    const row = await gh(`repos/${repo}/issues/${String(number)}`)
+    row.__repo = repo
+    writeFileSync(resolve(ghDir, `issue-${String(number)}.json`), `${JSON.stringify(row, null, 2)}\n`)
+    const last = await gh(`repos/${repo}/issues/${String(number)}/comments?per_page=1&page=${String(row.comments)}`)
+    writeFileSync(resolve(ghDir, `issue-${String(number)}-lastcomment.json`), `${JSON.stringify(last, null, 2)}\n`)
+    console.log(`github ${repo}#${number} comments=${String(row.comments)} last=${String(last[0]?.user?.login ?? '')} at=${last[0]?.created_at ?? ''}`)
+  }
+  writeFileSync(
+    resolve(issueDir, 'README.md'),
+    `# GitCode issue fixtures (P3)\n\nCaptured ${at} from gitcode.com/api/v5 with the token of \`~/.gitcode_token\` (never written).\n\n| file | request |\n|---|---|\n| user-issues-jiuwenswarm.json | \`GET /user/issues?filter=created&state=all&per_page=500&page=1\`, rows of the subject |\n| user-issues-closed-sample.json | same read, first closed row |\n| issues-mine.json | curated `/user/issues` rows used by the P3 tests (7 of the watched repository) |\n| search-issues-author.json | \`GET /search/issues?q=author:<me>\` |\n| search-issues-jiuwenswarm.json | \`GET /search/issues?q=repo:openJiuwen/jiuwenswarm\` |\n| issue-6232.json / -lastcomment.json | \`GET /repos/openJiuwen/jiuwenswarm/issues/6232\` and \`.../comments?per_page=1&page=1\` |\n| issue-52.json | a closed issue (detail shape) |\n`,
+  )
+  return 0
+}
+
 const argv = process.argv.slice(2)
-const task = argv.includes('--gitcode') ? captureGitcode : captureGithub
+const task = argv.includes('--p3') ? captureP3 : argv.includes('--gitcode') ? captureGitcode : captureGithub
 task(argv).catch((error) => {
   console.error('capture failed:', error instanceof Error ? error.message : error)
   process.exit(1)

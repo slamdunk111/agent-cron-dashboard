@@ -1,0 +1,1219 @@
+[
+  {
+    "id": 3912287,
+    "html_url": "https://gitcode.com/codeasier/gitcode-cli/issues/1",
+    "number": "1",
+    "state": "closed",
+    "title": "Bug: `--author @me` fails with \"user not found\" error",
+    "body": "## Bug Description\n\nWhen using the `--author @me` flag with `gc issue list`, the command fails with an API error returning `user not found`. The `@me` placeholder is not being resolved to the authenticated user's username.\n\n## Steps to Reproduce\n\n1. Run `gc auth login` to authenticate with a valid token\n2. Run `gc issue list -R codeasier/test-for-gc --author @me`\n3. See error: `{'error_code': 404, 'error_code_name': 'NOT_FOUND', 'error_message': 'user not found'}`\n\n## Expected Behavior\n\nThe `--author @me` flag should resolve to the currently authenticated user's login and filter issues created by that user, matching `gh` CLI behavior.\n\n## Actual Behavior\n\nThe command passes `@me` literally as the `creator` parameter to the API, which returns a 404 \"user not found\" error.\n\n```shell\n$ gc issue list -R codeasier/test-for-gc --author @me\nerror: {'error_code': 404, 'error_code_name': 'NOT_FOUND', 'error_message': 'user not found', 'trace_id': 'b30c5df97edd8f20a757b13a37ef8ff3'}\n```\n\n## gc Version\n\n0.0.0.dev0\n\n## Python Version\n\n3.14.4\n\n## OS\n\nLinux\n\n## Additional Context\n\nThe issue appears to be in `src/gitcode_cli/adapters/issues.py` where the `author` parameter is passed directly to the service without resolving `@me` to the actual user login. A `UserService` class exists in `src/gitcode_cli/services/users.py` with a `current()` method, but it is not being used to resolve the `@me` placeholder in the adapter.",
+    "repository": {
+      "id": 9790358,
+      "full_name": "codeasier/gitcode-cli",
+      "human_name": "codeasier / gitcode-cli",
+      "path": "gitcode-cli",
+      "name": "gitcode-cli",
+      "url": "https://gitcode.com/codeasier/gitcode-cli",
+      "owner": {
+        "html_url": "https://gitcode.com/codeasier",
+        "id": "691302d8f777710ee2183026",
+        "login": "codeasier",
+        "name": "codeasier",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-05-07T14:41:18+08:00",
+    "updated_at": "2026-05-07T14:42:51+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 3367748,
+    "html_url": "https://gitcode.com/viest/php-ext-xlsxwriter/issues/1",
+    "number": "1",
+    "state": "closed",
+    "title": "arginfo 变量名中 'auther' 应为 'author'",
+    "body": "## 问题描述\n\n在 `xlswriter_get_author` 函数的参数信息变量名中存在拼写错误。变量被命名为 `xlswriter_get_auther_arginfo`，但应该为 `xlswriter_get_author_arginfo` 以匹配函数名并遵循正确的命名约定。\n\n## 当前行为\n\n```c\nZEND_BEGIN_ARG_INFO_EX(xlswriter_get_auther_arginfo, 0, 0, 0)\nZEND_END_ARG_INFO()\n\n// ...\n\nPHP_FE(xlswriter_get_author,  xlswriter_get_auther_arginfo)\n```\n\n## 期望行为\n\n变量名应为 `xlswriter_get_author_arginfo`，以便：\n1. 匹配函数名 `xlswriter_get_author`\n2. 修正 \"author\" 的拼写\n3. 提高代码一致性和可读性\n\n## 受影响的文件\n\n- `xlswriter.c` (第 31 行和第 135 行)",
+    "repository": {
+      "id": 4959435,
+      "full_name": "viest/php-ext-xlsxwriter",
+      "human_name": "viest / php-ext-xlswriter",
+      "path": "php-ext-xlsxwriter",
+      "name": "php-ext-xlswriter",
+      "url": "https://gitcode.com/viest/php-ext-xlsxwriter",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/fc/cc/3f16c6cc3467952e976c8c9aef1f76abc2fb2f73a641dc45cf2878b4886eaaba.jpg",
+        "html_url": "https://gitcode.com/f-404",
+        "id": "686399a6a39ca3530989db9c",
+        "login": "f-404",
+        "name": "f -",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2025-11-01T08:34:39+08:00",
+    "updated_at": "2026-06-16T10:59:47+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 3737003,
+    "html_url": "https://gitcode.com/openeuler/mcp-servers/issues/19",
+    "number": "19",
+    "state": "closed",
+    "title": "cvekit提交的pr，会篡改author name",
+    "body": "\n\n\n### **【缺陷描述】：请补充详细的缺陷问题现象描述**\n            \ncvekit提交的pr，会篡改author name\n### **一、缺陷信息**\n            \ncvekit提交的pr，会篡改author name\n### **【缺陷所属的os版本】**\n            \n2603\n### **【内核版本】**\n            \n6.6\n### **【缺陷所属软件及版本号】**\n            \n6.6\n### **【环境信息】**\n            \n#### 硬件信息\n- 提供跟硬件相关的信息，如架构、cpu和内存规格等\n- 虚拟机场景，额外补充宿主机os版本类型\n\n#### 软件信息\n- 跟缺陷所属软件相关的其它软件版本信息（如软件包构建失败由gcc引起，请填写gcc的版本号）\n\n#### 网络信息\n- 如果有特殊组网，请提供网络拓扑信息以及网络数据走向\n\n### **【问题复现步骤】**\n            \n\n### **【实际结果】**\n            \n\n### **【期望结果】**\n            \n\n### **【其他相关附件信息】**\n            \n\n### **【缺陷详情及分析指导参考链接】**\n            \n\n",
+    "repository": {
+      "id": 7678039,
+      "full_name": "openeuler/mcp-servers",
+      "human_name": "openEuler / mcp-servers",
+      "path": "mcp-servers",
+      "name": "mcp-servers",
+      "url": "https://gitcode.com/openeuler/mcp-servers",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ff/df/6ff4308d67002ff771285b4b7b7c95744980902cb715a42a22660b0224e16d23.png",
+        "html_url": "https://gitcode.com/lipingEmmaSiguyi",
+        "id": "6712044dd6ee2508b9804d46",
+        "login": "lipingEmmaSiguyi",
+        "name": "lipingEmmaSiguyi",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-01-26T11:41:38+08:00",
+    "updated_at": "2026-01-26T11:41:53+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 0,
+      "id": 1803
+    },
+    "issue_type_detail": {
+      "title": "缺陷",
+      "id": 1903,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4101978,
+    "html_url": "https://gitcode.com/CPF-KMP-CMP/akinterop/issues/153",
+    "number": "153",
+    "state": "closed",
+    "title": "[Docs]: rename README package refs to @cpf-kmp-cmp & set author",
+    "body": "rename README package refs to @cpf-kmp-cmp & set author",
+    "repository": {
+      "id": 9299657,
+      "full_name": "CPF-KMP-CMP/akinterop",
+      "human_name": "CPF-KMP-CMP / akinterop",
+      "path": "akinterop",
+      "name": "akinterop",
+      "url": "https://gitcode.com/CPF-KMP-CMP/akinterop",
+      "owner": {
+        "html_url": "https://gitcode.com/hid33138733",
+        "id": "68b6436852d11012db77d867",
+        "login": "hid33138733",
+        "name": "hwc2000",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-06-17T16:55:22+08:00",
+    "updated_at": "2026-06-17T22:29:08+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4249965,
+    "html_url": "https://gitcode.com/CPF-ApplicationTPC/imageknifepro/issues/272",
+    "number": "272",
+    "state": "closed",
+    "title": "更新oh-package.json5 author字段",
+    "body": "更新oh-package.json5 author字段",
+    "repository": {
+      "id": 5438637,
+      "full_name": "CPF-ApplicationTPC/imageknifepro",
+      "human_name": "CPF-ApplicationTPC / imageknifepro",
+      "path": "imageknifepro",
+      "name": "imageknifepro",
+      "url": "https://gitcode.com/CPF-ApplicationTPC/imageknifepro",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ef/fc/ef67138f73c6fba19425bab63086b28551f8ecb108ed14473278982676c4d0dd.png",
+        "html_url": "https://gitcode.com/Keke_planet",
+        "id": "67324e3a68f60c72a6d73be3",
+        "login": "Keke_planet",
+        "name": "zwzhang",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-14T10:43:11+08:00",
+    "updated_at": "2026-08-15T10:43:11+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4254734,
+    "html_url": "https://gitcode.com/liuxuezhi/ability_idl_tool/issues/379",
+    "number": "379",
+    "state": "open",
+    "title": "Taihe rust-author 阶段2：time_service 试点 + 量化",
+    "body": "**来源**：research/9 §3.3 阶段 2。**依赖**：rust-author 阶段 1。\n\n**目标**：\n- system_date_time 写 `.taihe` IDL → `rust-author + napi-bridge` 生成替换手写 `kits/napi/system_date_time`（356 行）\n- `@promise` 注解修 napi 异步退化（research/7 §4.2-1 关闭：不再 JS 线程同步 IPC）\n- kits/c 对齐 c-author 产出（110 行手写对比）\n- 量化：替换行数、生成/手写比、异步链路（uv 线程池→JS promise）验证\n\n**验收**：armv7 产物 NEEDED/symbol 检查 + （有设备时）板上 js 冒烟。",
+    "repository": {
+      "id": 10584618,
+      "full_name": "liuxuezhi/ability_idl_tool",
+      "human_name": "liuxuezhi / ability_idl_tool",
+      "path": "ability_idl_tool",
+      "name": "ability_idl_tool",
+      "url": "https://gitcode.com/liuxuezhi/ability_idl_tool",
+      "owner": {
+        "html_url": "https://gitcode.com/liuxuezhi",
+        "id": "68c0f2a33be0a23c91c20b8a",
+        "login": "liuxuezhi",
+        "name": "liuxuezhi",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-16T13:15:11+08:00",
+    "updated_at": "2026-08-16T13:15:11+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4281923,
+    "html_url": "https://gitcode.com/hhermanwang/opencode-skills/issues/2",
+    "number": "2",
+    "state": "open",
+    "title": "[Bug] Default repository is hard-coded to author's personal project",
+    "body": "## Bug Description\n\nThe SKILL.md hard-codes the default target repository as `openharmony/distributeddatamgr_preferences` �� a specific OpenHarmony project. This is the author's personal project and is inappropriate as a default for a publicly shared skill.\n\n## Location\n\n- File: `skills/gitcode-bug-hunter/SKILL.md`, line 88\n\n## Problematic Code\n\n```markdown\nBy default creates issues at:\n- `https://gitcode.com/openharmony/distributeddatamgr_preferences`\n```\n\n## Root Cause\n\nThe default was likely left over from the author's own usage. A general-purpose bug-hunting skill should either:\n1. Derive the target repo from the current project's git remote\n2. Require the user to specify the target repo explicitly\n3. Use a neutral placeholder\n\n## Impact\n\n- **Severity: High** �� Users who don't specify a target repo will unknowingly create issues on a stranger's repository.\n- Could lead to spam on the OpenHarmony project's issue tracker.\n\n## Suggested Fix\n\nRemove the hard-coded default and require users to specify the target repository:\n\n```markdown\n## Target Repository\n\nYou must specify the target repository. Example:\n```\n�� https://gitcode.com/owner/repo �� bug �� issue\n```\n```\n\nOr auto-detect from the current git remote origin.",
+    "repository": {
+      "id": 10691277,
+      "full_name": "hhermanwang/opencode-skills",
+      "human_name": "hhermanwang / opencode-skills",
+      "path": "opencode-skills",
+      "name": "opencode-skills",
+      "url": "https://gitcode.com/hhermanwang/opencode-skills",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/cd/bb/8cd6b0216b2879b59b8261139aa1f854b4e74718cbb4d7d91d8cf0287290b15e.jpg",
+        "html_url": "https://gitcode.com/hhermanwang",
+        "id": "672cf86fae148c7b766515c1",
+        "login": "hhermanwang",
+        "name": "hhermanwang",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-26T15:14:49+08:00",
+    "updated_at": "2026-08-26T15:14:49+08:00",
+    "labels": [
+      {
+        "id": 13258909,
+        "name": "bug",
+        "color": "#428BCA",
+        "created_at": "2026-08-26T15:14:28.337+08:00",
+        "updated_at": "2026-08-26T15:14:28.337+08:00"
+      }
+    ],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4472826,
+    "html_url": "https://gitcode.com/agent-best-practices/gitcode-issue-triage/issues/76",
+    "number": "76",
+    "state": "open",
+    "title": "[建议] 为 sweep/list 增加按作者筛选（--author / --exclude-author），便于针对集中刷帖的账号做小范围复核",
+    "body": "现状：\n\nREADME 的命令行速查里，sweep / list 目前只有 --owner / --repo / --state / --no-auth 等参数，没有按提交者（作者）过滤的选项。已有同类筛选需求：#68 是标签过滤、#72 是时间范围筛选，但作者维度尚未覆盖。提交前检索了“作者”“按作者”“排除”，未见专门讨论按作者筛选的主题。\n\n场景：\n\n某账号短时间内连发多条“支持一波 / 拿个积分”类 issue 时，维护者只想先复核该账号的 issue，不想全库重扫；反过来，排除已知可信账号（例如维护者自己的测试帖）也能减少复核噪声。\n\n建议：\n\n1. 为 sweep.py 与 list 增加 --author 参数，支持逗号分隔多个账号，按提交者 login 匹配；同时增加 --exclude-author，用于排除指定账号。\n2. 过滤应在分页取数后、判定之前进行，且不改变现有判定规则、veto 护栏与 --dry-run 行为。\n3. 无匹配时明确输出 0 条，而不是静默空表；README 命令行速查补充示例。\n\n说明：\n\n这只是筛选范围，不是把某账号一律判定为无价值，仍要逐条走判定与护栏，符合“宁漏勿错”的原则。",
+    "repository": {
+      "id": 11120806,
+      "full_name": "agent-best-practices/gitcode-issue-triage",
+      "human_name": "AI Agent开发实践中心 / 通用-研发-issue区治理",
+      "path": "gitcode-issue-triage",
+      "name": "通用-研发-issue区治理",
+      "url": "https://gitcode.com/agent-best-practices/gitcode-issue-triage",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ff/ba/1f2fb5243a927211dc68e2864d9666c911a8f5632efaf0ef549afaebc01ea23f.png",
+        "html_url": "https://gitcode.com/whoworng",
+        "id": "6a3a0f6d89db9832be2ae8a2",
+        "login": "whoworng",
+        "name": "whoworng",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-28T09:57:56+08:00",
+    "updated_at": "2026-10-28T09:57:56+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4254735,
+    "html_url": "https://gitcode.com/liuxuezhi/ability_idl_tool/issues/380",
+    "number": "380",
+    "state": "open",
+    "title": "Taihe rust-author 阶段3：上游提案（Rust = 官方第三作者语言）",
+    "body": "**来源**：research/9 §3.3 阶段 3。**依赖**：阶段 2 量化数据。\n\n**内容**：\n- 向 openharmony/arkcompiler_taihe_ffi_gen 提 issue/PR（rust-author 后端）\n- 证据包：time_service 试点量化（行数削减 + 异步修复）+ research/7 对比报告摘要\n- 与 research/8 A3/A4 需求单打包叙事：南向 idl_tool async proxy + 北向 Taihe rust-author = Rust SA 全链路官方化\n\n**注意**：提案前确认 fork 改动可干净移植上游（无本地路径依赖）。",
+    "repository": {
+      "id": 10584618,
+      "full_name": "liuxuezhi/ability_idl_tool",
+      "human_name": "liuxuezhi / ability_idl_tool",
+      "path": "ability_idl_tool",
+      "name": "ability_idl_tool",
+      "url": "https://gitcode.com/liuxuezhi/ability_idl_tool",
+      "owner": {
+        "html_url": "https://gitcode.com/liuxuezhi",
+        "id": "68c0f2a33be0a23c91c20b8a",
+        "login": "liuxuezhi",
+        "name": "liuxuezhi",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-16T13:15:11+08:00",
+    "updated_at": "2026-08-16T13:15:11+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4254733,
+    "html_url": "https://gitcode.com/liuxuezhi/ability_idl_tool/issues/378",
+    "number": "378",
+    "state": "open",
+    "title": "Taihe rust-author 后端 阶段1：fork PoC（codegen/rust/ + cookbook 跑通）",
+    "body": "**来源**：research/9 §3.3 阶段 1。\n\n**目标**：fork `/home/liuxuezhi/opensource/taihe_ffi_gen`，加 `compiler/taihe/codegen/rust/` 后端：\n- `RustAuthorBackendConfig(NAME=\"rust-author\", DEPS=[\"abi-header\",\"abi-source\"])`\n- 先支持 function + 基本类型（i32/u32/i64/bool/String/void）\n- 生成物：`#[no_mangle] extern \"C\" fn th_xxx(...)` 桩（签名对齐 C ABI mangle）+ trait 化作者接口\n- `taihec -G rust-author cookbook/hello_world` 跑通\n\n**前置准备**（本 issue 内完成）：\n- [ ] uv sync + scripts/test --run core 验证官方工具链\n- [ ] 读 `codegen/abi/gen_abi.py` + `mangle.py`：符号命名约定（rust no_mangle 对齐）\n- [ ] 读 `runtime/include/taihe/string.abi.h` + `callback.abi.h` + `async.abi.h`：Rust 投影设计（TString RAII/expected→Result/closure trampoline）\n- [ ] `rust-user`（消费侧 safe wrapper）可与 author 同期或推后，PoC 期可手写 extern 声明验证\n\n**风险**（research/9 §3.2）：C ABI 运行时是 C++ 实现——确认导出符号为 C 约定；必要时 cc 编子集（#371 已有交叉编配方）。",
+    "repository": {
+      "id": 10584618,
+      "full_name": "liuxuezhi/ability_idl_tool",
+      "human_name": "liuxuezhi / ability_idl_tool",
+      "path": "ability_idl_tool",
+      "name": "ability_idl_tool",
+      "url": "https://gitcode.com/liuxuezhi/ability_idl_tool",
+      "owner": {
+        "html_url": "https://gitcode.com/liuxuezhi",
+        "id": "68c0f2a33be0a23c91c20b8a",
+        "login": "liuxuezhi",
+        "name": "liuxuezhi",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-16T13:15:10+08:00",
+    "updated_at": "2026-08-16T16:27:45+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4432620,
+    "html_url": "https://gitcode.com/openeuler/nvwa-cve-fixer/issues/18",
+    "number": "18",
+    "state": "open",
+    "title": "[Bug] durable /create_pr 将上游 commit author 覆盖为下游签署人",
+    "body": "### 问题描述\n\ndurable `/create_pr` 创建回移植提交时，将下游 signer 同时作为 author 和 committer，并将 author date 替换为工作流提交时间。signer 与源作者不同时，原作者归属会被覆盖。\n\n该行为发生在程序调用 `git commit-tree` 的阶段，与模型无关；直接应用和适配后创建的新提交都受影响。\n\n### 实际案例\n\n[openeuler/kernel PR #27860](https://atomgit.com/openeuler/kernel/merge_requests/27860)：\n\n- CVE：`CVE-2026-89638`\n- 目标分支：`OLK-6.6`\n- 下游提交：`69e21580c0690d2530ba2f24def8854b71baabad`\n- 提交消息引用的上游提交：`b8e5dc4f95e5484159b343903f302eb6d783f2e6`\n- 签署人：`Zizhi Wo <wozizhi@huawei.com>`\n- Workflow：`f8ce5ab4d5ec4c01bcdc8fea9214fb68`\n- Run：`2775c757072d4dda9347fe6a0efd3925`\n- 触发评论 ID：`190377810`\n- 历史执行引擎：`mystique`\n- PR 创建于 2026-09-18，本地历史记录显示已合并。\n\n2026-10-16 通过平台 API 核对结果：\n\n| 字段 | 引用的上游提交 | 下游提交 |\n|---|---|---|\n| Author | Jiangshan Yi | Zizhi Wo |\n| Author email | yijiangshan@kylinos.cn | wozizhi@huawei.com |\n| Author date（UTC） | 2026-07-16 02:22:14 | 2026-09-18 05:08:30 |\n| Committer | Paulo Alcantara | Zizhi Wo |\n\n来源：[上游提交元数据](https://api.github.com/repos/torvalds/linux/commits/b8e5dc4f95e5484159b343903f302eb6d783f2e6)、[下游提交元数据](https://api.atomgit.com/api/v5/repos/openeuler/kernel/commits/69e21580c0690d2530ba2f24def8854b71baabad)。\n\n证据来自 commit 元数据与本地工作流关联记录，未将 PR 创建者 `devstation-robot` 当作 commit author。此次尚未下载原始 Git 对象。\n\n### 根因与范围\n\n上游当前 `master` 的 `patchflow/src/cve_service/durable_workflow.py::apply_patch()`，约第 155–157 行：\n\n```python\nenv = dict(\n    GIT_AUTHOR_NAME=c['signer_name'],\n    GIT_AUTHOR_EMAIL=c['signer_email'],\n    GIT_COMMITTER_NAME=c['signer_name'],\n    GIT_COMMITTER_EMAIL=c['signer_email'],\n    GIT_AUTHOR_DATE=timestamp,\n    GIT_COMMITTER_DATE=timestamp,\n)\n```\n\n随后使用该环境调用 `git commit-tree`，因此不会保留源提交的 author 元数据。\n\n本问题针对 durable `/create_pr` 新建提交的路径。`backport-batch` 是另一条实现路径，优先解析补丁作者、解析不到才回退 signer，不应混为本问题的固定触发范围。\n\n### 预期行为\n\n- 从已验证的源 commit 获取并保存作者姓名、邮箱及作者时间。\n- 下游提交保留源 author；committer 使用项目约定的下游身份。\n- 保留已有签署链，记录必要的适配说明。\n- 缺少可靠作者信息时明确失败，不静默替换为 signer。\n- 元数据由程序传递，不依赖 Agent 或生成的 diff 推断。\n\n### 验收建议\n\n使用源作者与 signer 不同的样例，覆盖直接应用、适配、恢复及重试路径，验证：\n\n- Author 姓名、邮箱和时间保持正确。\n- Committer 身份与时间符合下游约定。\n- 已有签署链和适配说明保留。\n- 缺失可靠作者信息时明确拒绝。\n- 恢复过程使用持久化元数据，提交重建保持一致。\n\n本 Issue 记录缺陷和修复要求，不包含历史提交重写或已合并 PR 的自动处理。\n",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/ff/df/6ff4308d67002ff771285b4b7b7c95744980902cb715a42a22660b0224e16d23.png",
+      "html_url": "https://gitcode.com/lipingEmmaSiguyi",
+      "id": "6712044dd6ee2508b9804d46",
+      "login": "lipingEmmaSiguyi",
+      "name": "lipingEmmaSiguyi",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9579851,
+      "full_name": "openeuler/nvwa-cve-fixer",
+      "human_name": "openEuler / nvwa-cve-fixer",
+      "path": "nvwa-cve-fixer",
+      "name": "nvwa-cve-fixer",
+      "url": "https://gitcode.com/openeuler/nvwa-cve-fixer",
+      "owner": {
+        "html_url": "https://gitcode.com/weihao_huawei",
+        "id": "6a17edf23c8f5073c48cf115",
+        "login": "weihao_huawei",
+        "name": "weihao",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-16T15:38:39+08:00",
+    "updated_at": "2026-10-16T15:39:25+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "待办的",
+      "serial": 0,
+      "id": 1801
+    },
+    "issue_type_detail": {
+      "title": "缺陷",
+      "id": 1903,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2140923,
+    "html_url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d/issues/3880",
+    "number": "3880",
+    "state": "closed",
+    "title": "Add fuzzer test author CY 003！",
+    "body": "\n",
+    "repository": {
+      "id": 4433279,
+      "full_name": "OH_001_will_delete_20251230/graphic_graphic_2d",
+      "human_name": "OH_001_will_delete_20251230 / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/df/cf/d0f53cf0955de606f4d5daa6deed7c9ddfcd3daad282c7ef11469e194c70d25b.jpg",
+        "html_url": "https://gitcode.com/lw19901203",
+        "id": "67248e00e2f3770132897df0",
+        "login": "lw19901203",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:48:28+08:00",
+    "updated_at": "2024-06-07T11:14:45+08:00",
+    "labels": [
+      {
+        "id": 12981005,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-10T11:52:52.235+08:00",
+        "updated_at": "2024-12-11T17:22:46.250+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 96
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 50,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2140947,
+    "html_url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d/issues/3883",
+    "number": "3883",
+    "state": "closed",
+    "title": "Add fuzzer test author LW 003!",
+    "body": "",
+    "repository": {
+      "id": 4433279,
+      "full_name": "OH_001_will_delete_20251230/graphic_graphic_2d",
+      "human_name": "OH_001_will_delete_20251230 / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/df/cf/d0f53cf0955de606f4d5daa6deed7c9ddfcd3daad282c7ef11469e194c70d25b.jpg",
+        "html_url": "https://gitcode.com/lw19901203",
+        "id": "67248e00e2f3770132897df0",
+        "login": "lw19901203",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:39:33+08:00",
+    "updated_at": "2024-06-06T15:55:00+08:00",
+    "labels": [
+      {
+        "id": 12981005,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-10T11:52:52.235+08:00",
+        "updated_at": "2024-12-11T17:22:46.250+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 96
+    },
+    "issue_type_detail": {
+      "title": "需求",
+      "id": 49,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4242860,
+    "html_url": "https://gitcode.com/jianguoxu/vibekeys-plugin/issues/1",
+    "number": "1",
+    "state": "open",
+    "title": "plugin.json author 为占位符、缺 LICENSE、VID/PID 硬编码无法配置",
+    "body": "## 问题\n\n发现三处问题：\n\n### 1. plugin.json author 是占位符\n\n`.claude-plugin/plugin.json` 的 author 字段为：\n\n```json\n\"author\": {\n  \"name\": \"User\",\n  \"email\": \"user@example.com\"\n}\n```\n\n这是初始化模板的占位值，未替换为真实作者信息。\n\n### 2. 缺少 LICENSE 文件\n\n仓库根目录没有 LICENSE，`plugin.json` 也没有 license 字段。插件对外发布时应明确许可条款，否则下游用户无法确定使用权利。\n\n### 3. send-state.py 的 VID/PID 硬编码\n\n`hooks/scripts/send-state.py` 中：\n\n```python\n# HID device identifiers (placeholder - update with actual values)\nVID = 0x1111\nPID = 0x0009\n```\n\n注释自己写了 \"placeholder - update with actual values\"，但 README 指示用户\"修改 `scripts/send-state.py` 中的 VID 和 PID 变量\"——这要求用户改源码，升级插件时会冲突。应改为从环境变量或配置文件读取。\n\n## 期望\n\n1. 把 plugin.json 的 author 替换为真实信息（坚果 / jianguo@nutpi.net）\n2. 新增 MIT LICENSE\n3. send-state.py 的 VID/PID 改为从环境变量 `VIBEKEYS_VID` / `VIBEKEYS_PID` 读取，保留当前值为默认；README 补充配置说明\n\n## 关联\n\n- 本 issue 的修复将以 PR 形式提交",
+    "repository": {
+      "id": 10496283,
+      "full_name": "jianguoxu/vibekeys-plugin",
+      "human_name": "jianguoxu / vibekeys-plugin",
+      "path": "vibekeys-plugin",
+      "name": "vibekeys-plugin",
+      "url": "https://gitcode.com/jianguoxu/vibekeys-plugin",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ba/da/5b7a7d5ab1e41b0284e4ec850f38960292ed8c1b993961a3a6624a64995b8d3e.jpg",
+        "html_url": "https://gitcode.com/jianguoxu",
+        "id": "66150a30431454566491f8ef",
+        "login": "jianguoxu",
+        "name": "坚果",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-11T19:02:18+08:00",
+    "updated_at": "2026-08-11T19:02:18+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4214337,
+    "html_url": "https://gitcode.com/CPF-KMP-CMP/kotlin/issues/297",
+    "number": "297",
+    "state": "closed",
+    "title": "[BUG] NullCheckOptimization.testKt49136a OPT 下运行 SIGSEGV (exit 139)",
+    "body": "\n\n## 感谢你的反馈！\n请在提交前确认此问题尚未被报告过。\n\n### 发生了什么问题？\n            \n执行 codegen-box 的 NullCheckOptimization.testKt49136a（FirNativeCodegenBoxTestGenerated 与 FirNativeCodegenBoxTestNoPLGenerated）均失败：2 completed, 2 failed。\n\n编译成功（COMPILER CALL Exit code: 0），设备运行失败：\n- Exit code: 139\n- STDOUT: Signal 11 (core dumped)\n- Failed tests: __launcher__Kt.runTest\n\n测试数据：compiler/testData/codegen/box/nullCheckOptimization/kt49136a.kt\n场景：抽象类 Z 的 init 中调用 check(this)，内部执行 safe-call z?.b?.c（此时子类 A 的 override val b 尚未完成初始化）。\n\n文件头注明关联 KT-50289（EXC_BAD_ACCESS getting non-null property in safe call chain）。\nIGNORE_NATIVE 仅覆盖 optimizationMode=DEBUG / NO，OPT 会执行。\n\n期望：上述命令下两条 testKt49136a 通过（返回 OK，exit 0）。\n现状：两条均在设备上 SIGSEGV。\n\n报告：native/native.tests/codegen-box/build/reports/tests/test/index.html\n\n### 复现步骤\n            \n1. 进入 kotlin 仓库根目录，连接 ohos_arm64 设备\n2. 执行：\n```\n   ./gradlew :native:native.tests:codegen-box:test \\\n     -Pkotlin.native.enabled=true \\\n     -Pbootstrap.kotlin.version=2.2.21-0.5.0-04 \\\n     -Pbootstrap.kotlin.repo=https://maven.eazytec-cloud.com/nexus/repository/maven-public/ \\\n     --dependency-verification=off \\\n     -Pkotlin.internal.native.test.target=ohos_arm64 \\\n     -Pkotlin.internal.native.test.optimizationMode=OPT \\\n     --tests 'org.jetbrains.kotlin.konan.test.blackbox.FirNativeCodegenBoxTestGenerated$Box$NullCheckOptimization.testKt49136a' \\\n     --tests 'org.jetbrains.kotlin.konan.test.blackbox.FirNativeCodegenBoxTestNoPLGenerated$Box$NullCheckOptimization.testKt49136a'\n```\n![image.png](https://raw.gitcode.com/user-images/assets/8992407/a29581be-5aec-4b10-ada0-01eeea3349ec/image.png 'image.png')\n3. 观察两条 testKt49136a() FAILED，exit 139 / Signal 11\n![image.png](https://raw.gitcode.com/user-images/assets/8992407/52f6df65-50ca-4ed7-88cc-9a790415955a/image.png 'image.png')\n### 受影响的版本\n            \n2.2.21-0.5.0-04\n### 提交前确认\n            \n- [x] 我已搜索过现有的 Issue，确信这是一个新问题\n- [ ] 我已阅读了项目的贡献指南\n",
+    "repository": {
+      "id": 8992407,
+      "full_name": "CPF-KMP-CMP/kotlin",
+      "human_name": "CPF-KMP-CMP / kotlin",
+      "path": "kotlin",
+      "name": "kotlin",
+      "url": "https://gitcode.com/CPF-KMP-CMP/kotlin",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/fc/cd/f088716242014c5c6de106880354bb5abce177e8ae0e55a9ae67962d201e2b25.png",
+        "html_url": "https://gitcode.com/lcl-259",
+        "id": "6800b1382cb7f0133f80d0dd",
+        "login": "lcl-259",
+        "name": "lcl-259",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-03T15:06:28+08:00",
+    "updated_at": "2026-08-04T16:26:53+08:00",
+    "labels": [
+      {
+        "id": 13246807,
+        "name": "Bug 报告",
+        "color": "#d92240",
+        "created_at": "2026-07-14T14:08:54.002+08:00",
+        "updated_at": "2026-07-14T14:08:54.002+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 4097736,
+    "html_url": "https://gitcode.com/openUBMC/skills-marketplace/issues/60",
+    "number": "60",
+    "state": "closed",
+    "title": "【缺陷】skills下面的inspection-rule-author文件有问题，请检查",
+    "body": "skills下面的inspection-rule-author文件有问题，请检查",
+    "repository": {
+      "id": 9452946,
+      "full_name": "openUBMC/skills-marketplace",
+      "human_name": "openUBMC / skills-marketplace",
+      "path": "skills-marketplace",
+      "name": "skills-marketplace",
+      "url": "https://gitcode.com/openUBMC/skills-marketplace",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/dc/bc/58d17c264258b02654c44b9c796c0a74a17178902f890bdeaa56dcd97f21015b.png?time=1742305483172",
+        "html_url": "https://gitcode.com/zybwh",
+        "id": "673d5a54804d8a690c3b6e1d",
+        "login": "zybwh",
+        "name": "张雨博",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-06-16T10:34:33+08:00",
+    "updated_at": "2026-06-25T17:34:39+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 125
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 121,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2140934,
+    "html_url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d/issues/3881",
+    "number": "3881",
+    "state": "closed",
+    "title": "Add fuzzer test author CY 002！",
+    "body": "\r\n",
+    "repository": {
+      "id": 4433279,
+      "full_name": "OH_001_will_delete_20251230/graphic_graphic_2d",
+      "human_name": "OH_001_will_delete_20251230 / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/df/cf/d0f53cf0955de606f4d5daa6deed7c9ddfcd3daad282c7ef11469e194c70d25b.jpg",
+        "html_url": "https://gitcode.com/lw19901203",
+        "id": "67248e00e2f3770132897df0",
+        "login": "lw19901203",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:45:58+08:00",
+    "updated_at": "2024-06-06T14:33:09+08:00",
+    "labels": [
+      {
+        "id": 12981005,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-10T11:52:52.235+08:00",
+        "updated_at": "2024-12-11T17:22:46.250+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 96
+    },
+    "issue_type_detail": {
+      "title": "需求",
+      "id": 49,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2515291,
+    "html_url": "https://gitcode.com/openharmony/graphic_graphic_2d/issues/3797",
+    "number": "3797",
+    "state": "closed",
+    "title": "Add fuzzer test author CY 003！",
+    "body": "\n",
+    "repository": {
+      "id": 4433528,
+      "full_name": "openharmony/graphic_graphic_2d",
+      "human_name": "OpenHarmony / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/openharmony/graphic_graphic_2d",
+      "owner": {
+        "html_url": "https://gitcode.com/lw197254",
+        "id": "675fdeeff81a35025f0cfa0b",
+        "login": "lw197254",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:48:28+08:00",
+    "updated_at": "2024-06-07T11:14:45+08:00",
+    "labels": [
+      {
+        "id": 13002439,
+        "name": "waiting_for_assign",
+        "color": "#428BCA",
+        "created_at": "2024-12-24T15:04:02.281+08:00",
+        "updated_at": "2024-12-24T15:04:02.281+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 877567
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 251717,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2140941,
+    "html_url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d/issues/3882",
+    "number": "3882",
+    "state": "closed",
+    "title": "Add fuzzer test author LW 002!",
+    "body": "",
+    "repository": {
+      "id": 4433279,
+      "full_name": "OH_001_will_delete_20251230/graphic_graphic_2d",
+      "human_name": "OH_001_will_delete_20251230 / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/OH_001_will_delete_20251230/graphic_graphic_2d",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/df/cf/d0f53cf0955de606f4d5daa6deed7c9ddfcd3daad282c7ef11469e194c70d25b.jpg",
+        "html_url": "https://gitcode.com/lw19901203",
+        "id": "67248e00e2f3770132897df0",
+        "login": "lw19901203",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:40:34+08:00",
+    "updated_at": "2024-06-06T15:09:48+08:00",
+    "labels": [
+      {
+        "id": 12981005,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-10T11:52:52.235+08:00",
+        "updated_at": "2024-12-11T17:22:46.250+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 96
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 50,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2515295,
+    "html_url": "https://gitcode.com/openharmony/graphic_graphic_2d/issues/3799",
+    "number": "3799",
+    "state": "closed",
+    "title": "Add fuzzer test author LW 002!",
+    "body": "",
+    "repository": {
+      "id": 4433528,
+      "full_name": "openharmony/graphic_graphic_2d",
+      "human_name": "OpenHarmony / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/openharmony/graphic_graphic_2d",
+      "owner": {
+        "html_url": "https://gitcode.com/lw197254",
+        "id": "675fdeeff81a35025f0cfa0b",
+        "login": "lw197254",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:40:34+08:00",
+    "updated_at": "2024-06-06T15:09:48+08:00",
+    "labels": [
+      {
+        "id": 13002439,
+        "name": "waiting_for_assign",
+        "color": "#428BCA",
+        "created_at": "2024-12-24T15:04:02.281+08:00",
+        "updated_at": "2024-12-24T15:04:02.281+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 877567
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 251717,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4427754,
+    "html_url": "https://gitcode.com/suijiong/knowledge-forge-py/issues/11",
+    "number": "11",
+    "state": "closed",
+    "title": "[P1][修复] 手动创建文档 author_id 为 NULL（信任客户端传入，存在冒认越权）",
+    "body": "## 问题\n\n通过「新建文档」手动创建的文档，`author_id` 为 `NULL`，导致文档不属于任何作者：不出现在作者的「我的文档」中，作者本人也无法编辑。同时作者字段可被客户端伪造。\n\n## 复现\n\n1. 以 admin 登录 → 「文档管理 → 新建文档」→ 填写标题与正文 → 保存\n2. 查询数据库：\n   ```sql\n   SELECT author_id, create_by FROM kh_document WHERE id='<新文档id>';\n   ```\n   结果：`author_id = NULL`，但 `create_by = '368362320281210880'`（admin）\n3. 该文档不出现在 admin 的「个人中心 → 我的文档」统计中\n\n## 根因\n\n`backend-py/app/routes/document_router.py` 的手动创建端点：\n```python\nreturn await doc_svc.create(\n    db, dto.title, dto.content,\n    ...\n    author_id=dto.author_id,   # ← 信任客户端，缺省为 None\n)\n```\n\n而同文件中**上传解析**端点 `POST /documents/upload/parse` 正确使用了 `author_id=user.user_id`。\n\n## 与 TS 原实现对照\n\nTS `backend/src/document/document.service.ts:121`：\n```ts\nauthorId: actor.userId,   // 服务端赋值，不接受客户端传入\n```\n\nPython 端偏离了原始契约。\n\n## 修复方案\n\n手动创建端点同样强制 `author_id=user.user_id`，忽略客户端传入值。\n\n## 安全影响\n\n当前可由客户端伪造 `author_id` 冒认他人为作者（越权写风险）。\n\n## 验收标准\n\n- AC-9：手动创建的文档 `author_id` 等于当前登录用户 id\n- 上传解析端点行为不变\n\n## 备注\n\n来源：GUI 全菜单走查缺陷 #11（见汇总 issue #1）。",
+    "repository": {
+      "id": 11066606,
+      "full_name": "suijiong/knowledge-forge-py",
+      "human_name": "suijiong / knowledge-forge-py",
+      "path": "knowledge-forge-py",
+      "name": "knowledge-forge-py",
+      "url": "https://gitcode.com/suijiong/knowledge-forge-py",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ed/fc/2edfcdfa6ba6e34b685c31bd6b78f682947d351a5b657c30f8b746a2a10aff27.jpg",
+        "html_url": "https://gitcode.com/suijiong",
+        "id": "68248de3053cff786c91cd27",
+        "login": "suijiong",
+        "name": "糊里糊涂",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-15T11:31:22+08:00",
+    "updated_at": "2026-10-15T15:53:22+08:00",
+    "labels": [
+      {
+        "id": 13275140,
+        "name": "bug",
+        "color": "#428BCA",
+        "created_at": "2026-10-14T17:31:03.569+08:00",
+        "updated_at": "2026-10-14T17:31:03.569+08:00"
+      }
+    ],
+    "comments": 3,
+    "priority": 0,
+    "parent_id": 0
+  },
+  {
+    "id": 2515277,
+    "html_url": "https://gitcode.com/openharmony/graphic_graphic_2d/issues/3801",
+    "number": "3801",
+    "state": "closed",
+    "title": "Add fuzzer test author LW 003!",
+    "body": "",
+    "repository": {
+      "id": 4433528,
+      "full_name": "openharmony/graphic_graphic_2d",
+      "human_name": "OpenHarmony / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/openharmony/graphic_graphic_2d",
+      "owner": {
+        "html_url": "https://gitcode.com/lw197254",
+        "id": "675fdeeff81a35025f0cfa0b",
+        "login": "lw197254",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:39:33+08:00",
+    "updated_at": "2024-06-06T15:55:00+08:00",
+    "labels": [
+      {
+        "id": 13002439,
+        "name": "waiting_for_assign",
+        "color": "#428BCA",
+        "created_at": "2024-12-24T15:04:02.281+08:00",
+        "updated_at": "2024-12-24T15:04:02.281+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 877567
+    },
+    "issue_type_detail": {
+      "title": "需求",
+      "id": 251718,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2515294,
+    "html_url": "https://gitcode.com/openharmony/graphic_graphic_2d/issues/3798",
+    "number": "3798",
+    "state": "closed",
+    "title": "Add fuzzer test author CY 002！",
+    "body": "\r\n",
+    "repository": {
+      "id": 4433528,
+      "full_name": "openharmony/graphic_graphic_2d",
+      "human_name": "OpenHarmony / graphic_graphic_2d",
+      "path": "graphic_graphic_2d",
+      "name": "graphic_graphic_2d",
+      "url": "https://gitcode.com/openharmony/graphic_graphic_2d",
+      "owner": {
+        "html_url": "https://gitcode.com/lw197254",
+        "id": "675fdeeff81a35025f0cfa0b",
+        "login": "lw197254",
+        "name": "lw19901203",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-06-05T16:45:58+08:00",
+    "updated_at": "2024-06-06T14:33:09+08:00",
+    "labels": [
+      {
+        "id": 13002439,
+        "name": "waiting_for_assign",
+        "color": "#428BCA",
+        "created_at": "2024-12-24T15:04:02.281+08:00",
+        "updated_at": "2024-12-24T15:04:02.281+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 877567
+    },
+    "issue_type_detail": {
+      "title": "需求",
+      "id": 251718,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4299386,
+    "html_url": "https://gitcode.com/Ascend/model-agent/issues/2056",
+    "number": "2056",
+    "state": "closed",
+    "title": "[文档质量] documentation/git-commit-author-fix/SKILL.md: SKILL.md frontmatter 缺少必需字段",
+    "body": "## 问题描述\n\n**文件**: `skills/documentation/git-commit-author-fix/SKILL.md`\n**类别**: SKILL.md frontmatter 缺少必需字段\n**实例数**: 1\n\n### 具体位置\n\n- 第 1 行: `(frontmatter: type)`\n\n### 建议\n\nskills/documentation/git-commit-author-fix/SKILL.md frontmatter 缺少必需字段 'type'。\n\n---\n*本 Issue 由自动化代码扫描脚本生成。*",
+    "repository": {
+      "id": 9646177,
+      "full_name": "Ascend/model-agent",
+      "human_name": "Ascend / model-agent",
+      "path": "model-agent",
+      "name": "model-agent",
+      "url": "https://gitcode.com/Ascend/model-agent",
+      "owner": {
+        "html_url": "https://gitcode.com/cyber4ai",
+        "id": "69d928ea74fa2614f3ba7c79",
+        "login": "cyber4ai",
+        "name": "Cyber4ai",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-01T23:17:31+08:00",
+    "updated_at": "2026-09-07T12:17:09+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 264
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 238,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4299890,
+    "html_url": "https://gitcode.com/Ascend/model-agent/issues/2550",
+    "number": "2550",
+    "state": "closed",
+    "title": "[文档质量] documentation/git-commit-author-fix/SKILL.md: SKILL.md frontmatter 缺少必需字段",
+    "body": "## 问题描述\n\n**文件**: `skills/documentation/git-commit-author-fix/SKILL.md`\n**类别**: SKILL.md frontmatter 缺少必需字段\n**实例数**: 1\n\n### 具体位置\n\n- 第 1 行: `(frontmatter: type)`\n\n### 建议\n\nskills/documentation/git-commit-author-fix/SKILL.md frontmatter 缺少必需字段 'type'。\n\n---\n*本 Issue 由自动化代码扫描脚本生成。*",
+    "repository": {
+      "id": 9646177,
+      "full_name": "Ascend/model-agent",
+      "human_name": "Ascend / model-agent",
+      "path": "model-agent",
+      "name": "model-agent",
+      "url": "https://gitcode.com/Ascend/model-agent",
+      "owner": {
+        "html_url": "https://gitcode.com/cyber4ai",
+        "id": "69d928ea74fa2614f3ba7c79",
+        "login": "cyber4ai",
+        "name": "Cyber4ai",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-01T23:35:46+08:00",
+    "updated_at": "2026-09-03T23:08:12+08:00",
+    "labels": [],
+    "comments": 0,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 264
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 238,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 3328077,
+    "html_url": "https://gitcode.com/openharmony/arkui_ace_engine/issues/65391",
+    "number": "65391",
+    "state": "closed",
+    "title": "[Bug]: [UIF][CAPI] Generated C API v139 using IDLize: 451ebb276(wcb), SDK: d33895164(pavelmironchik).",
+    "body": "\n\n感谢对OpenHarmony社区的支持与关注，欢迎反馈缺陷。\n\n### 发生了什么问题？\n            \nGenerated C API v139 using IDLize: 451ebb276(wcb), SDK: d33895164(pavelmironchik) should be implemented\n### 期望行为是什么？\n            \nGenerated C API v139 using IDLize: 451ebb276(wcb), SDK: d33895164(pavelmironchik) will be implemented\n",
+    "repository": {
+      "id": 4418603,
+      "full_name": "openharmony/arkui_ace_engine",
+      "human_name": "OpenHarmony / arkui_ace_engine",
+      "path": "arkui_ace_engine",
+      "name": "arkui_ace_engine",
+      "url": "https://gitcode.com/openharmony/arkui_ace_engine",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/cb/de/8c224bdec2260736b9469940f215a80ff5849f2c41c1ac2ee451d0e274f0e2d4.jpg",
+        "html_url": "https://gitcode.com/voronovvadim",
+        "id": "672cfbde21ac1d58ee8355d6",
+        "login": "voronovvadim",
+        "name": "voronovvadim",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2025-09-26T15:24:07+08:00",
+    "updated_at": "2026-01-05T17:09:24+08:00",
+    "labels": [
+      {
+        "id": 13036000,
+        "name": "bug",
+        "color": "#DB2828",
+        "created_at": "2025-03-09T12:29:53.983+08:00",
+        "updated_at": "2025-03-09T12:29:53.983+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已拒绝",
+      "serial": 3,
+      "id": 877568
+    },
+    "issue_type_detail": {
+      "title": "缺陷",
+      "id": 251719,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4169574,
+    "html_url": "https://gitcode.com/openharmony/startup_init/issues/3313",
+    "number": "3313",
+    "state": "open",
+    "title": "Use-after-free——services/modules/bootevent/bootevent.c:139",
+    "body": "### 发生了什么问题\n文件位置：services/modules/bootevent/bootevent.c:139\n问题根源是 AddBootEventItem() 对 item 的所有权判断错误。\n\n函数中执行：\n```\nitem->paramName = strdup(paramName);\nif (item->paramName == NULL) {\n    free(item);\n    return -1;\n}\n```\n\n\n也就是说，AddBootEventItem() 默认认为传入的 item 一定是独立通过 malloc/calloc 分配的，所以失败时直接释放它。\n\n但在 AddServiceBootEvent() 中，item 并不是独立分配的：\n\n```\nextData = AddServiceExtData(\n    serviceName, i, NULL, sizeof(BOOT_EVENT_PARAM_ITEM));\n\nBOOT_EVENT_PARAM_ITEM *item =\n    (BOOT_EVENT_PARAM_ITEM *)extData->data;\n\n```\n\n这里的 item 指向 ServiceExtData 所管理的数据区域，其生命周期应该由 DelServiceExtData() 管理，而不应该直接调用 free(item)。\n\n完整错误路径如下：\n\nAddServiceExtData()\n    ↓\n得到 extData，item = extData->data\n    ↓\nAddBootEventItem(item, paramName)\n    ↓\nstrdup() 失败\n    ↓\nfree(item)\n    ↓\n返回 AddServiceBootEvent()\n    ↓\n读取 extData->dataId\n    ↓\nDelServiceExtData(...)\n\n\n此时 extData 所属内存已经被错误释放，代码继续读取 extData->dataId，构成 UAF；随后 DelServiceExtData() 还可能再次释放同一内存。静态分析器也明确给出了“内存已释放后继续使用”的路径。\n\n\n### 期望结果\n\nAddBootEventItem() 初始化失败时应当：\n\n只清理由它自己分配的资源，例如 paramName；\n\n不擅自释放调用方传入的 item；\n\n将失败状态返回给调用方；\n\n由调用方按照对象真实的分配方式完成释放。\n\n即：\n\n独立 calloc 的对象由对应调用方 free；\n\nextData->data 内嵌对象由 DelServiceExtData 释放；\n\n同一块内存只能有一个明确的所有者。\n### 修复方式\n最佳方案是规定：\n\nAddBootEventItem() 只负责初始化，不负责释放传入的 item。\n\n修改为：\n\n```\nstatic int AddBootEventItem(\n    BOOT_EVENT_PARAM_ITEM *item,\n    const char *paramName)\n{\n    OH_ListInit(&item->node);\n\n    for (int i = 0; i < BOOTEVENT_MAX; i++) {\n        item->timestamp[i].tv_nsec = 0;\n        item->timestamp[i].tv_sec = 0;\n    }\n\n    item->paramName = strdup(paramName);\n    if (item->paramName == NULL) {\n        return -1;\n    }\n\n    item->flags = BOOTEVENT_TYPE_SERVICE;\n    OH_ListAddTail(&bootEventList, &item->node);\n    g_bootEventNum++;\n    return 0;\n}\n\n```\n\n然后分别由调用方处理失败。\n\n独立分配路径\n\nAddBootEventItemByName() 中的 item 是通过 calloc() 独立分配的，目前它直接调用 AddBootEventItem()。\n\n应改成：\n\n```\nstatic int AddBootEventItemByName(const char *paramName)\n{\n    BOOT_EVENT_PARAM_ITEM *item =\n        calloc(1, sizeof(BOOT_EVENT_PARAM_ITEM));\n    if (item == NULL) {\n        return -1;\n    }\n\n    if (AddBootEventItem(item, paramName) != 0) {\n        free(item);\n        return -1;\n    }\n\n    return 0;\n}\n```\n\nServiceExtData 内嵌路径\n\n```\nAddServiceBootEvent() 保持由 DelServiceExtData() 回收：\n\nBOOT_EVENT_PARAM_ITEM *item =\n    (BOOT_EVENT_PARAM_ITEM *)extData->data;\n\nif (AddBootEventItem(item, paramName) != 0) {\n    DelServiceExtData(serviceName, extData->dataId);\n    return -1;\n}\n\n```\n\n这样两条路径的释放关系就很清晰：\n\n```\ncalloc item       → free(item)\nextData->data     → DelServiceExtData()\n```",
+    "repository": {
+      "id": 4432320,
+      "full_name": "openharmony/startup_init",
+      "human_name": "OpenHarmony / startup_init",
+      "path": "startup_init",
+      "name": "startup_init",
+      "url": "https://gitcode.com/openharmony/startup_init",
+      "owner": {
+        "html_url": "https://gitcode.com/pineapplebaby",
+        "id": "65a7779ec0b0925121310e4d",
+        "login": "pineapplebaby",
+        "name": "pineapplebaby",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-07-16T15:52:26+08:00",
+    "updated_at": "2026-08-05T10:03:35+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "待办的",
+      "serial": 0,
+      "id": 877565
+    },
+    "issue_type_detail": {
+      "title": "缺陷",
+      "id": 251719,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2630022,
+    "html_url": "https://gitcode.com/openharmony/build/issues/315",
+    "number": "315",
+    "state": "closed",
+    "title": "[新需求]: 合并LICENSE、notice、COPYING、Author、Copyright等多种类型的license信息到NOTICE.txt中",
+    "body": "### 新需求提供了什么功能？\r\n\r\n合并LICENSE、notice、COPYING、Author、Copyright等多种类型的license信息到NOTICE.txt中\r\n\r\n### 该需求带来的价值、应用场景？\r\n\r\n\r\n\r\n",
+    "repository": {
+      "id": 4422307,
+      "full_name": "openharmony/build",
+      "human_name": "OpenHarmony / build",
+      "path": "build",
+      "name": "build",
+      "url": "https://gitcode.com/openharmony/build",
+      "owner": {
+        "html_url": "https://gitcode.com/leokii",
+        "id": "6657dafd5f05bf7d4acdd40a",
+        "login": "leokii",
+        "name": "liangxinyan123",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-08-05T16:02:27+08:00",
+    "updated_at": "2024-08-10T22:02:20+08:00",
+    "labels": [
+      {
+        "id": 13003788,
+        "name": "enhancement",
+        "color": "#F2711C",
+        "created_at": "2024-12-27T18:56:11.273+08:00",
+        "updated_at": "2024-12-27T18:56:11.273+08:00"
+      },
+      {
+        "id": 13003787,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-27T18:56:11.209+08:00",
+        "updated_at": "2024-12-27T18:56:11.209+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 877567
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 251717,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 2318230,
+    "html_url": "https://gitcode.com/OH_001_will_delete_20251230/build/issues/341",
+    "number": "341",
+    "state": "closed",
+    "title": "[新需求]: 合并LICENSE、notice、COPYING、Author、Copyright等多种类型的license信息到NOTICE.txt中",
+    "body": "### 新需求提供了什么功能？\r\n\r\n合并LICENSE、notice、COPYING、Author、Copyright等多种类型的license信息到NOTICE.txt中\r\n\r\n### 该需求带来的价值、应用场景？\r\n\r\n\r\n\r\n",
+    "repository": {
+      "id": 4422170,
+      "full_name": "OH_001_will_delete_20251230/build",
+      "human_name": "OH_001_will_delete_20251230 / build",
+      "path": "build",
+      "name": "build",
+      "url": "https://gitcode.com/OH_001_will_delete_20251230/build",
+      "owner": {
+        "html_url": "https://gitcode.com/leokii",
+        "id": "6657dafd5f05bf7d4acdd40a",
+        "login": "leokii",
+        "name": "liangxinyan123",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2024-08-05T16:02:27+08:00",
+    "updated_at": "2024-08-10T22:02:20+08:00",
+    "labels": [
+      {
+        "id": 12983039,
+        "name": "enhancement",
+        "color": "#F2711C",
+        "created_at": "2024-12-10T15:06:28.013+08:00",
+        "updated_at": "2024-12-11T17:25:43.646+08:00"
+      },
+      {
+        "id": 12983038,
+        "name": "waiting_for_assign",
+        "color": "#1083d6",
+        "created_at": "2024-12-10T15:06:28.004+08:00",
+        "updated_at": "2024-12-11T17:25:43.246+08:00"
+      }
+    ],
+    "comments": 1,
+    "priority": 0,
+    "issue_state_detail": {
+      "title": "已完成",
+      "serial": 2,
+      "id": 96
+    },
+    "issue_type_detail": {
+      "title": "任务",
+      "id": 50,
+      "is_system": false
+    },
+    "parent_id": 0
+  }
+]

@@ -1,0 +1,2056 @@
+[
+  {
+    "id": 4219900,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2923",
+    "number": "2923",
+    "state": "closed",
+    "title": "[Bug]: jiuwenswarm system prompt",
+    "body": "### Checklist\n\n- [ ] I have searched for related issues but did not get the expected help.\n- [ ] This bug has not been fixed in the latest version.\n- [ ] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\nJiuwenswarm的system prompt在哪可以看到？同样的prompt，在HW的jiuwenswarm中，用dsv4，就被拒答。用Hermes+dsv4，就跑的好好的\n我自己可以修改Jiuwenswarm的system prompt吗？\n\n### Detailed Environment Information Description\n\njiuwenswarm 0.2.3\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\njiuwenswarm 0.2.3\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2296\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4219900\ngitcode_issue_number: 2923\ngithub_author: @whyseu\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-05T10:18:21+08:00",
+    "updated_at": "2026-08-12T11:45:37+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4222018,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2944",
+    "number": "2944",
+    "state": "closed",
+    "title": "[Bugfix request]:  Add LaTeX Rendering Support to JiuWenSwarm Outputs",
+    "body": "### 🚀 Background Description\n\n\nJiuWenSwarm currently does not render LaTeX in its output. Mathematical expressions using formats such as \\(...\\), \\[...\\], $...$, and $$...$$ are displayed as raw text, making formulas difficult to read.\n\nExpected behavior:\n\nRender inline formulas, for example: $E = mc^2$\n\nRender block formulas, for example: $$\\int_a^b f(x)\\,dx$$\n\nSupport common LaTeX syntax, including fractions, subscripts, superscripts, matrices, and multiline equations\n\nGracefully fall back to plain text when LaTeX syntax is invalid or incomplete\n\nUse cases:\n\nJiuWenSwarm is often used for mathematical reasoning, algorithm explanations, data analysis, and research-related tasks. Without LaTeX rendering, formulas are harder to understand and verify.\n\nSuggested implementation:\n\nIntegrate a LaTeX rendering library such as KaTeX or MathJax into the existing Markdown output pipeline.\n\nAcceptance criteria:\n\nInline and block-level LaTeX formulas render correctly.\n\nRegular Markdown rendering remains unaffected.\n\nDollar signs and LaTeX-like content inside code blocks are not rendered as formulas.\n\nInvalid LaTeX does not cause the entire output area to fail.\n\n### Design Ideas\n\nNA\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nNA\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2370\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4222018\ngitcode_issue_number: 2944\ngithub_author: @Ruofei-personal\n-->",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/bb/fb/3981555b2b7fb6075ba5a56cccaf599b4174b38cadc5cb0556a044a473e7ed54.jpg",
+      "html_url": "https://gitcode.com/xiaoyao42",
+      "id": "692e49493197e961bc39bf63",
+      "login": "xiaoyao42",
+      "name": "xiaoyao42",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-05T21:10:26+08:00",
+    "updated_at": "2026-09-10T16:45:16+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4238186,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3047",
+    "number": "3047",
+    "state": "closed",
+    "title": "[Feature]: jiuwenswarm support ide plugin of Vscode and JetBrains.",
+    "body": "Paired: [GitHub #2593](https://github.com/openJiuwen-ai/jiuwenswarm/issues/2593) ↔ [GitCode #3047](https://gitcode.com/openJiuwen/jiuwenswarm/issues/3047)\n\n### 🚀 Background Description\n\njiuwenswarm support coding, however there is no plugin for ide for supporting jiuwenswarm. \n\n### Design Ideas\n\nWe would like to provide the providers for the IDE. \n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\ninstall the related plugin into the VSCode and Jetbrains, and test coding using jiuwenSwarm there\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2593\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4238186\ngitcode_issue_number: 3047\ngithub_author: @foostone\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-10T10:27:59+08:00",
+    "updated_at": "2026-10-30T12:11:46+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0,
+    "milestone": {
+      "created_at": "2026-08-18T14:14:23+08:00",
+      "description": "WorkSwarm 0.2.8",
+      "due_on": "2026-11-30",
+      "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/milestones/22",
+      "number": 755468,
+      "repository_id": 9297832,
+      "state": "active",
+      "title": "WorkSwarm 0.2.8",
+      "updated_at": "2026-08-18T14:14:23+08:00",
+      "url": "https://api.gitcode.com/api/v5/reposopenJiuwen/jiuwenswarm/milestones/755468"
+    }
+  },
+  {
+    "id": 4222035,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2947",
+    "number": "2947",
+    "state": "closed",
+    "title": "[Bugfix request]: Support Pasting Images from the Clipboard into JiuWenSwarm",
+    "body": "Paired: [GitHub #2375](https://github.com/openJiuwen-ai/jiuwenswarm/issues/2375) ↔ [GitCode #2947](https://gitcode.com/openJiuwen/jiuwenswarm/issues/2947)\n\n### 🚀 Background Description\n\nJiuWenSwarm currently does not allow users to paste images directly from the clipboard into the input area. Images copied from screenshot tools, browsers, or other applications are ignored when pasted.\nPlease consider this feautre, thanks\n\n### Design Ideas\n\nNA\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nNA\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2375\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4222035\ngitcode_issue_number: 2947\ngithub_author: @Ruofei-personal\n-->",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/bb/fb/3981555b2b7fb6075ba5a56cccaf599b4174b38cadc5cb0556a044a473e7ed54.jpg",
+      "html_url": "https://gitcode.com/xiaoyao42",
+      "id": "692e49493197e961bc39bf63",
+      "login": "xiaoyao42",
+      "name": "xiaoyao42",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-05T21:25:20+08:00",
+    "updated_at": "2026-11-07T15:11:43+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4297100,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3710",
+    "number": "3710",
+    "state": "closed",
+    "title": "[Bug]: jiuwenswarm中还存在web agent SDK的旧链路",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\njiuwenswarm\\agents\\harness\\common\\tools\\browser-move是web agent的旧链路，弃用的情况下应当删除以避免误导开发者\n\n### Detailed Environment Information Description\n\nwindows11\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.5\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4510\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4297100\ngitcode_issue_number: 3710\ngithub_author: @ShowHsiang\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-01T17:04:50+08:00",
+    "updated_at": "2026-09-04T17:25:39+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4217249,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2878",
+    "number": "2878",
+    "state": "open",
+    "title": "[Feature]: openJiuwen supports the collection of structured execution traces of agents.",
+    "body": "### 🚀 Background Description\n\n\nThe current openJiuwen system generates an excessive volume of log data that is disorganised and lacks a coherent view of the agent's internal workflow. Operators and developers cannot easily discern which steps the agent took, which tools were invoked, the parameters passed, or the outcomes of each action. This opacity complicates debugging, performance tuning, and user-behaviour analysis. To enable effective monitoring and root-cause investigation, we need a dedicated mechanism that collects the complete execution trace of each agent session in a structured, queryable, and human-readable format.\n\n### Design Ideas\n\nWe will implement a trace collector that records every atomic unit of work during an agent interaction, including the user query, internal reasoning snippets, tool selection decisions, input arguments, raw outputs, timestamps, and any error states. All traces are serialised as JSON and stored in a central repository (e.g., Elasticsearch) with session‑level indexing and a unique trace ID. A companion dashboard will allow operators to replay any session step by step, filter by tool type or duration, and identify bottlenecks or unexpected loops, turning raw logs into actionable insights.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nTesting will validate completeness, correctness, and performance. We will run a predefined set of test dialogues covering common and edge cases, then compare the captured traces against the expected step sequences to ensure every tool call and its response is logged accurately with correct parameters. We also inject faults such as tool timeouts or invalid inputs to verify that error traces are fully captured. Finally, we conduct load tests with hundreds of concurrent sessions to measure trace ingestion latency and storage overhead, confirming they stay within acceptable limits while preserving full fidelity for retrospective analysis.\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2198\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4217249\ngitcode_issue_number: 2878\ngithub_author: @Yankee1995\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-04T11:47:08+08:00",
+    "updated_at": "2026-09-01T10:10:42+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4281844,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3503",
+    "number": "3503",
+    "state": "closed",
+    "title": "[Experience Feedback]: jiuwenswarm 0.2.3 模型配置和思考过程",
+    "body": "### Device Type\n\nWindows(X86)\n\n### Operating System Version\n\nwin11\n\n### Browser\n\n_No response_\n\n### Project Version\n\n0.2.3\n\n### Problem Description\n\n（1）jiuwenswarm 0.2.3 模型配置是否支持模型思考强度，是否开启thinking模式？\n（2）模型的思考过程会在trajectory中记录下来吗？是否需要开启什么开关？\n\n### Improvement & Fix Suggestions\n\n_No response_\n\n### Please Rate Your Current Experience\n\n1 - Very Dissatisfied\n\n### User Role\n\nNone\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3950\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4281844\ngitcode_issue_number: 3503\ngithub_author: @whyseu\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-26T14:57:43+08:00",
+    "updated_at": "2026-09-07T19:20:30+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4225731,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2967",
+    "number": "2967",
+    "state": "closed",
+    "title": "[Bug]: JiuwenSwarm leaves orphan processes after receiving a kill signal",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n- I launched jiuwenswarm-start without first correctly building the frontend. The process terminated as expected, but when launching again, I observed it was not launching on the default ports 18092 / 19000 / 19001/ 5173.\n- The cause of this behavior is a bug in which the teardown leaves orphan processes that stayed occupying some of the ports above.\n- The root cause is the fact that when it receives a signal, the python interpreter shuts down immediately and did not run the finally block with the _terminate_all call in app.py\n- The solution involves capturing these signals to be able to gracefully terminate the program rather than propagating it to the Python interpreter\n\n### Detailed Environment Information Description\n\nWSL - Running Ubuntu 24.04\nJiuwenSwarm commit 433f363c\n\n### Additional Information\n\nI have created a PR that solves this problem [!4527](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/4527) \n\n### Version Information\n\nWSL - Running Ubuntu 24.04\nJiuwenSwarm commit 433f363c\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2423\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4225731\ngitcode_issue_number: 2967\ngithub_author: @Miguel0312\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-06T16:44:08+08:00",
+    "updated_at": "2026-08-12T19:38:55+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4472229,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5912",
+    "number": "5912",
+    "state": "open",
+    "title": "[Bug]:  `jiuwenswarm --version` fails with \"unrecognized arguments\" although the docs recommend it for bug reports",
+    "body": "Paired: [GitHub #9887](https://github.com/openJiuwen-ai/jiuwenswarm/issues/9887) ↔ [GitCode #5912](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5912)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n`docs/en/InstallGuide.md` (FAQ: \"How do I check the installed version?\") and `docs/en/Contributing.md` (bug report checklist) tell users to run `jiuwenswarm --version`, but the command fails:\n\n```\n$ uv run jiuwenswarm --version\nusage: jiuwenswarm chat [-h] [--mode MODE] [--session SESSION] [--cwd CWD] ...\njiuwenswarm chat: error: unrecognized arguments: --version\n```\n\nThe `jiuwenswarm` entry point (`jiuwenswarm.channels.cli.main:main`) appears to route the arguments to the default `chat` subcommand, which has no `--version` option. As a result there is no CLI way to print the installed version, and contributors following the bug report checklist hit this error.\n\n**Steps to reproduce**\n1. Install from source (`uv sync`) or via pip.\n2. Run `jiuwenswarm --version`.\n\n**Expected:** prints the installed version (e.g. `jiuwenswarm 0.2.5.beta1`) and exits with code 0.\n**Actual:** argparse error from the `chat` subcommand, exit code 2.\n\n**Suggested fix:** add a top-level `--version` option that prints the installed package version. I'd like to work on this.\n\n### Detailed Environment Information Description\n\n- OS: macOS 26.5.1 (arm64)\n- Python: 3.11.17 (uv-managed venv)\n- Install method: source install from develop\n\n### Additional Information\n\nFound while filling in the version field for [#5803](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5803) and [#5804](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5804).\n\n### Version Information\n\njiuwenswarm \"0.2.5.beta1\", develop @ fd8f735c9\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 9887\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4472229\ngitcode_issue_number: 5912\ngithub_author: @CanerCakal\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-28T05:28:48+08:00",
+    "updated_at": "2026-11-07T14:34:42+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4275110,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3457",
+    "number": "3457",
+    "state": "open",
+    "title": "Tracking: open PRs on openJiuwen-ai/jiuwenswarm to follow up (53 items, by category)",
+    "body": "## Background\n\nThis issue tracks open PRs on GitHub [`openJiuwen-ai/jiuwenswarm`](https://github.com/openJiuwen-ai/jiuwenswarm) that were reviewed against local `develop` (analysis date ~2026-08-21).\n\nIt lists **53 repo-relevant items** for community follow-up. Detailed notes live in a local workspace (`issue-analysis/analyses/`), not in this repository.\n\nSource PRs: https://github.com/openJiuwen-ai/jiuwenswarm\n\n## Summary\n\n| Category | Count |\n| --- | --- |\n| Bug fixes | 15 |\n| Feature enhancements | 32 |\n| Mixed (feature / refactor) | 3 |\n| Refactors | 2 |\n| Engineering / misc | 1 |\n\nNotes:\n- Category follows the analysis conclusion (some PRs titled `feat` are effectively bug fixes).\n- Priority is an assessment vs `develop` (P0 / P1 / P2 / P3).\n- Urgency: **Immediate** / **This iteration** / **Can defer** / **Can close**.\n\n## Bug fixes (15)\n\n| PR | Author | Priority | Urgency | Summary |\n| --- | --- | --- | --- | --- |\n| [#2095](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2095) `fix(search): keep explicit free-search env opt-i…` | [@harenome](https://github.com/harenome) | P1 | Immediate | After `load_dotenv_runtime()`, entrypoints call `reset_free_search_runtime_flags()` and **unconditionally** overwrite `FREE_SEARCH_DDG_ENABLED` / `FREE_SEARCH_BING_ENABLED`, wiping explicit env opt-in. |\n| [#2377](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2377) `fix(cron): follow the store when the workspace m…` | [@harenome](https://github.com/harenome) | P1 | Immediate | `_migrate_legacy_workspace` moves `cron_jobs.json` under `gateway/`, but `get_cron_jobs_path()` still hard-codes `agent/home/cron_jobs.json`. After migration deletes the legacy file, cron silently loses its store. |\n| [#2455](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2455) `fix(runtime): stop building runtime paths from f…` | [@harenome](https://github.com/harenome) | P1 | Immediate | Three runtime/deploy paths use **fixed names** under the shared temp dir (e.g. symphony `materialize_s3_dir`: `gettempdir()/<cache_namespace>`): multi-account ownership/permission issues, plus URI-hash subdirs that can be **cache-poisoned**. |\n| [#2479](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2479) `fix(server): select native image input via modal…` | [@mnasser02](https://github.com/mnasser02) | P1 | Immediate | Routing between native image input vs two-stage caption still uses model-name heuristics (`_native_image_support_from_model_name`: GLM rules + unanchored `vision`/`vl`/`omni` substrings), mis-routing models like `gpt-4o` / `claude-*`. |\n| [#2480](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2480) `feat(gateway): deliver ask_user questions to eve…` | [@renanalmd](https://github.com/renanalmd) | P1 | Immediate | After `ask_user` emits `chat.ask_user_question`, among nine IM channels basically only Feishu renders interactive cards; others never show the question while the tool waits — **silent hang**. PR rewrites questions as numbered plain text on card-less channels. |\n| [#2521](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2521) `Fix/command tool resource guards` | [@renanalmd](https://github.com/renanalmd) | P1 | Immediate | Addresses the **2026-08-02 Windows Git OOM incident** (`git log --date=format:'%m月%d日'` ~8.5GB once; exit 128 but short runtime bypassed the 300s timeout; model retried 9 times). Adds command-tool resource guards. |\n| [#2718](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2718) `fix(prompt): state the current date in the syste…` | [@harenome](https://github.com/harenome) | P1 | Immediate | `RuntimePromptRail` section `## Time-sensitive Queries` tells the model to put the current year/date in search queries, but the **prompt never provides that date** (no datetime API in the file). Production “past week digest” style queries go wrong. |\n| [#2669](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2669) `fix(instance): refuse to relocate explicitly pin…` | [@harenome](https://github.com/harenome) | P2 | Immediate | On port conflict, `_resolve_ports_with_fallback` always scans upward for a free port group and persists to `instances.yaml` / `.env`. Fine for auto-assign; dangerous for ports **explicitly pinned** via `JIUWENSWARM_<TYPE>_PORT`. |\n| [#2378](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2378) `fix(config): make image generation configurable…` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | `generate_image` is shipped but barely usable: tool only registers when `IMAGE_GEN_API_KEY` is set; `config.yaml` `models.image_gen` reading `$…` / Web panel / `size` are effectively dead. |\n| [#2429](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2429) `fix(tests): repair tests/ui_e2e Web UI smoke har…` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | `tests/ui_e2e/` Playwright Web UI smoke has bit-rotted: pytest collects nothing and scripts do not run. Fixes `WEB_DIR`, dist alignment with vite/`app_web`, etc. |\n| [#2632](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2632) `fix(tui): handle tool updates and cancel streams…` | [@renanalmd](https://github.com/renanalmd) | P2 | This iteration | TUI gaps: (1) ignores `chat.tool_update` so in-flight tool summaries never refresh; (2) `session.r…` / cancel-stream handling incomplete vs Web. |\n| [#2720](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2720) `fix(pdf): disclose partial reads in read_pdf, an…` | [@harenome](https://github.com/harenome) | P2 | This iteration | `read_pdf` supports `pages` chunking, but the contract unconditionally teaches “large docs: read page 1 first”, never states that omitting `pages` reads the whole doc, and subset returns do not force disclosure of unread coverage — models summarize 3 pages as “the whole paper”. |\n| [#2724](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2724) `fix(server): surface the image-tool fallback not…` | [@harenome](https://github.com/harenome) | P2 | This iteration | When the model lacks native image input, `_build_image_tool_fallback_notice` explains the fallback. Streaming yields `chat.notice`; **`process_message_impl` (non-streaming) never builds it**, so connector users only see a silent downgrade. |\n| [#2751](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2751) `fix: Allow rendering larger SVGs` | [@Miguel0312](https://github.com/Miguel0312) | P2 | This iteration | Fixes #2568: large SVG/mermaid truncated after history round-trip → broken preview / download. Raises wire limit for svg/mermaid fences (`_HISTORY_WIRE_DIAGRAM_LIMIT = 2MiB`) and related handling. |\n| [#2723](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2723) `fix(server): log the image route actually taken,…` | [@harenome](https://github.com/harenome) | P3 | This iteration | `_prepare_multimodal_image_inputs` logs “Prepared … for Core multimodal context-window injection” right after extracting attachments, before the real route decision in `_native_image_input_e…`, so logs report an assumed path rather than the one taken. |\n\n## Feature enhancements (32)\n\n| PR | Author | Priority | Urgency | Summary |\n| --- | --- | --- | --- | --- |\n| [#2554](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2554) `feat(acp): implement editor context, image promp…` | [@mnasser02](https://github.com/mnasser02) | P1 | This iteration | Implements ACP prompt capabilities previously advertised as unsupported (stdio `jiuwenswarm-acp` and gateway `/acp` WebSocket): embeddedContext, image prompts, session restore, etc. |\n| [#2639](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2639) `feat(context): enable auto-compact by default wi…` | [@renanalmd](https://github.com/renanalmd) | P2 | Immediate | (1) Default-on context compression when `react.context_engine_config.enabled` is omitted. (2) IM-visible compression notices via dedicated `CHAT…` events. |\n| [#2749](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2749) `feat(steering): chat.steer for Web and TUI witho…` | [@renanalmd](https://github.com/renanalmd) | P2 | Immediate | Busy single-agent turns no longer default to interrupt/new turn; `chat.steer` injects user text into the current round without grabbing the output lease; follow-ups still queue for the next turn. |\n| [#1426](https://github.com/openJiuwen-ai/jiuwenswarm/pull/1426) `feat(slack): add opt-in channel automations and…` | [@hongxing1227](https://github.com/hongxing1227) | P2 | This iteration | On top of @mention/DM, **all opt-in**: `auto_link_channel_ids` (URL messages in listed channels), `acknowledge_requests`, and cron delivery. |\n| [#2254](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2254) `feat(project-memory): load AGENTS.md and CLAUDE.…` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | Docs/builder advertise `CLAUDE.md`, but discovery never scanned it — repos with only `AGENTS.md`/`CLAUDE.md` got **zero** project instructions. PR makes the advertised behavior real. |\n| [#2288](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2288) `feat(gateway): introduce connector SDK with Chan…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E1 connector SDK step 1: `gateway/channel_manager/sdk/` with immutable `ChannelCapabilities` (buttons / streaming / file_upload / rich_text / …). |\n| [#2354](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2354) `feat(web): implement tts.synthesize so Web TTS u…` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | Frontend always calls Web RPC `tts.synthesize` on final assistant messages, but gateway never implemented the handler (`METHOD_NOT_FOUND`) → silent fallback to browser speech. |\n| [#2393](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2393) `feat(gateway): declare real capabilities on exis…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | On top of #2288, fill Feishu / Slack / Discord / Telegram adapters with capability tables matching **current code** (not theoretical platform limits). |\n| [#2433](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2433) `feat(gateway): add unified FileTransferService t…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | Extracts unified `FileTransferService` from near-duplicate Feishu/DingTalk/WeCom `*_file_service.py` (~1499 LOC): shared size checks, linear backoff retry, filename sanitization, MIME. |\n| [#2463](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2463) `feat(hooks): add PreCompact hook event` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | Adds `PreCompact` hook before context compression; matcher distinguishes `manual` (`/compact`) vs `auto`. |\n| [#2482](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2482) `feat(usage): price token usage in USD with a pro…` | [@renanalmd](https://github.com/renanalmd) | P2 | This iteration | USD pricing on the usage path: provider-reported cost first (e.g. OpenRouter `usage.cost`), then `models.pricing`, else **unpriced** (never show missing price as `$0.00`). |\n| [#2515](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2515) `feat(gateway): add StreamingResponder to connect…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | Harvests generic `StreamingResponder` from Feishu `FeishuStreamingSession`: send once, then debounce-edit (default 150ms); if `capabilities.streaming=False`, only send on `finalize()`. |\n| [#2536](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2536) `feat(gateway): add RichText pivot format and Int…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | Platform-agnostic pivot: `RichText`/`Span` and `InteractiveCard`/`Button`. Markdown first dialect; `rich_text_supported=False` degrades to plain text; `degrade_to_text()` for reply numbering. |\n| [#2539](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2539) `feat(channels): optional feedback when denying p…` | [@renanalmd](https://github.com/renanalmd) | P2 | This iteration | When denying tool-permission / action-confirm, TUI/Web can attach optional feedback (e.g. “use Read not Bash”) via existing `custom_input` → `ConfirmPayload.feedback`. |\n| [#2540](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2540) `feat(gateway): add reliability primitives — Sess…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E1 closing trio in `sdk/reliability.py`: `SessionIdPolicy`, `RetryPolicy` (exponential backoff), token/backoff helpers. |\n| [#2636](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2636) `feat(gateway): add capability-aware outgoing res…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E2 step 1 (“never silently drop”): `resolve_outgoing()` + `OutgoingMessage`; choose native `InteractiveCard` or `degrade_to_text()` from `ChannelCapabilities.buttons`. |\n| [#2648](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2648) `feat(commands): add user-defined slash commands` | [@renanalmd](https://github.com/renanalmd) | P2 | This iteration | TUI only had built-in slash commands. Loads user commands from `.jiuwenswarm/commands/*.md` (project > user > local) plus RPC `commands.list` / `command…`. |\n| [#2664](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2664) `feat(gateway): add capability-aware delivery and…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E2 step 2: `deliver()` calls `resolve_outgoing()` then sends **exactly one** message (`send_card` or `send_text`); degraded cards go into per-session `PendingCardRegistry`. |\n| [#2711](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2711) `feat(reasoning): map reasoning_level to real pro…` | [@renanalmd](https://github.com/renanalmd) | P2 | This iteration | Today `LEVEL_MAPPING` maps `low`/`medium`/`high` **all to `high`**. PR translates per provider (DeepSeek/DashScope thinking on/off + effort, etc.). |\n| [#2741](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2741) `feat(gateway): wire capability-aware card degrad…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E2 last piece: in the bot dispatch loop, degrade interactive cards by target `ChannelCapabilities` before `channel.send()`, recording into shared `PendingCardRegistry`. |\n| [#2769](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2769) `feat(slack): render interactive cards as Block K…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E3 first slice: pure `slack_blocks.py` (`render_card_blocks` / `extract_action_value`); `SlackChannel.send()` renders `interactive_card` as Block Kit and routes button clicks. |\n| [#3046](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3046) `feat(discord): wire group chat modes into the in…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E4 second slice: `_handle_discord_message` calls #2941 `should_handle()`; unaddressed messages return early; then `strip_bot_mention`. |\n| [#3114](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3114) `feat(email): add the SMTP channel (E6)` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E6 second slice: outbound `EmailChannel(BaseChannel)` using #3051 `reply_subject`/`thread_key`; injected SMTP callable; no start without credentials. |\n| [#3120](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3120) `feat(email): parse inbound mail into sender, ses…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E6 third slice: pure parse — bare sender, decoded subject, `thread_key` session, body with client quotes stripped so replies like `1` hit E2 registry; `is_from_self()` anti-loop. |\n| [#3121](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3121) `feat(email): poll the mailbox and dispatch inbou…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E6 fourth slice: inbound loop — `poll_once()` via injected fetcher → parse → skip self / non-`allow_from` → `remember_thread` → `_handle_message`. |\n| [#3123](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3123) `feat(email): add the real SMTP and IMAP transpor…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E6 fifth slice (network): `SmtpSender` (short-lived + STARTTLS) and `ImapFetcher` (IMAP4_SSL, UNSEEN, limit); wires prior injected callables via `channels.email` config. |\n| [#3051](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3051) `feat(email): add subject threading and quote str…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | This iteration | E6 first slice: `im_platforms/email/` pure `email_format.py` — `normalize_subject`, `reply_subject`, `thread_key`, quote stripping helpers. |\n| [#2365](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2365) `feature: Adds a cache to prevent re-encoding ima…` | [@Miguel0312](https://github.com/Miguel0312) | P3 | Can defer | `_image_data_uri_from_path` (and multimodal rail) re-reads disk and base64-encodes every model call; ReAct multi-turn amplifies I/O/CPU. Adds per-request cache on multimodal image scope. |\n| [#2941](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2941) `feat(discord): add group chat modes for server c…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | Can defer | E4 first slice: pure `discord_group_mode.py` aligned with Telegram vocabulary (`all` / `mention` default / `reply` / `off`). |\n| [#3260](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3260) `feat(teams): add Adaptive Card rendering and act…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | Can defer | E7 first slice: pure `teams/teams_cards.py` — `render_card()`, `card_attachment()`, `extract_action()` (TextBlock + per-button `Action.Submit`). |\n| [#3261](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3261) `feat(telegram): render interactive cards as inli…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | Can defer | Telegram E4 half: today only plain text, so E2 `interactive_card` degrades to numbered replies despite `InlineKeyboardMarkup`. Adds pure `telegram_keyboard.py`. |\n| [#3272](https://github.com/openJiuwen-ai/jiuwenswarm/pull/3272) `feat(teams): add the Teams channel on the connec…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | Can defer | E7 second slice: first `TeamsChannel(BaseChannel)` skeleton — Bot Framework activities (plain text or `interactive_card` attachments). |\n\n## Mixed (feature / refactor) (3)\n\n| PR | Author | Priority | Urgency | Summary |\n| --- | --- | --- | --- | --- |\n| [#2529](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2529) `feature: Allow the agent to see images in PDF fi…` | [@Miguel0312](https://github.com/Miguel0312) | P2 | Immediate | On top of #2096 PDF support: scanned/embedded-image PDFs need more than the text layer — layout-aware extraction (`pdf_layout.py`), `render_pdf_page` for existing `visual_question_answering`. |\n| [#2392](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2392) `feat(config): ship empty model credentials in .e…` | [@mnasser02](https://github.com/mnasser02) | P2 | This iteration | `resources/.env.template` shipped lookalike fake credentials (`example.com` / `sk-xxxxxxxxx`), so new installs look configured until first chat fails. Template ships empty + warns. |\n| [#2451](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2451) `refactor(skills): Unbundle Huawei Ascend NPU ski…` | [@mnasser02](https://github.com/mnasser02) | P3 | This iteration | Default install bundled 4 Ascend NPU skills (~43…); unbundles them into an optional package so base install stays lean. |\n\n## Refactors (2)\n\n| PR | Author | Priority | Urgency | Summary |\n| --- | --- | --- | --- | --- |\n| [#2471](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2471) `refactor(gateway): migrate feishu file service o…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P2 | This iteration | E1 migration slice 1: Feishu file service delegates MIME probe and size limits to SDK `FileTransferService`; intentionally does **not** move `_download_with_retry` (Feishu/lark thread pool specifics). |\n| [#2483](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2483) `refactor(gateway): harvest media-type helpers fr…` | [@chaimaerachdi](https://github.com/chaimaerachdi) | P3 | This iteration | DingTalk and WeCom `*_file_service.py` each had a **byte-identical** 76-line media probe (`FILE_SIGNATURES`, `detect_file_extension`, `get_mime_type`). Harvested into shared gateway helpers. |\n\n## Engineering / misc (1)\n\n| PR | Author | Priority | Urgency | Summary |\n| --- | --- | --- | --- | --- |\n| [#2389](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2389) `test: make coverage opt-in via make cov instead…` | [@mnasser02](https://github.com/mnasser02) | P3 | This iteration | `pytest.ini` `addopts` forced `--cov=jiuwenswarm` and three reports, so even single-file runs instrumented the whole package, slowed debugging, rewrote `htmlcov/`/`coverage.xml`, and defeated `run_tests.sh -c/--cov…`. Coverage becomes opt-in via `make cov`. |\n\n## Suggested follow-up order (bugs)\n\n1. [#2095](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2095) `fix(search)…` — [@harenome](https://github.com/harenome) (P1 / Immediate) — stop unconditional free-search env reset after dotenv load.\n2. [#2377](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2377) `fix(cron)…` — [@harenome](https://github.com/harenome) (P1 / Immediate) — cron path must follow workspace migration.\n3. [#2455](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2455) `fix(runtime)…` — [@harenome](https://github.com/harenome) (P1 / Immediate) — scope fixed-name runtime paths under shared temp.\n4. [#2479](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2479) `fix(server)…` — [@mnasser02](https://github.com/mnasser02) (P1 / Immediate) — modality probe instead of model-name heuristics for native image input.\n5. [#2480](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2480) `feat(gateway) ask_user…` — [@renanalmd](https://github.com/renanalmd) (P1 / Immediate) — deliver ask_user questions on non-Feishu channels.\n6. [#2521](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2521) `Fix/command tool…` — [@renanalmd](https://github.com/renanalmd) (P1 / Immediate) — command-tool resource guards (Windows Git OOM).\n7. [#2718](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2718) `fix(prompt)…` — [@harenome](https://github.com/harenome) (P1 / Immediate) — put current date into the system prompt.\n8. [#2669](https://github.com/openJiuwen-ai/jiuwenswarm/pull/2669) `fix(instance)…` — [@harenome](https://github.com/harenome) (P2 / Immediate) — refuse to relocate explicitly pinned ports.\n\n## Notes\n\n- This is a **tracking index** only; it does not replace review and merge of each PR.\n- Upstream GitHub org: `openJiuwen-ai`; this repo is GitCode `openJiuwen/jiuwenswarm`.\n",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/cf/ad/cf5a6da6eca6c89c66bcb47957dfda243d0711cf5655c001f29ba1b05d07d00f.png",
+      "html_url": "https://gitcode.com/changzherui1",
+      "id": "68087c6d6e81c434bfb2ad65",
+      "login": "changzherui1",
+      "name": "changzherui",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/cf/ad/cf5a6da6eca6c89c66bcb47957dfda243d0711cf5655c001f29ba1b05d07d00f.png",
+        "html_url": "https://gitcode.com/changzherui1",
+        "id": "68087c6d6e81c434bfb2ad65",
+        "login": "changzherui1",
+        "name": "changzherui",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-24T10:32:18+08:00",
+    "updated_at": "2026-09-02T09:56:18+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4217187,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2877",
+    "number": "2877",
+    "state": "closed",
+    "title": "[Feature]: Heartbeat mechanisms are implanted into jiuwenswarm to support daily life monitoring.",
+    "body": "### 🚀 Background Description\n\n\nThe current jiuwenswarm system lacks any active client‑side heartbeat reporting, leaving the operations team unable to track daily active users or measure user growth effectively. Without reliable session data, retention analysis and campaign performance evaluation become guesswork. Introducing a periodic heartbeat mechanism will allow the server to record each client's online presence at fixed intervals, creating the essential data pipeline for DAU statistics and supporting data‑driven decisions on product improvements and marketing investments.\n\n### Design Ideas\n\nWe will implement a client‑server heartbeat protocol where each client sends a lightweight payload (including device ID, timestamp, and version info) to a dedicated server endpoint every 30 seconds (configurable). The server processes these heartbeats by updating a Redis‑based last‑seen record and incrementing a daily counter for that user. A scheduled batch job runs at midnight to aggregate all unique user IDs with activity in the past 24 hours, producing the official DAU figure, which is then stored for historical trend analysis and exposed via a simple reporting API for operations to query.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nTesting will cover functional correctness, timing accuracy, and resilience. We will launch multiple emulated clients and inspect server logs to ensure every heartbeat is received and the active timestamp updates correctly. Then we will fast‑forward the system clock to trigger the daily aggregation and validate the resulting DAU count against the raw heartbeat entries. We also need to simulate network partitions, client crashes, and high‑load scenarios (e.g., 10k concurrent clients) to confirm that the reconnection logic works without overcounting or losing events, and that the aggregation handles timezone shifts and duplicate submissions gracefully.\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2197\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4217187\ngitcode_issue_number: 2877\ngithub_author: @Yankee1995\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-04T11:33:41+08:00",
+    "updated_at": "2026-09-11T11:10:08+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0,
+    "milestone": {
+      "created_at": "2026-08-17T15:36:14+08:00",
+      "description": "WorkSwarm 0.2.6",
+      "due_on": "2026-09-30",
+      "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/milestones/20",
+      "number": 754651,
+      "repository_id": 9297832,
+      "state": "closed",
+      "title": "WorkSwarm 0.2.6",
+      "updated_at": "2026-09-30T18:04:23+08:00",
+      "url": "https://api.gitcode.com/api/v5/reposopenJiuwen/jiuwenswarm/milestones/754651"
+    }
+  },
+  {
+    "id": 4321301,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/4070",
+    "number": "4070",
+    "state": "closed",
+    "title": "[Bug]: Using Gemini 3.8 via OpenRouter with Jiuwenswarm returns \"BadRequestError\" due to faulty tool schema",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\nUsing Gemini 3.8 Flash via OpenRouter with Jiuwenswarm returns the following error:\n\n```\nError: [181001] model call failed, reason: openAI API async stream error: BadRequestError: Error code: 400 - {'error': {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n \"error\": {\\n \"code\": 400,\\n \"message\": \"* GenerateContentRequest.tools[0].function_declarations[21].parameters.properties[questions].items.properties[options].any_of[0].items: missing field.\\\\n* GenerateContentRequest.tools[0].function_declarations[21].parameters.properties[questions].items.properties[options].any_of[1].items: missing field.\\\\n\",\\n \"status\": \"INVALID_ARGUMENT\"\\n }\\n}\\n', 'provider_name': 'Google AI Studio', 'is_byok': False, 'provider_error_code': '400', 'previous_errors': [{'code': 400, 'message': 'Provider returned error', 'provider_name': 'Google', 'raw': '{\\n \"error\": {\\n \"code\": 400,\\n \"message\": \"* GenerateContentRequest.tools[0].function_declarations[21].parameters.properties[questions].items.properties[options].any_of[0].items: missing field.\\\\n* GenerateContentRequest.tools[0].function_declarations[21].parameters.properties[questions].items.properties[options].any_of[1].items: missing field.\\\\n\",\\n \"status\": \"INVALID_ARGUMENT\"\\n }\\n}\\n'}]}}}\n```\n\nFrom a cursory glance, this error corresponds to ask_user tool's faulty schema, which was recently changed to support Kimi.\n\n### Detailed Environment Information Description\n\nMac Sonoma 14.3, Jiuwenswarm (last updated Sep 8th) launched via app.py and `npm run dev` within channels/web\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\njiuwenswarm GitHub repo, last updated Sep 8th (latest commit cb4c1999ad1359778c8a04d69320db901e166b68)\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 5514\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4321301\ngitcode_issue_number: 4070\ngithub_author: @dreamofapsychiccat\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-10T10:54:52+08:00",
+    "updated_at": "2026-09-17T17:48:38+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4192650,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2598",
+    "number": "2598",
+    "state": "open",
+    "title": "[Feature]: Integrate AgentDropoutV2 rectify-or-reject pruning paradigm into JiuwenSwarm team mode",
+    "body": "### 🚀 Background Description\n\n\n======EN======\nIn the team or cluster mode, multiple agents (leader plus teammates) collaborate by sharing contributions through team messaging mechanisms such as team.send_message. However, it is possible for a teammate to be inefficient, provide incorrect outputs, or even act in an adversarial or manipulative manner. If these erroneous outputs persistently enter the shared team context, the entire group may deviate from the correct solution, and the ultimate goal could be corrupted by bad inputs from specific agents within the group. To address this, AgentDropoutV2 (https://arxiv.org/abs/2602.23258) proposes a solution that intercepts an agent's output before it is broadcast, audits it against failure indicators, provides targeted rectification feedback upon detection, and rejects, drops, or removes the agent if it continues to fail even after correction.\n\n======ZH======\n在团队或集群模式下，多个智能体（领导者与队友）通过团队消息机制（如 team.send_message）共享各自贡献来进行协作。然而，队友可能会出现效率低下、输出错误，甚至表现出对抗性或操纵性行为。如果这些错误输出持续进入共享的团队上下文，整个团队可能会偏离正确解决方案，且最终目标可能因团队中特定智能体提供的不良输入而被破坏。为解决这一问题，AgentDropoutV2（ https://arxiv.org/abs/2602.23258 ）提出了一种解决方案，该方案在智能体输出被广播之前对其进行拦截，根据故障指标进行审计，并在检测后提供针对性的修正反馈；如果智能体在修正后仍持续失败，则将其拒绝、丢弃或移除。\n\n\n### Design Ideas\n\nA dedicated `jiuwenswarm/agents/dropout/` module where the agent dropout strategies could be gathered and also extended in future.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nEvaluating that messages are not broadcast to the team, but indeed pruned. Checking that the agent is indeed removed from the team after multiple round of incorrect contributions without correcting itself. \n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 1305\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4192650\ngitcode_issue_number: 2598\ngithub_author: @sebastienmontellaperso\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-07-25T01:34:34+08:00",
+    "updated_at": "2026-08-10T20:47:20+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 5,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4337541,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/4260",
+    "number": "4260",
+    "state": "open",
+    "title": "[Mirror] openJiuwen-ai/jiuwenswarm#412 [RFC]: Unify exception hierarchies under the openjiuwen taxonomy and add boundary error telemetry",
+    "body": "### Background and Goal Description\n            \nThe repo has ~1,750 except Exception blocks and three unrelated exception\nhierarchies (TeamError, A2XError, LLMClientError), none carrying stable\nerror codes or recoverable/fatal semantics. Boundary failures (agent stream task,\ngateway message loop, A2A executor, scheduler) are logged but invisible in traces,\nso production incidents can't be diagnosed from telemetry — reproducing the run is\nthe only way to see the original exception.\n\nThe pinned openjiuwen already ships the unified taxonomy (BaseError +\nStatusCode) and team_observability OTel tracing is now enabled by default —\nneither is being used for app-level errors.\n### Proposed Solution\n            \nBridge app errors onto the SDK taxonomy: new jiuwenswarm/common/errors.py\nwith JiuwenError(BaseError) (message-first constructor, call sites unchanged),\nand re-parent the three hierarchies under it.\nRecord boundary exceptions on OTel spans via a never-raising helper at the four\ndesignated boundaries; everywhere else catch specific types.\nEnforce locally with semgrep rules + a count ratchet (no CI wiring yet, per\nteam decision).\n### Involved Public APIs\n            \n\n### Test Verification\n            \nCompatibility: existing exception behavior unchanged — str(TeamCreateError(\"boom\")) == \"boom\", constructors and pickling work, one except BaseError catches\nTeamError/A2XError/LLMClientError alike.\nFunctional: with default config (team_observability on, file exporter), a forced\nfailure at any boundary (stream task, gateway loop, A2A execute, scheduler) produces\na span with the recorded exception in the trace file, and existing error responses\nto clients are unchanged.\nEnforcement: python scripts/check_except_baseline.py exits 0 at baseline, 1 on\nany new broad catch; semgrep rules flag silent swallows.\n### Expected Feedback Deadline\n            \n\n### CC List\n            \n\n### Additional Supplementary Information\n            \n\n\n\nThanks for your contribution🎉! The openJiuwen core team holds an RFC review meeting every week. Although most RFCs can be discussed online, you can also voluntarily sign up to reserve a time slot to participate in the online RFC seminar.\n\n### Before submitting a new issue\n            \n- [x] Please confirm that you have searched the previous RFC documents\n",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/nizzan",
+        "id": "681d4a336a68fa1fec6afae2",
+        "login": "nizzan",
+        "name": "nizzan",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-15T14:23:40+08:00",
+    "updated_at": "2026-09-15T14:23:43+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "RFC",
+      "id": 2851,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4301419,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3750",
+    "number": "3750",
+    "state": "closed",
+    "title": "Issue发错地方，抱歉",
+    "body": "<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4600\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4301419\ngitcode_issue_number: 3750\ngithub_author: @fhfuih\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-02T12:12:56+08:00",
+    "updated_at": "2026-09-02T12:14:34+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4240677,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3082",
+    "number": "3082",
+    "state": "open",
+    "title": "[Feature]: Optional Code Graph MCP to enhance code mode of JiuwenSwarm",
+    "body": "### 🚀 Background Description\n\n\n图结构可以捕捉coding agent所需的额外信息（如辅助判断修改特定代码的实际影响范围），并且相比grep可以减少无关上下文。市面上已有优质的代码图构建工具GitNexus，但license无法商用，其他工具在精准性以及时延方面不理想。\n\n`agent-core`仓库相关issue：[#1513](https://gitcode.com/openJiuwen/agent-core/issues/1513)\n\n### Design Ideas\n\n在`agent-core`引入代码图模块，新增各语言tree-sitter的依赖作为一个可选依赖组（extra），以MCP工具形式支持代码图的构建与查询。代码图工具已初步开发并支持Python、C/C++、Java、Go、JS/TS等语言。\n\n**新增extra示例：**\n```toml\n[project.optional-dependencies]\n...\ncodegraph = [\n    # Core dependencies\n    \"gitignore-parser\",\n    \"tree-sitter>=0.21.0,<0.26.0\",\n    # Python / ReST\n    \"tree-sitter-python\",\n    \"tree-sitter-rst\",\n    # JS / TS / TSX\n    \"tree-sitter-javascript\",\n    \"tree-sitter-typescript\",\n    # HTML / CSS\n    \"tree-sitter-html\",\n    \"tree-sitter-css\",\n    # Makefile\n    \"tree-sitter-make\",\n    # Java / Javadoc\n    \"tree-sitter-java\",\n    \"tree-sitter-javadoc\",\n    # C / C++\n    \"tree-sitter-c\",\n    \"tree-sitter-cpp\",\n    # Rust\n    \"tree-sitter-rust\",\n    # Go\n    \"tree-sitter-go\",\n]\n```\n\n### Involved Public APIs\n\n新增一个可开关的MCP工具，供code模式调用。\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nUT覆盖\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2665\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4240677\ngitcode_issue_number: 3082\ngithub_author: @openjiuwenai\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-10T23:17:01+08:00",
+    "updated_at": "2026-08-11T10:01:35+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 5,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4519647,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6270",
+    "number": "6270",
+    "state": "open",
+    "title": "缓存命中率太低了",
+    "body": "Paired: [GitHub #32](https://github.com/openJiuwen-ai/jiuwenswarm/issues/32) ↔ [GitCode #6270](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6270)\n\n我用deepseek 缓存命中也太低了\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 32\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4519647\ngitcode_issue_number: 6270\ngithub_author: @huben0423-hw\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-11-08T09:38:52+08:00",
+    "updated_at": "2026-11-08T09:39:02+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4238851,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3052",
+    "number": "3052",
+    "state": "closed",
+    "title": "[Bug]: JiuwenSwarm生成调研报告场景，用户点击下载所生成的报告，下载成功后弹窗“下载完成”未显示在最前台，导致用户无感知下载成功与否",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\nJiuwenSwarm生成调研报告场景，用户点击下载所生成的报告，下载成功后会有弹窗“下载完成”，但此弹窗未能显示在最前台页面，导致用户无感知下载成功与否\n\n<img width=\"660\" height=\"440\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/57b6d6ab-9733-4ebd-b83c-17a50093a79f\" />\n\n### Detailed Environment Information Description\n\nWindows\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.4 beta4\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2601\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4238851\ngitcode_issue_number: 3052\ngithub_author: @ryanww2020\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-10T14:34:48+08:00",
+    "updated_at": "2026-11-07T15:09:38+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4192795,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2599",
+    "number": "2599",
+    "state": "open",
+    "title": "[Feature]:  AI4RnD Codex and Claude Code Subscription Integration",
+    "body": "### 🚀 Background Description\n\n\nCurrently, Openjiuwen-Swarm need API access. We would like to use Codex or Claude Code subscription capabilities, i.e. when user has the subscription of Codex or Claude Code, then the user can use the tokens of his subscription. \n\n### Design Ideas\n\nAI4RnD project already has this function, and we would like to integrate this function of AI4RnD to openjiuwen-Swarm \n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nFinish the integration this week, and test it the next week.\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 1306\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4192795\ngitcode_issue_number: 2599\ngithub_author: @Stellven\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-07-25T04:51:27+08:00",
+    "updated_at": "2026-07-25T04:51:30+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4416470,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5157",
+    "number": "5157",
+    "state": "open",
+    "title": "[Experience Feedback]: 对话完成之后支持点赞和踩赞",
+    "body": "Paired: [GitHub #8038](https://github.com/openJiuwen-ai/jiuwenswarm/issues/8038) ↔ [GitCode #5157](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5157)\n\n### Device Type\n\nWindows(X86)\n\n### Operating System Version\n\nwindows\n\n### Browser\n\ngoogle\n\n### Project Version\n\n0.2.5.beta1\n\n### Problem Description\n\n对话完成后支持对本轮对话的点赞和踩赞，类似于dsh：\n\n<img width=\"1381\" height=\"310\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/09f9fd3d-8c66-4207-8a39-cc88d97d2854\" />\n\n### Improvement & Fix Suggestions\n\n_No response_\n\n### Please Rate Your Current Experience\n\n1 - Very Dissatisfied\n\n### User Role\n\nNone\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 8038\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4416470\ngitcode_issue_number: 5157\ngithub_author: @kakamain\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-12T12:02:42+08:00",
+    "updated_at": "2026-10-12T12:04:08+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4404445,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5037",
+    "number": "5037",
+    "state": "open",
+    "title": "JiuwenBox build disables TLS and package-signature verification",
+    "body": "Paired: [GitHub #7738](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7738) ↔ [GitCode #5037](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5037)\n\n## Summary\n\njiuwenbox/docker/Dockerfile disables yum repository TLS verification (`sslverify=false`), sets curl to accept invalid TLS globally for the build user (`~/.curlrc` with `insecure`), and disables RPM GPG signature checking (`gpgcheck=0`) before installing system packages (bubblewrap, iptables, nftables, java, nodejs, git, etc.):\n\n```\nRUN echo \"sslverify=false\" >> /etc/yum.conf\nRUN echo \"insecure\" >> ~/.curlrc\nRUN sed -i 's/gpgcheck=1/gpgcheck=0/g' /etc/yum.conf /etc/yum.repos.d/openEuler.repo\n```\n\n## Impact\n\nA MITM on the build network, or a compromised or typosquatted mirror, could inject arbitrary unsigned packages into the resulting image, since neither the transport nor the package signatures are verified during the build.\n\n## Affected version\n\nConfirmed on current `develop` HEAD.\n\n## Suggested fix\n\nRemove the three lines. A fix is attached as a PR, verified by building the image successfully with the real openEuler/yum mirrors without them, so the disabling does not appear to be required.\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7738\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4404445\ngitcode_issue_number: 5037\ngithub_author: @carfeii\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-07T00:29:41+08:00",
+    "updated_at": "2026-10-08T16:05:20+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4480137,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5981",
+    "number": "5981",
+    "state": "closed",
+    "title": "[Bug]: 同一会话下，内置浏览器在执行完成后，用户关闭浏览器，下一轮再输入浏览器任务，不会打开新的内置浏览器",
+    "body": "Paired: [GitHub #10105](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10105) ↔ [GitCode #5981](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5981)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n同一会话下，内置浏览器在执行完成后，用户关闭浏览器，下一轮再输入浏览器任务，不会打开新的内置浏览器\n\n### Detailed Environment Information Description\n\nwindows11\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.8 electron exe\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 10105\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4480137\ngitcode_issue_number: 5981\ngithub_author: @ShowHsiang\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-29T18:46:32+08:00",
+    "updated_at": "2026-11-02T14:43:24+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4508245,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/6157",
+    "number": "6157",
+    "state": "closed",
+    "title": "[Bug]: electron包内置浏览器中登录账号无法弹窗",
+    "body": "Paired: [GitHub #10610](https://github.com/openJiuwen-ai/jiuwenswarm/issues/10610) ↔ [GitCode #6157](https://gitcode.com/openJiuwen/jiuwenswarm/issues/6157)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n单agent模式下，electron打包的内置浏览器中只支持单tab页，遇到需要弹窗登录的场景无法显示弹窗，因此无法登录\n\n### Detailed Environment Information Description\n\n0.2.8, win11, electron exe package\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.8\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 10610\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4508245\ngitcode_issue_number: 6157\ngithub_author: @ShowHsiang\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-11-05T11:15:36+08:00",
+    "updated_at": "2026-11-05T16:00:54+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4286176,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3550",
+    "number": "3550",
+    "state": "closed",
+    "title": "[Feature]: Bring the JiuwenSwarm Agent into the IDE",
+    "body": "Paired: [GitHub #4105](https://github.com/openJiuwen-ai/jiuwenswarm/issues/4105) ↔ [GitCode #3550](https://gitcode.com/openJiuwen/jiuwenswarm/issues/3550)\n\n### 🚀 Background Description\n\nJiuwenSwarm serves knowledge workers whose thinking happens in code, with the file and project as their raw material. But the agent lives in a separate web app. Using it on the code the developer is actually editing forces a manual, disconnected flow:\n\n- **Copy-paste as the transport layer.** Select code, switch to the web app, paste it, lose the surrounding file/project context, then repeat for every file. A change spanning three files becomes three round-trips of copying.\n- **No memory of the project.** The agent never sees the active file, the selection, the diagnostics, or the project tree. Context the developer can see — the surrounding function, the import, the failing test — has to be described back in prose.\n- **No action on the code.** Even when the agent has a useful answer, it cannot edit the file, open the diff, run the command, or jump to the symbol. The answer arrives in a chat window disconnected from the thing it is about.\n\n```mermaid\nflowchart TD\n    classDef fail fill:#FFCDD2,color:#111,stroke:#C62828\n    classDef plain fill:#ECEFF1,color:#111,stroke:#607D8B\n    DEV([\"developer coding in the IDE<br/>(fix, refactor, understand)\"]):::plain\n    DEV -->|\"copy code + describe file, diagnostics,<br/>project tree in prose\"| APP[\"agent in the web app<br/>no access to the codebase\"]:::fail\n    APP -->|\"generic answer — cannot edit/run/diff\"| BACK[\"dev pastes back, applies by hand, re-runs\"]:::fail\n    BACK -->|\"new error, repeat per file\"| UNHAPPY([\"developer stuck in a<br/>disconnected fix loop\"]):::fail\n```\n\n### Design Ideas\n\n### Proposed design\n\nTwo IDE plugins (JetBrains + VS Code) sharing one webview chat UI and one real-time protocol, shipped as the `channels/ide/` channel in the JiuwenSwarm repository, alongside the existing `web` / `tui` / `acp` / `desktop` channels:\n\n- **Shared webview chat panel** (`shared-webview`) — a self-contained HTML/JS chat UI embedded via JCEF in JetBrains and as a webview in VS Code, so both IDEs render an identical interface.\n- **Streaming chat panel** — the agent response streams token-by-token with Markdown rendering, thinking blocks, and tool-call cards.\n- **IDE context injection** — every message automatically includes the active file path + language, cursor line, selected code, editor diagnostics, other open tabs, project tree, git branch/status, and project rules (`AGENTS.md` / `.jiuwenswarm/`).\n- **File edit workflow** — the agent edits files through a side-by-side diff review (JetBrains) or VS Code's diff viewer, with optional approval and auto-apply; checkpoint/rewind restores a turn's changes.\n- **Terminal integration** — agent shell commands run in a dedicated IDE terminal tab so output is visible and scrollable.\n- **Swarm Map** — a real-time visual overview of `code.team` sessions (Map / List / Board), showing each worker agent's task, status, and activity.\n- **Session management** — create, switch, delete, resume named sessions; sessions share history with the webview.\n\n**IDE-side agent tools** (dispatched by the IDE when the server sends a `tool_call` envelope):\n\n| Tool | What it does |\n|---|---|\n| `str_replace_editor` | Apply a targeted string replacement to a file |\n| `write_file` / `create_file` | Write or create a file in the workspace |\n| `bash` / `run_command` | Run a shell command in the IDE terminal |\n| `read_file` | Read a file from the workspace |\n| `web_search` / `todo_write` | Search the web / track TODOs |\n\n```mermaid\nflowchart TD\n    classDef ok fill:#BBDEFB,color:#111,stroke:#1565C0\n    classDef done fill:#C8E6C9,color:#111,stroke:#2E7D32\n    classDef plain fill:#ECEFF1,color:#111,stroke:#607D8B\n    DEV([\"developer coding in the IDE\"]):::plain\n    DEV -->|\"plugin injects active file, selection,<br/>diagnostics, project tree\"| BG[\"WebSocket to JiuwenSwarm<br/>channel_id: ide\"]:::ok\n    BG -->|\"agent sees the codebase, streams reply\"| PANEL[\"IDE chat panel (shared webview)\"]:::ok\n    PANEL -->|\"agent edits files, runs commands\"| TOOLS[\"IDE tools<br/>(diff review, terminal)\"]:::done\n    TOOLS -->|\"changes applied in the IDE\"| HAPPY([\"developer stays in flow\"]):::done\n```\n\n### Involved Public APIs\n\nNew components added under `channels/ide/packages/` in the JiuwenSwarm repository:\n\n| API | Kind |\n|---|---|\n| `vscode-extension/` | new package (VS Code extension, TypeScript + esbuild) |\n| `jetbrains-plugin/` | new package (JetBrains plugin, Kotlin + Gradle) |\n| `shared-webview/` | new package (shared chat UI: `chat.html`, `swarm_map.html`, `icon.svg`) |\n| `WsClient` | new class (WebSocket client, exponential back-off reconnect, `channel_id: \"ide\"`) |\n| `SessionManager` | new class (session lifecycle, server as source of truth) |\n| `ContextCollector` | new class (IDE context injection: active file, selection, diagnostics, project tree, git, project rules) |\n| `DiffApplier` / `DiffViewer` | new classes (file-edit diff review + apply) |\n| `TerminalManager` | new class (agent commands routed to an IDE terminal) |\n| `SwarmState` / `SwarmMapPanel` | new classes (team-session visualisation) |\n| `StatusBar` | new class (connection state, token usage, active agent count) |\n| `ChatPanel` | new class (streaming chat UI over the shared webview) |\n\n**Impact:** additive. The channel is added to the JiuwenSwarm repository (`channels/ide/`) with its user docs (`docs/{en,zh}/ide/`) and docs-index updates. Both plugins are **clients of the existing JiuwenSwarm WebSocket gateway** (`channel_id: \"ide\"`, same protocol as the web UI) — the agent runtime and server API are unchanged. Sessions created by the plugins are stored server-side and immediately shared with the webview and other channels.\n\n### Description of Relevance to Other Modules\n\n- **`channels/ide/`** — the new channel (workspace root + `publishing/`).\n- **`channels/ide/packages/vscode-extension/`** — `WsClient`, `SessionManager`, `ContextCollector`, `DiffViewer`, `DiffApplier`, `TerminalManager`, `SwarmState`, `SwarmStateManager`, `ChatPanel`, `StatusBar`, code-action quick fix.\n- **`channels/ide/packages/jetbrains-plugin/`** — Kotlin equivalents (tool window, JCEF webview, diff apply, terminal, status bar widget, Alt+Enter quick fix).\n- **`channels/ide/packages/shared-webview/`** — the shared chat UI embedded by both plugins.\n- **JiuwenSwarm server** — unchanged; both plugins are gateway clients, so sessions are stored server-side and immediately visible in the web app.\n\n### Test Design and Test Plan\n\nUnit/integration tests:\n\n1. **WebSocket client** — connects, and reconnects with exponential back-off after the service worker / extension host restarts.\n2. **Session management** — create, switch, delete, and resume named sessions; the server remains the source of truth.\n3. **IDE context injection** — the active file path + language, cursor line, selected code, diagnostics, project tree, git branch/status, and project rules are included in each message.\n4. **File edits** — `str_replace_editor`, `write_file`, `create_file` apply via diff review / auto-apply and are undoable (rewind restores a turn).\n5. **Terminal** — agent `bash` / `run_command` output is shown in the IDE terminal.\n6. **Tools** — each IDE tool produces the correct result and surfaces errors (e.g. write to a non-existent path) as tool results.\n7. **Context continuity** — a session started in the IDE is the same session in the web app.\n8. **Swarm Map** — `code.team` sessions render live agent activity (member, task, message events).\n\nPerformance/reliability:\n\n- **Chat stays responsive** — streaming renders per-frame; large replies do not block the editor.\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4105\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4286176\ngitcode_issue_number: 3550\ngithub_author: @michaelatamuk\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-27T21:23:49+08:00",
+    "updated_at": "2026-10-30T12:09:41+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0,
+    "milestone": {
+      "created_at": "2026-08-18T14:14:23+08:00",
+      "description": "WorkSwarm 0.2.8",
+      "due_on": "2026-11-30",
+      "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/milestones/22",
+      "number": 755468,
+      "repository_id": 9297832,
+      "state": "active",
+      "title": "WorkSwarm 0.2.8",
+      "updated_at": "2026-08-18T14:14:23+08:00",
+      "url": "https://api.gitcode.com/api/v5/reposopenJiuwen/jiuwenswarm/milestones/755468"
+    }
+  },
+  {
+    "id": 4404449,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5038",
+    "number": "5038",
+    "state": "open",
+    "title": "JiuwenBox Unix socket defaults to world-writable management access",
+    "body": "Paired: [GitHub #7740](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7740) ↔ [GitCode #5038](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5038)\n\n## Summary\n\njiuwenbox's `_chmod_uds_socket_if_any()` (jiuwenbox/src/jiuwenbox/server/app.py) reads `JIUWENBOX_UDS_MODE` with a default of `\"0666\"` (world read+write) and applies it to the UDS socket file whenever `JIUWENBOX_UDS_PATH` is configured. Authentication is controlled by a separate env var (`JIUWENBOX_API_TOKEN`) unrelated to the socket's own filesystem permissions.\n\n## Impact\n\nRunning jiuwenbox in UDS mode with no token configured and the default socket mode, any local user on the host who can reach the socket file gets full unauthenticated access to sandbox exec, policy, proxy, and MCP operations, the same execution capability as the network-bind finding in [#5036](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5036), reachable via a local socket instead of a network port.\n\n## Affected version\n\nConfirmed on current `develop` HEAD.\n\n## Suggested fix\n\nDefault `JIUWENBOX_UDS_MODE` to `0600` (owner-only) instead of `0666`. An operator who wants a shared socket for a legitimate multi-process-same-user deployment can still set it explicitly. A fix is attached as a PR.\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7740\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4404449\ngitcode_issue_number: 5038\ngithub_author: @carfeii\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-07T00:31:13+08:00",
+    "updated_at": "2026-10-08T16:05:20+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4267972,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3405",
+    "number": "3405",
+    "state": "closed",
+    "title": "[Doc]: Update repository URLs and fix outdated documentation setup paths",
+    "body": "### 📚 Documentation Issue Description\n\nSeveral documentation files in the `jiuwenswarm` project contain outdated repository URLs and installation instructions.\n\nThe documentation still references the legacy GitCode repository in several places, while the project is now hosted on GitHub under the `openJiuwen-ai` organization. In addition, some frontend installation instructions reference an outdated directory path.\n\nRelevant repository:\n\nhttps://github.com/openJiuwen-ai/jiuwenswarm\n\nRelevant PR:\n\n[!3685](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/3685)\n\nThe affected documentation includes installation, quickstart, upgrade, contributor, and repository-related instructions.\n\n### Improvement and Fix Suggestions\n\nUpdate all outdated repository references and installation paths to match the current GitHub repository and project structure.\n\nSpecifically:\n\n- Replace legacy GitCode repository URLs with the corresponding GitHub URLs.\n- Update `git clone` commands to use the current GitHub repository.\n- Correct outdated frontend paths to `channels/web/frontend`.\n- Update related repository, release, and dependency references.\n- Ensure the `openjiuwen` dependency in `pyproject.toml` points to the current GitHub repository.\n- Search the documentation for remaining legacy references to ensure the migration is complete.\n\nThe documentation should provide installation instructions that work correctly from a clean checkout of the current GitHub repository.\n\n\n### Version Information\n\nCurrent development version / main branch of `jiuwenswarm`.\n\nThis issue is related to PR [!3685](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/3685):\n\n[!3685](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/3685)\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3611\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4267972\ngitcode_issue_number: 3405\ngithub_author: @ChayaLevi\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-20T20:29:51+08:00",
+    "updated_at": "2026-09-24T10:07:34+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Documentation",
+      "id": 2848,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4284684,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3528",
+    "number": "3528",
+    "state": "closed",
+    "title": "【BUG】README 顶部徽章/CI 状态链接指向不存在的工作流，显示异常",
+    "body": "### 问题描述\n\nREADME 顶部的构建/CI 状态徽章链接指向的 GitHub Actions 工作流不存在或名称不匹配，徽章无法正常显示状态，影响项目可信度展示。\n\n### 复现步骤\n\n1. 打开 jiuwenswarm 仓库主页\n2. 点击 README 顶部徽章，观察跳转目标\n\n### 期望行为\n\n徽章正确显示 CI 状态，链接指向实际存在的工作流\n\n### 实际行为\n\n徽章显示 unknown/failing，或链接 404\n\n### 运行环境\n\n- 仓库分支：develop\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4031\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4284684\ngitcode_issue_number: 3528\ngithub_author: @yuji6666666\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-27T14:41:07+08:00",
+    "updated_at": "2026-08-27T15:18:36+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4197255,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2721",
+    "number": "2721",
+    "state": "closed",
+    "title": "[Experience Feedback]: 应当发布 Linux 平台下 arm64 和 amd64 的包",
+    "body": "### Device Type\n\nLinux(ARM)\n\n### Operating System Version\n\nEulerOS\n\n### Browser\n\n_No response_\n\n### Project Version\n\n_No response_\n\n### Problem Description\n\n需要 Linux 的 release 方便开发者使用\n\n### Improvement & Fix Suggestions\n\n_No response_\n\n### Please Rate Your Current Experience\n\n1 - Very Dissatisfied\n\n### User Role\n\nNone\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 1571\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4197255\ngitcode_issue_number: 2721\ngithub_author: @JDLu2003\n-->",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/bf/ff/b4f865f9ff56974a1b027178d005c09afbdf9d8710d6b89ca64a394f43b1cd17.jpg",
+      "html_url": "https://gitcode.com/wangxiaolong100",
+      "id": "68bfef0e2c2c2604ed913827",
+      "login": "wangxiaolong100",
+      "name": "wangxiaolong",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-07-27T15:05:27+08:00",
+    "updated_at": "2026-09-17T19:56:38+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4316158,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3979",
+    "number": "3979",
+    "state": "closed",
+    "title": "[Bug]: 导出长图失败",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n如图所示，点击右上角的导出按钮，显示正在生成，弹框显示“导出长图失败”\n\n<img width=\"2560\" height=\"1440\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/91743e6d-ae41-4620-842c-2ca922a9cd7a\" />\n\n### Detailed Environment Information Description\n\nMac mini M4\nJiuwenswarm 0.2.4.beta4\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\nJiuwenswarm 0.2.4.beta4\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 5219\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4316158\ngitcode_issue_number: 3979\ngithub_author: @jojoinfra\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-08T11:41:57+08:00",
+    "updated_at": "2026-09-28T18:38:37+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4410856,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5106",
+    "number": "5106",
+    "state": "open",
+    "title": "[Bug]: Permission levels broken in latest (0.2.7)",
+    "body": "Paired: [GitHub #7926](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7926) ↔ [GitCode #5106](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5106)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n# Issue\n\nThe UI allows switching between \"Default\" and \"Full Access\" permissions during a conversation. Since updating to 0.2.7, switching to \"Full Access\" no longer works.\n\n# Cause\n\nWhen a conversation is started or switched to \"Default\" permission level, this creates some files which are part of the permission system. When the user attempts to change back to \"Full Access\", these files still remain. In previous versions, some config toggle would disable the permission system, but now that config is not updated by the UI switch, so the permission rail remains active if it exists.\n\n### Detailed Environment Information Description\n\nWindows 11, Huawei MateBook\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\nThis is an issue in WorkSwarm 0.2.7 and the develop branch (as of Sept 29, 2026).\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7926\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4410856\ngitcode_issue_number: 5106\ngithub_author: @vsarca\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-10T05:16:57+08:00",
+    "updated_at": "2026-10-10T05:52:26+08:00",
+    "labels": [],
+    "comments": 5,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4219888,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2922",
+    "number": "2922",
+    "state": "closed",
+    "title": "[Bug]: huggface推理服务接口报错",
+    "body": "### Checklist\n\n- [ ] I have searched for related issues but did not get the expected help.\n- [ ] This bug has not been fixed in the latest version.\n- [ ] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n在huggingface上部署的推理实例，可以配置到jiuwenswarm的模型中吗？我试了下，测试一致不通过\n\n### Detailed Environment Information Description\n\njiuwenswarm 0.2.3\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\njiuwenswarm 0.2.3\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2295\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4219888\ngitcode_issue_number: 2922\ngithub_author: @whyseu\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-05T10:16:34+08:00",
+    "updated_at": "2026-08-14T09:01:06+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4202342,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2774",
+    "number": "2774",
+    "state": "open",
+    "title": "[Feature]: 企业内网使用proxy时很多联网功能无法使用",
+    "body": "### 🚀 Background Description\n\n\n请在请求互联网时，支持使用系统proxy\n\n### Design Ideas\n\n继承系统proxy设置。\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\n在使用了proxy的企业内网可以正常搜索技能仓库、更新版本。\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 1747\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4202342\ngitcode_issue_number: 2774\ngithub_author: @robin20250704\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-07-29T09:04:43+08:00",
+    "updated_at": "2026-08-11T14:12:59+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4309204,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3878",
+    "number": "3878",
+    "state": "closed",
+    "title": "[Bug]: 浏览器agent适合同步执行且已拥有自己的生命周期管理，不适合异步sub agent 工具+异步生命周期管理",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n浏览器agent适合同步执行，且已拥有自己的生命周期和运行时管理机制，不适合异步sub agent 工具和新加的异步生命周期的简单管理\n\n### Detailed Environment Information Description\n\nWindows11\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.6\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4935\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4309204\ngitcode_issue_number: 3878\ngithub_author: @ShowHsiang\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-04T17:27:41+08:00",
+    "updated_at": "2026-09-23T14:38:52+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4294054,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3634",
+    "number": "3634",
+    "state": "closed",
+    "title": "[Bug]: 视觉工具热更新没有解耦主agent原生多模态能力",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\njiuwenswarm有两条多模态理解路径，主agent原生能力和额外视觉工具能力，两条能力有错误的耦合关系，在个别情况下会造成：\n\n- 启动时配置了 vision：原生读图关闭；热更新关闭 vision 后，vision tool 被卸载，但旧原生读图仍然关闭，原生能力没有恢复。\n\n### Detailed Environment Information Description\n\nWindows 11，web端\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\njiuwenswarm 0.2.5 beta1\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4356\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4294054\ngitcode_issue_number: 3634\ngithub_author: @ShowHsiang\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-31T16:12:06+08:00",
+    "updated_at": "2026-09-01T17:07:58+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4410871,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5108",
+    "number": "5108",
+    "state": "open",
+    "title": "[Feature]: Better permission levels",
+    "body": "Paired: [GitHub #7928](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7928) ↔ [GitCode #5108](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5108)\n\n### 🚀 Background Description\n\nI take inspiration from the permission systems of OpenClaw and DeepSeek Harness. I think we can improve on the current permission level system, which only has \"Default\" and \"Full Access\". Specifically, I suggest the following permission levels\n1. Read-only (workspace)\n2. Read-only (device)\n3. Device read, workspace write (Human review*)\n4. Device read, workspace write (AI review*)\n5. Full access\n\n\\* - commands that are unknown to our filter are escalated for review (\"does this command write outside of the workspace?\"), and this review could either ask the user, or automated with an AI reviewer.\n\nAlso, in particular, Full Access should still have a filter. I understand our current system just disables the permission system when on Full Access, but other harnesses still prevent obvious harmful commands even on Full Access.\n\n### Design Ideas\n\nSee description.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nI'm sorry, I'm not sure how to test the permission system. Hopefully we have existing safety and security tests?\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7928\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4410871\ngitcode_issue_number: 5108\ngithub_author: @vsarca\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-10T05:37:43+08:00",
+    "updated_at": "2026-10-10T05:42:38+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4226865,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/2991",
+    "number": "2991",
+    "state": "closed",
+    "title": "[Bug]: Cannot send file in first message of the conversation",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\nThe agent fails to read files that are sent in the first message of a conversation.\n\nI have created a PR ([!4587](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/4587)) that solves this problem, with screenshots of the old and new behaviors. The causes of the bug and my solution are also discussed there.\n\n### Detailed Environment Information Description\n\nWSL - Running Ubuntu 24.04\nJiuwenSwarm commit 433f363c\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\nWSL - Running Ubuntu 24.04\nJiuwenSwarm commit 433f363c\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 2477\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4226865\ngitcode_issue_number: 2991\ngithub_author: @Miguel0312\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-06T23:33:17+08:00",
+    "updated_at": "2026-08-27T20:12:22+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4248967,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3186",
+    "number": "3186",
+    "state": "closed",
+    "title": "[Bug]: reload_agent_config does not reload environment variables",
+    "body": "Paired: [GitHub #3052](https://github.com/openJiuwen-ai/jiuwenswarm/issues/3052) ↔ [GitCode #3186](https://gitcode.com/openJiuwen/jiuwenswarm/issues/3186)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n`JiuWenSwarmDeepAdapter.reload_agent_config` does not reload environment variables, leading to stale env variables being used after a config reload. For example after user changes `.env` in `~/.jiuwenswarm` and calls a config reload, the old `MODEL_NAME`, `API_BASE`, `API_KEY` would still be used, which is problematic.\n\n### Detailed Environment Information Description\n\nmacOS\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n0.2.4.beta*\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3052\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4248967\ngitcode_issue_number: 3186\ngithub_author: @Trenza1ore\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-13T23:39:26+08:00",
+    "updated_at": "2026-11-07T15:08:06+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4269799,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3419",
+    "number": "3419",
+    "state": "closed",
+    "title": "[Bug]: 四、性能问题 汇总",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n1. 对话响应慢：相同蓝区 GLM5.1 模型，OpenCode 7s，JiuwenSwarm 15s；后端模型偶发运行很慢。\n2. TUI 性能：TUI 启动慢，第一条命令等待约 30s 才有反馈；终端交互卡顿。\n3. 整体服务性能较差。\n\n### Detailed Environment Information Description\n\n黄区/蓝区 windows&linux\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\n最新官方版本\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3653\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4269799\ngitcode_issue_number: 3419\ngithub_author: @wtmJepsen\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-21T12:20:49+08:00",
+    "updated_at": "2026-09-09T19:11:38+08:00",
+    "labels": [],
+    "comments": 3,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4310167,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3885",
+    "number": "3885",
+    "state": "open",
+    "title": "[Bug]: v0.2.5版本，上传文件后，使用 llm-wiki 读取不到文件",
+    "body": "### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n在对话框中上传文件，然后使用llm-wiki 技能分析保存文件内容，提示：用户需要将上传的文件摄入 llm-wiki 知识库，但缺少文件本身，因此需要用户提供文件。\n\n### Detailed Environment Information Description\n\nwindows 、 单agent模式 、 完全访问权限\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\nv0.2.5版本\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4958\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4310167\ngitcode_issue_number: 3885\ngithub_author: @cyberkingkong\n-->",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/bb/fd/b6492bf994dd69d5324ef89dbd7d5328e04e4b8d0f6e0fcd31ef67dda3cd03ac.jpg",
+      "html_url": "https://gitcode.com/lairuofei",
+      "id": "692e8583d05c2b7ef51c3f20",
+      "login": "lairuofei",
+      "name": "lairuofei",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-09-05T08:48:15+08:00",
+    "updated_at": "2026-09-18T15:36:09+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4277725,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3473",
+    "number": "3473",
+    "state": "open",
+    "title": "[Feature]: Bring the JiuwenSwarm Agent into the Browser",
+    "body": "## Background Description\n\nJiuwenSwarm serves knowledge workers whose thinking happens in the browser, with the web page they are reading as their raw material — a paper on arXiv, an SEC filing, a PubMed abstract, a Twitter thread, a GitHub PR. But the agent lives in a separate web app. Using it on anything the user is reading forces a manual, disconnected flow:\n\n- **Copy-paste as the transport layer.** Select text, switch to the web app, paste it, lose the surrounding context, then repeat for every additional page. A question spanning three tabs becomes three round-trips of copying.\n- **No memory of the page.** The agent never sees the page the user is actually looking at. Context the user can see — where a figure sits, what a highlighted passage says — has to be described back in prose.\n- **No action on the page.** Even when the agent has a useful answer, it cannot point at the page, highlight the passage it is citing, or fill the form the user was filling. The answer arrives in a chat window disconnected from the thing it is about.\n\n```mermaid\nflowchart TD\n    classDef fail fill:#FFCDD2,color:#111,stroke:#C62828\n    classDef plain fill:#ECEFF1,color:#111,stroke:#607D8B\n    PAGE([\"user reads a web page<br/>(arXiv, SEC, PubMed, GitHub)\"]):::plain\n    PAGE -->|\"select + copy\"| COPY[\"switch to web app, paste<br/>lose surrounding context\"]:::fail\n    COPY -->|\"per tab, repeatedly \"| UNHAPPY([\"user is stuck copy-pasting,<br/>agent can't see or act on the page\"]):::fail\n```\n\n## Design Ideas\n\n### Proposed design\n\nA Chrome extension (Manifest V3) with four runtime layers that connect to the existing JiuwenSwarm WebSocket gateway. The channel ships as `channels/browser/` in the JiuwenSwarm repository, alongside the existing `web` / `tui` / `acp` / `desktop` channels:\n\n- **Layer 1 — Background service worker.** The central hub, running separately from both the page and the side panel. Maintains the WebSocket connection, session lifecycle, page-context cache, tab tracking, right-click menu, panel opening, and a browser-native tool dispatcher.\n- **Layer 2 — Content script.** Injected into every web page; detects the page type, routes to one of nine page-type extractors (8 adapters + Readability.js fallback), extracts text (head+tail, capped at 120,000 chars), tracks selection, and responds to highlight/scroll/fill commands from the background.\n- **Layer 3 — Side panel.** A persistent Chrome Side Panel beside the page: native streaming chat, session picker, context bar with pinned-page chips, reader view, tour, privacy disclosure, and full-text search.\n- **Layer 4 — Popup and options.** A toolbar connection-status popup and a settings page for the server host, port, default mode, and behaviour toggles.\n\n**Browser-native agent tools** (8) dispatched by the background worker when the server sends a `tool_call` envelope:\n\n| Tool | What it does |\n|---|---|\n| `get_selection` | Read current text selection in the active tab |\n| `highlight_text` | Highlight a passage in the active tab with a colored overlay |\n| `fill_form` | Fill form fields in the active tab by label or field name |\n| `scroll_to` | Scroll the active tab to a CSS selector |\n| `take_screenshot` | Capture the visible area of the active tab as a base64 PNG |\n| `open_url` | Open a URL in a new tab |\n| `read_page` | Extract text from a tab by URL, or the active tab if no URL given |\n| `pin_page` | Pin the current tab to the active research session |\n\n```mermaid\nflowchart TD\n    classDef ok fill:#BBDEFB,color:#111,stroke:#1565C0\n    classDef done fill:#C8E6C9,color:#111,stroke:#2E7D32\n    classDef plain fill:#ECEFF1,color:#111,stroke:#607D8B\n    PAGE([\"user reads a web page<br/>(arXiv, SEC, PubMed, GitHub)\"]):::plain\n    PAGE -->|\"content script extracts,<br/>pins page context\"| BG[\"background service worker<br/>WebSocket to JiuwenSwarm\"]:::ok\n    BG -->|\"agent sees the page, streams reply\"| PANEL[\"side panel chat\"]:::ok\n    PANEL -->|\"agent highlights, fills, scrolls\"| TOOLS[\"browser-native tools<br/>(highlight, fill, scroll, ...)\"]:::done\n    TOOLS -->|\"acts on the page \"| HAPPY([\"user stays focused on the page\"]):::done\n```\n\n## Involved Public APIs\n\nNew components added under `channels/browser/frontend/src/` in the JiuwenSwarm repository:\n\n| API | Kind |\n|---|---|\n| `WsClient` | new class (WebSocket client, exponential back-off reconnect) |\n| `SessionManager` | new class (research session lifecycle, server as source of truth) |\n| `ContextCache` | new class (per-tab page-context cache) |\n| `TabWatcher` | new class (tab lifecycle tracking, re-extraction on navigation) |\n| `ToolDispatcher` | new class (dispatch the 8 browser-native tools) |\n| `Extractor` + `PageTypeDetector` | new classes (page text extraction + type routing) |\n| 9 page-type extractors | new modules (GitHub, arXiv, SEC EDGAR, PubMed, Wikipedia, YouTube, Twitter/X, Hacker News, Readability.js fallback) |\n| `ChatBridge`, `SessionPicker`, `ContextBar`, `SessionExporter` | new side-panel components |\n| `chat`, `markdown`, `reader`, `tour`, `privacy`, `search` | new side-panel modules |\n| `protocol` / message types | new module (content ↔ background ↔ side-panel wire protocol) |\n\n**Impact:** additive. The channel is added to the JiuwenSwarm repository (`channels/browser/`) with its user docs (`docs/{en,zh}/browser-extension/`) and docs-index updates. The extension is a **client of the existing JiuwenSwarm WebSocket gateway** (same protocol as the web UI and IDE plugin) — the agent runtime and server API are unchanged. Sessions created by the extension are stored server-side and immediately shared with the webview and other channels.\n\n## Description of Relevance to Other Modules\n\n- **`channels/browser/`** — the new channel (frontend extension + `publishing/`).\n- **`channels/browser/frontend/background/`** — `WsClient`, `SessionManager`, `ContextCache`, `TabWatcher`, `ContextMenu`, `PanelManager`, `ToolDispatcher`.\n- **`channels/browser/frontend/content/`** — `Extractor`, `PageTypeDetector`, 9 extractors, `SelectionMonitor`, `Annotator`, `FormAssist`.\n- **`channels/browser/frontend/sidepanel/`** — `ChatBridge`, `SessionPicker`, `ContextBar`, `SessionExporter`, `chat`, `markdown`, `reader`, `tour`, `privacy`, `search`, native chat.\n- **`channels/browser/frontend/popup/` + `options/`** — connection status and settings.\n- **`channels/browser/frontend/shared/`** — types, protocol, storage, constants shared across the three contexts.\n- **JiuwenSwarm server** — unchanged; the extension is a gateway client, so sessions are stored server-side and immediately visible in the web app.\n\n## Test Design and Test Plan\n\nUnit/integration tests:\n\n1. **WebSocket client** — connects, and reconnects with exponential back-off after the MV3 service worker terminates and wakes.\n2. **Session management** — create, switch, and resume research sessions; the active pointer is persisted and the server remains the source of truth.\n3. **Page extraction** — the correct page-type extractor is selected; generic article pages fall back to Readability.js; output is head+tail truncated to the 120,000-char cap.\n4. **Adapters** — each extractor returns the expected structured content for its site.\n5. **Tools** — `get_selection`, `highlight_text`, `fill_form`, `scroll_to`, `take_screenshot`, `open_url`, `read_page`, and `pin_page` each produce the correct result and surface errors (e.g. screenshot on a background/minimized window) as tool results.\n6. **Cross-page session** — a question spanning multiple pinned pages is answered using all pinned contexts.\n7. **Context continuity** — a session started in the browser is the same session in the web app.\n8. **Service-worker sleep** — an in-flight `tool_call` dispatched while the worker is asleep generates a contained error response, and reconnects on wake.\n\nPerformance/reliability:\n\n- **Extraction does not block rendering** — the content script runs at `document_idle`; large-page extraction stays bounded by the char cap.\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3841\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4277725\ngitcode_issue_number: 3473\ngithub_author: @michaelatamuk\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-25T05:08:20+08:00",
+    "updated_at": "2026-08-27T21:28:20+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 5,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4248946,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3185",
+    "number": "3185",
+    "state": "open",
+    "title": "[Feature]: [E6] Email/SMTP channel — reach users without an IM platform",
+    "body": "### 🚀 Background Description\n\n\nTicket E6 (Epic E — Channels & Distribution). Depends on E1 ([#2979](https://gitcode.com/openJiuwen/jiuwenswarm/issues/2979)) and E2 ([#3061](https://gitcode.com/openJiuwen/jiuwenswarm/issues/3061)).\n\n`config.yaml` already carries an `email_settings` block (address, token,\nsmtp_server, port) but no code reads it: there is no email adapter. Every\nexisting channel is an instant-messaging platform, so a user without Slack,\nDiscord or Feishu has no way to reach the agent.\n\nEmail is also the sharpest test of the connector SDK: no buttons, no\nstreaming, no native threads. An interactive card must arrive as readable\nnumbered-reply text (E2 degradation) and the reply must map back to the card\naction.\n\n### Design Ideas\n\nStacked slices, additive first:\n1. E6-a — pure `email_format.py`: `normalize_subject()`, `reply_subject()`,\n   `thread_key()`, `strip_quoted_reply()`. No network, fully unit-tested.\n2. E6-b — `EmailChannel(BaseChannel)`: SMTP send, `ChannelCapabilities` with\n   every flag False so E2 degradation applies, session id per thread key.\n3. E6-c — IMAP polling inbound, router wiring, config and docs.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\n-\n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3050\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4248946\ngitcode_issue_number: 3185\ngithub_author: @chaimaerachdi\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-13T23:12:25+08:00",
+    "updated_at": "2026-08-13T23:14:40+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4410862,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5107",
+    "number": "5107",
+    "state": "open",
+    "title": "[Feature]: Copy button for code fences",
+    "body": "Paired: [GitHub #7927](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7927) ↔ [GitCode #5107](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5107)\n\n### 🚀 Background Description\n\nThere is no \"Copy\" button on code fences (code blocks surrounded by \\`\\`\\`) in the agent's output. \n\nAI language models (such as that one I use, DeepSeek Flash 4) put text they want the user to copy in code fences, even if it isn't code. This is because code fences typically have a copy button. For example, if the user asks the model to refine a prompt for a task, the agent's output will likely be in a code fence to separate it from the agent's conversation and commentary.\n\n### Design Ideas\n\nAdd a copy button beside (or under) code fences. Hopefully the code can be reused or copied from the copy button under user messages.\n\n### Involved Public APIs\n\n_No response_\n\n### Description of Relevance to Other Modules\n\n_No response_\n\n### Test Design and Test Plan\n\nCopy buttons require basic user testing. \n\n### Additional Information\n\n_No response_\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7927\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4410862\ngitcode_issue_number: 5107\ngithub_author: @vsarca\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-10T05:22:53+08:00",
+    "updated_at": "2026-10-10T05:27:39+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4250330,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3193",
+    "number": "3193",
+    "state": "closed",
+    "title": "[Hack the North 2026] openJiuwen Multi-Agent Challenge",
+    "body": "Paired: [GitHub #3067](https://github.com/openJiuwen-ai/jiuwenswarm/issues/3067) ↔ [GitCode #3193](https://gitcode.com/openJiuwen/jiuwenswarm/issues/3193)\n\n# openJiuwen Multi-Agent Challenge: Build Collaborative Agents That Get Things Done\n\n## Sponsor API Credits\n\nTo access the sponsored API credits, please apply on https://luma.com/mc7lijgs :\n\nPlease note that:\n\n1. We provide API Credit through OpenRouter, check out more at OpenRouter docs.\n\n2. Each team may apply **only once**. Please do not submit duplicate requests.\n\n3. A total of **200 API keys** are available and will be distributed on a **first-come, first-served basis while supplies last**.\n\n4. Upon approval, you will receive an email with api key in it. The limit would be 40 USD.\n\n5. Teams that receive the sponsored API credit are expected to **submit their project to the Huawei openJiuwen Multi-Agent Challenge track**.\n\n## Brief Introduction\n\nAI agents are moving beyond single-agent assistants toward **teams of specialized agents that can collaborate to solve complex tasks**.\n\nThe **openJiuwen Multi-Agent Challenge** asks hackers to build a functional multi-agent AI application that solves a meaningful real-world problem through intelligent agent collaboration.\n\nYour system should go beyond simply calling multiple agents or chaining several LLM prompts together. We want to see agents that can **divide responsibilities, communicate, coordinate, use tools and Skills, adapt to intermediate results, and work together toward a shared goal**.\n\nTeams are encouraged to explore capabilities such as:\n\n● **Task decomposition** — break a complex goal into meaningful subtasks\n\n● **Role specialization** — assign different responsibilities, expertise, or perspectives to different agents\n\n● **Agent communication** — exchange information, intermediate outputs, requests, or feedback\n\n● **Tool and Skill invocation** — allow agents to interact with external tools, APIs, code, files, or reusable Skills\n\n● **Dynamic coordination** — adjust plans, assignments, or execution based on intermediate results\n\n● **Parallel execution** — run independent workstreams concurrently where appropriate\n\n● **Result verification** — review, critique, validate, or cross-check outputs before producing the final result\n\n● **Failure handling** — recover, retry, reassign, or degrade gracefully when an agent or tool fails\n\n● **Reusable collaboration patterns** — capture successful multi-agent workflows so they can be applied to similar tasks again\n\nApplications may target scenarios such as:\n\n● Enterprise workflows\n\n● Research and knowledge work\n\n● Software development and coding\n\n● Data analysis\n\n● Personal productivity\n\n● Education\n\n● Creative collaboration\n\n● Planning and decision support\n\n● Scientific or technical workflows\n\n● Other innovative multi-agent applications\n\nYou do **not** need to demonstrate every capability listed above. A focused application with a clear reason for using multiple collaborating agents is better than an overly complicated system.\n\n**Participants are encouraged to build on or extend **[**JiuwenSwarm**](https://github.com/openJiuwen-ai/jiuwenswarm)** as the reference multi-agent framework.**\n\n**Note: The latest official version of JiuwenSwarm has been upgraded to **[**WorkSwarm**](https://openjiuwen.com/en/workswarm)**. Participants are encouraged to review and use the latest WorkSwarm release where appropriate. JiuwenSwarm remains relevant as the original reference framework and documentation context for this challenge.**\n\nJiuwenSwarm supports Leader-driven task decomposition, specialized teammates, dynamic multi-agent collaboration, tool invocation, Skills, distributed execution, and reusable Swarm collaboration workflows. The upgraded WorkSwarm project continues this direction with the latest official framework updates.\n\nTeams may choose between two implementation paths:\n\n● **Create a reusable Swarm Skill** using JiuwenSwarm or WorkSwarm. This path is suitable for teams that want to package a general-purpose multi-agent collaboration pattern that can be reused across similar tasks.\n\n● **Directly implement a customized multi-agent application** on top of JiuwenSwarm or WorkSwarm. This path is suitable for teams that want to focus on building a complete application tailored to a specific real-world scenario.\n\nBoth paths are fully valid for the challenge. A Swarm Skill is not required, but teams are encouraged to consider whether their collaboration workflow could be generalized and packaged for reuse.\n\n**Full challenge details, sponsored API credits, technical guidance, examples, and resources:**\n[openJiuwen Multi-Agent Challenge · GitHub](https://github.com/openJiuwen-ai/jiuwenswarm/issues/3067)\n\n---\n\n## Prize Description\n\nThe **openJiuwen Multi-Agent Sponsor Prize** recognizes teams that build the most compelling AI applications through meaningful multi-agent collaboration.\n\n### 1st Place\n\nEach member of the 1st-place team will receive:\n\n● **Huawei Watch GT 6**\n\n● An **internship opportunity with the openJiuwen team at the Huawei Toronto Research Center**, available to exceptional candidates following an interview process\n\n### 2nd Place\n\nEach member of the 2nd-place team will receive:\n\n● **Huawei FreeClip 2 Earbuds**\n\n● A **exclusive office tour of the Huawei Toronto Research Center**\n\nWinning teams will be selected based on the quality of their application, multi-agent collaboration design, technical implementation, demo completeness, creativity, and potential real-world impact.\n\nThe internship opportunity is intended for exceptional candidates who demonstrate outstanding technical ability, creativity, initiative, and a strong understanding of multi-agent systems. Candidates may be invited to participate in interviews with the openJiuwen team at the Huawei Toronto Research Center. The opportunity is subject to interview performance, candidate qualifications, eligibility, availability, and applicable internship requirements.\n\n---\n\n## Sponsored API Credits\n\nEach participating team may receive up to:\n\n### **$40 USD in API credits per team**\n\nThe credits are intended to support model API calls during development and testing of the hackathon project.\n\nTeams may use the sponsored credits to experiment with agent roles, multi-agent workflows, tool calls, reasoning, evaluation, and other components of their application.\n\n**Conditions apply.** Detailed instructions regarding API access and credit usage will be provided through the challenge resources or by the challenge organizers.\n\n---\n\n## Eligibility\n\nTo be eligible for the **openJiuwen Multi-Agent Sponsor Prize**, your team must:\n\n● Build a **functional and demo-ready multi-agent AI application** during Hack the North.\n\n● Use **multiple AI agents or clearly separated agent roles** that collaborate toward a shared objective.\n\n● Demonstrate a scenario where multi-agent collaboration provides meaningful value compared with a straightforward single-agent solution.\n\n● Demonstrate at least one complete **end-to-end user scenario**.\n\n● Show meaningful coordination among agents during the workflow.\n\n● Submit a project repository with basic setup/run instructions and required dependencies.\n\nTeams may satisfy the implementation requirement by either:\n\n● Creating a reusable Swarm Skill with JiuwenSwarm or WorkSwarm, together with a working demonstration of the skill; or\n\n● Directly implementing a customized multi-agent application on top of JiuwenSwarm or WorkSwarm.\n\nYour application should demonstrate several aspects of multi-agent collaboration, such as:\n\n○ Task decomposition\n\n○ Role specialization\n\n○ Agent-to-agent communication\n\n○ Parallel or sequential collaboration\n\n○ Tool or Skill invocation\n\n○ Intermediate-result sharing\n\n○ Dynamic replanning or task reassignment\n\n○ Review, verification, or quality control\n\n○ Failure handling or fallback behavior\n\nThe collaboration does **not** need to use all of these mechanisms.\n\nWhat matters is that multiple agents contribute meaningfully to solving the task rather than acting as independent wrappers around the same prompt.\n\n---\n\n## Using JiuwenSwarm and WorkSwarm\n\nTeams are **encouraged, but not required**, to use [JiuwenSwarm](https://github.com/openJiuwen-ai/jiuwenswarm) or its latest official successor, [WorkSwarm](https://openjiuwen.com/en/workswarm), as the reference framework.\n\n**WorkSwarm is the latest official upgrade of JiuwenSwarm. Teams starting new projects should consider using WorkSwarm where its capabilities and APIs are suitable for their application. Teams may also continue using JiuwenSwarm when following the challenge examples, existing documentation, or compatibility requirements.**\n\nJiuwenSwarm and WorkSwarm are designed for complex tasks that benefit from multi-agent collaboration, including scenarios where a Leader or coordinator decomposes a goal, assembles specialized teammates, coordinates execution, invokes tools and Skills, and integrates results.\n\nTeams may:\n\n● Build an application directly with JiuwenSwarm\n\n● Build a new application with WorkSwarm\n\n● Extend JiuwenSwarm or WorkSwarm with new agents, tools, Skills, or collaboration mechanisms\n\n● Create a specialized workflow on top of either framework\n\n● Integrate either framework with external APIs, applications, databases, services, or models\n\n● Experiment with new agent coordination or verification mechanisms\n\n● Build using another multi-agent framework while demonstrating the collaboration principles of this challenge\n\nProjects are **not expected to modify the core framework code** unless doing so is useful for the team's idea.\n\nTeams may choose one of the following approaches:\n\n### Reusable Swarm Skill\n\nTeams can define a reusable Swarm Skill that captures a general multi-agent collaboration pattern. This approach is especially suitable when the same team structure and workflow can be applied to multiple related tasks.\n\n### Customized Multi-Agent Application\n\nTeams can directly build a customized application on top of JiuwenSwarm or WorkSwarm. This approach is especially suitable when the application requires domain-specific agents, tools, interfaces, data sources, or orchestration logic.\n\nBoth approaches are equally acceptable. Teams should choose the approach that best fits their project goals.\n\n---\n\n## Creating a Reusable Swarm Skill\n\nStrong multi-agent systems should not need to reinvent their collaboration strategy every time a similar task appears.\n\nTeams that identify a generalizable collaboration pattern may package it as a reusable Swarm Skill. This is optional, but it can make the project easier to extend, share, and apply to new scenarios.\n\nA Swarm Skill captures **how a team of agents works together**, rather than only describing what an individual agent can do.\n\nFor example, instead of building a research demo whose agents are hard-coded specifically for one question, a team could extract a reusable:\n\n**Research Team Swarm Skill**\n\nthat defines:\n\n● A coordinator that decomposes the research problem\n\n● Multiple researchers that investigate different aspects in parallel\n\n● A critic that checks evidence and identifies inconsistencies\n\n● A synthesizer that combines validated results\n\n● Quality gates for missing or conflicting evidence\n\n● Failure handling when a researcher or external tool fails\n\nSuch a collaboration pattern could then be reused for many research tasks.\n\nA standard JiuwenSwarm or WorkSwarm Swarm Skill may include:\n\n```text\nyour-team-skill/\n├── SKILL.md\n├── roles/\n│   ├── coordinator.md\n│   ├── researcher.md\n│   └── reviewer.md\n├── workflow.md\n├── bind.md\n└── dependencies.yaml\n```\n\nThese components describe:\n\n● **SKILL.md** — what the team can accomplish and when the collaboration should be used\n\n● **roles/** — responsibilities, capabilities, boundaries, and output expectations for each agent role\n\n● **workflow.md** — how agents interact, including sequential or parallel stages and quality gates\n\n● **bind.md** — resource constraints, behavioral rules, exception handling, and degraded modes\n\n● **dependencies.yaml** — tools, Skills, and external capabilities required by the team\n\nTeams may additionally create executable orchestration where appropriate.\n\nCreating a Swarm Skill is **optional**. Teams may instead directly implement a customized multi-agent application on top of JiuwenSwarm or WorkSwarm.\n\n---\n\n## Judging Criteria\n\nProjects will be evaluated based on the following criteria:\n\n### 1. Multi-Agent Collaboration — 30%\n\nDoes the project make meaningful use of multiple agents?\n\nWe will consider:\n\n● Quality of task decomposition\n\n● Clarity and usefulness of agent roles\n\n● Whether different agents contribute genuinely different capabilities or perspectives\n\n● Agent communication and information sharing\n\n● Parallel and/or sequential coordination\n\n● Dynamic adaptation based on intermediate results\n\n● Conflict resolution or result integration\n\n● Verification and quality-control mechanisms\n\nStrong projects should demonstrate that the agents are **working as a team**, rather than simply executing a fixed sequence of unrelated prompts.\n\n---\n\n### 2. Scenario Value & Creativity — 25%\n\nDoes the project address a clear and meaningful problem?\n\nWe are looking for original applications where collaboration between specialized agents creates an experience or capability that would be difficult to achieve with a simple chatbot.\n\nStrong projects should clearly answer:\n\n**Why does this problem benefit from multiple collaborating agents?**\n\nThe application may target enterprise, research, coding, personal productivity, education, science, creative work, or another real-world scenario.\n\n---\n\n### 3. Demo Completeness — 20%\n\nIs the application functional, stable, and demo-ready?\n\nWe value a **small but complete multi-agent experience** over a very ambitious system with unfinished components.\n\nThe project should demonstrate at least one clear end-to-end workflow, such as:\n\n**User Goal → Task Decomposition → Agent Collaboration → Tool/Skill Execution → Verification → Final Result**\n\nThe judges should be able to understand what each major agent contributes and how the team reaches the final result.\n\nConcept-only designs, slide decks, architecture diagrams, or static mockups are **not sufficient**; the core multi-agent workflow must be functional and demonstrable.\n\nFor teams submitting a Swarm Skill, the demonstration should show the skill operating on at least one concrete task. For teams building a customized application, the demonstration should show the application's complete multi-agent workflow.\n\n---\n\n### 4. Technical Implementation — 15%\n\nIs the system architecture reasonable and well executed?\n\nWe will consider:\n\n● Multi-agent system architecture\n\n● Agent orchestration and lifecycle management\n\n● Tool and API integration\n\n● State/context management\n\n● Agent communication design\n\n● Parallel execution where appropriate\n\n● Reliability and error handling\n\n● Cost and latency awareness\n\n● Technical clarity\n\nAdditional consideration may be given to thoughtful implementation of:\n\n● Dynamic agent creation or role assignment\n\n● Adaptive task planning\n\n● Failure recovery or task reassignment\n\n● Human-in-the-loop interaction\n\n● Memory and context sharing\n\n● Privacy and security controls\n\n● Distributed agent execution\n\n● Evaluation-driven coordination\n\n---\n\n### 5. Reusability & Extensibility — 10%\n\nCan the solution grow beyond the hackathon demo?\n\nWe will consider:\n\n● Whether the architecture can support additional scenarios\n\n● Whether agent roles and workflows are modular\n\n● Whether tools and Skills can be replaced or extended\n\n● Whether the collaboration strategy is generalizable\n\n● Code quality and ease of reuse\n\nTeams may demonstrate reusability in either of two ways:\n\n● By packaging their collaboration pattern as a reusable Swarm Skill; or\n\n● By designing a modular customized multi-agent application whose agents, workflows, tools, and interfaces can be extended to new scenarios.\n\nA Swarm Skill is **not required** to receive a strong score in this category. Teams should choose the implementation approach that best demonstrates the reusability and extensibility of their project.\n\n---\n\n## What We’re Looking For\n\nA winning project does **not** need to contain a large number of agents.\n\nTwo or three agents with clear roles and meaningful collaboration can be much stronger than ten agents performing redundant work.\n\nWe are looking for projects with:\n\n● A specific and meaningful real-world scenario\n\n● A clear problem that benefits from multi-agent collaboration\n\n● Well-defined agent responsibilities\n\n● Meaningful interaction between agents\n\n● Effective task decomposition\n\n● Adaptive coordination rather than simple prompt chaining\n\n● Appropriate use of tools, Skills, APIs, or external environments\n\n● Verification or feedback mechanisms\n\n● A complete end-to-end workflow\n\n● A functional and stable live demo\n\n● Thoughtful technical implementation\n\n● Potential for reuse and future development\n\nTeams may either create a reusable Swarm Skill or directly implement a customized multi-agent application on top of JiuwenSwarm or WorkSwarm. Both approaches are encouraged, and teams should select the one that best fits their idea.\n\nTeams are encouraged to build a **small but complete collaborative system** rather than maximizing the number of agents or features.\n\nExamples of interesting collaboration patterns include:\n\n**Parallel Specialists**\nA coordinator decomposes a problem and sends independent subtasks to specialized agents in parallel before integrating the results.\n\n**Planner → Executor → Reviewer**\nOne agent creates a plan, another executes it, and another independently verifies the result.\n\n**Research → Critique → Synthesis**\nResearchers collect evidence from different perspectives, critics identify gaps or contradictions, and a synthesis agent produces a final answer.\n\n**Developer → Tester → Debugger**\nOne agent implements a solution, another tests it, and another diagnoses failures and proposes corrections.\n\n**Debate / Cross-Check**\nIndependent agents form different conclusions or perspectives before comparing reasoning and producing a final decision.\n\n**Dynamic Team Formation**\nA coordinator determines which specialists are needed based on the current task instead of always invoking the same set of agents.\n\nThese are examples only. Teams are encouraged to invent new collaboration patterns.\n\nMost importantly, we want to see a project that answers one question:\n\n**When AI agents can specialize, communicate, coordinate, and verify each other, what can they accomplish together that a single agent cannot?**\n\n---\n\n## Submission Requirements\n\nYour submission should include:\n\n● A **working project repository**\n\n● Basic installation and setup instructions\n\n● Required dependencies\n\n● Instructions for running the demo\n\n● A short description of the real-world problem being solved\n\n● A description of the agent roles and their responsibilities\n\n● An explanation of how the agents collaborate\n\n● At least one complete end-to-end demo scenario\n\nYour project should use one of the following implementation formats:\n\n● A reusable Swarm Skill created with JiuwenSwarm or WorkSwarm; or\n\n● A customized multi-agent application built on top of JiuwenSwarm or WorkSwarm.\n\nWe also strongly recommend including:\n\n● A simple architecture or workflow diagram\n\n● Example inputs and outputs\n\n● A description of the tools, Skills, APIs, and models being used\n\n● Any important limitations or fallback behavior\n\n● A short explanation of why a multi-agent approach improves the solution\n\nIf submitting a **Swarm Skill**, include the Swarm Skill files in your repository and briefly explain:\n\n● What collaboration pattern it captures\n\n● When it should be used\n\n● What agent roles are involved\n\n● How the collaboration workflow operates\n\n● How it can be reused for tasks beyond your demo\n\nIf submitting a **customized multi-agent application**, briefly explain:\n\n● Why the application requires multiple agents\n\n● How the agents divide and coordinate their responsibilities\n\n● How the application can be extended to additional scenarios\n\n● Which parts of JiuwenSwarm or WorkSwarm are used or extended\n\n---\n\n## Additional Resources\n\nFor the complete challenge description, sponsored API credit information, updates, and submission guidance:\n\n**Challenge Details**\n[Hack the North 2026 — openJiuwen Multi-Agent Challenge](https://github.com/openJiuwen-ai/jiuwenswarm/issues/3067)\n\n**JiuwenSwarm Repository**\n[openJiuwen-ai/jiuwenswarm](https://github.com/openJiuwen-ai/jiuwenswarm)\n\n**WorkSwarm Repository**\n[openJiuwen-ai/WorkSwarm](https://openjiuwen.com/en/workswarm)\n\n**Swarm Skills Documentation**\n[JiuwenSwarm — Swarm Skills](https://github.com/openJiuwen-ai/jiuwenswarm/blob/develop/docs/en/SwarmSkills.md)\n\n**Swarm Skill Creator**\n[JiuwenSwarm — swarmskill-creator](https://github.com/openJiuwen-ai/jiuwenswarm/tree/develop/jiuwenswarm/resources/agent/workspace/skills/swarmskill-creator)\n\nTeams are encouraged to explore the latest WorkSwarm release, review JiuwenSwarm for reference and compatibility, experiment with different collaboration architectures, and think beyond simply adding more agents.\n\n**Build agents that divide the work, challenge each other, adapt, and get things done together.**\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 3067\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4250330\ngitcode_issue_number: 3193\ngithub_author: @LeoChen0296\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openJiuwen-bot",
+        "id": "68efbe75d3e71e35266cc152",
+        "login": "openJiuwen-bot",
+        "name": "openJiuwen-bot",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-14T11:05:28+08:00",
+    "updated_at": "2026-10-08T22:58:08+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4404454,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5040",
+    "number": "5040",
+    "state": "open",
+    "title": "Cross-site form can trigger localhost knowledge-to-skill generation",
+    "body": "Paired: [GitHub #7744](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7744) ↔ [GitCode #5040](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5040)\n\n## Summary\n\n`_handle_file_api_post` (jiuwenswarm/channels/web/app_web.py) dispatches every mutating `/file-api/*` POST route (`skills/upload-temp`, `skills/import`, `skills/create-from-knowledge`, `rebuild-agent-data`, `upload`, `file-content`, `ws-debug-config`) with no Origin, Fetch Metadata, CSRF token, or desktop-token check anywhere in the dispatch chain.\n\n## Impact\n\nA plain HTML form on an attacker-controlled page, submitted via a victim's browser while the local jiuwenswarm web server is running, can trigger any of these routes using only the victim's ambient ability to reach localhost; no cookies or credentials are needed from the attacker's page. `/file-api/skills/create-from-knowledge`, the route named in this report, persists a new generated skill from an attacker-supplied URL with no user confirmation beyond the forged request itself.\n\nA pre-existing `desktop_token` mechanism (`JIUWENSWARM_DESKTOP_TOKEN`, an HttpOnly+SameSite=Lax cookie) exists in this codebase but is wired only into SPA-document navigation, never into this request path, so it provides no protection here regardless of whether it's configured.\n\n## Affected version\n\nConfirmed on current `develop` HEAD.\n\n## Suggested fix\n\nCheck the `Sec-Fetch-Site` header (sent automatically by modern browsers) at the top of `_handle_file_api_post`, before any route dispatch, and reject any request where it is present and equal to `cross-site`. A fix is attached as a PR, applied to the shared handler so it covers every mutating route behind it at once.\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7744\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4404454\ngitcode_issue_number: 5040\ngithub_author: @carfeii\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-07T00:37:11+08:00",
+    "updated_at": "2026-10-08T16:05:21+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "TODO",
+      "serial": 0,
+      "id": 3499
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4284809,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3533",
+    "number": "3533",
+    "state": "closed",
+    "title": "【BUG】docs/zh 缺少技能管理文档（Skills），技能安装/卸载/市场无中文说明",
+    "body": "### 问题描述\n\n`docs/en/Skills.md` 存在，但 `docs/zh/` 下没有对应的中文技能管理文档。技能安装、卸载、市场检索等操作缺少中文说明，卸载后重装冲突等问题也无从查阅。\n\n### 环境信息\n\n- 版本：develop 分支（文档缺陷）\n- 操作系统：跨平台，不适用\n- Python：不适用（文档问题）\n\n### 复现步骤\n\n1. 打开仓库 `docs/en/Skills.md`\n2. 在 `docs/zh/` 目录查找对应中文技能管理文档\n\n### 期望行为\n\n`docs/zh/` 提供中文技能管理文档，覆盖安装、卸载、市场检索等操作\n\n### 实际行为\n\n`docs/zh/` 无技能管理文档\n\n### 日志\n\n- 不适用（文档缺陷）\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 4040\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4284809\ngitcode_issue_number: 3533\ngithub_author: @yuji6666666\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-27T15:02:29+08:00",
+    "updated_at": "2026-08-27T15:16:10+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Experience-Feedback",
+      "id": 2853,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4407545,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5066",
+    "number": "5066",
+    "state": "open",
+    "title": "[Feature]:  Let scheduled results start a new channel message",
+    "body": "Paired: [GitHub #7811](https://github.com/openJiuwen-ai/jiuwenswarm/issues/7811) ↔ [GitCode #5066](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5066)\n\n### 🚀 Background Description\n\nWhen a channel delivers a scheduled result to its source thread, a cron job has no setting to request a new top-level message. A recurring channel report may therefore remain inside an old thread.\n\n### Design Ideas\n\nAdd an optional `post_as_root` boolean to cron jobs. Store it with the job and include it in outbound delivery metadata. A channel that supports threads can omit the source thread when the value is true. Keep the default false.\n\n### Involved Public APIs\n\nAdd `post_as_root` to cron creation and update inputs, tool schemas, and the persisted job format. Existing jobs keep their current delivery behavior.\n\n### Description of Relevance to Other Modules\n\nThe Slack connector can use the flag when it sends a scheduled result. Channels without thread support can ignore it. PRs [!7711](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/7711) and [!7681](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/7681) each propose Slack cron targeting.\n\n### Test Design and Test Plan\n\nTest job creation, serialization, update, and delivery after a scheduler reload. Test threaded and top-level Slack delivery with a routing target. Confirm that jobs without the flag still use the source thread.\n\n### Additional Information\n\nOn upstream `develop` at `661710be33`, a container reproduction produced:\n\n```\njob_post_as_root: <missing>\nserialized_post_as_root: <missing>\nsend_kwargs: {'channel': 'C1', 'text': 'scheduled result', 'thread_ts': '1710000000.000100'}\n```\n\nThe reproduction constructs a Slack outbound route directly. Upstream needs a separate Slack cron-target change, such as [!7711](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/7711) or [!7681](https://gitcode.com/openJiuwen/jiuwenswarm/merge_requests/7681), before a stored job can use that route.\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 7811\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4407545\ngitcode_issue_number: 5066\ngithub_author: @harenome\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-08T19:54:39+08:00",
+    "updated_at": "2026-10-08T19:57:08+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "ACCEPTED",
+      "serial": 0,
+      "id": 3500
+    },
+    "issue_type_detail": {
+      "title": "Feature",
+      "id": 6214,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4470363,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/5906",
+    "number": "5906",
+    "state": "closed",
+    "title": "[Bug]: 设计模式需要补充跟进 UCD 设计稿件的样式细节和切图素材",
+    "body": "Paired: [GitHub #9859](https://github.com/openJiuwen-ai/jiuwenswarm/issues/9859) ↔ [GitCode #5906](https://gitcode.com/openJiuwen/jiuwenswarm/issues/5906)\n\n### Checklist\n\n- [x] I have searched for related issues but did not get the expected help.\n- [x] This bug has not been fixed in the latest version.\n- [x] Please note that if your bug description lacks corresponding environment information and a minimal reproducible demo, it will be difficult for us to reproduce and resolve the issue, which will reduce the possibility of receiving feedback, or even lead to the issue being closed.\n\n### 🐞 Detailed Description of the Problem\n\n设计模式有些UI元素与UCD设计稿有出入，需要根据设计稿更新\n\n### Detailed Environment Information Description\n\n包括顶栏按钮组、模型重新生成的参数选择二级菜单，comfyui按钮图标等。具体见关联PR的截图\n\n### Additional Information\n\n_No response_\n\n### Version Information\n\ndevelop & 0.2.8\n\n<!-- bot3-issue-sync-meta\nschema_version: 1\nsource: github\ngithub_repo: openJiuwen-ai/jiuwenswarm\ngithub_issue_number: 9859\ngitcode_repo: openJiuwen/jiuwenswarm\ngitcode_issue_id: 4470363\ngitcode_issue_number: 5906\ngithub_author: @fhfuih\n-->",
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "html_url": "https://gitcode.com/openjiuwen-sync",
+        "id": "6a4f10b3d25f221834002d8e",
+        "login": "openjiuwen-sync",
+        "name": "openjiuwen-sync",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-10-27T20:04:23+08:00",
+    "updated_at": "2026-11-02T09:44:24+08:00",
+    "labels": [],
+    "comments": 2,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "DONE",
+      "serial": 0,
+      "id": 3503
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  },
+  {
+    "id": 4229479,
+    "html_url": "https://gitcode.com/openJiuwen/jiuwenswarm/issues/3027",
+    "number": "3027",
+    "state": "closed",
+    "title": "[Bug]: openjiuwen 的日志路径要跟jiuwenswarm的放在一起，方便查看",
+    "body": "### Checklist\n            \n- [x] 我已经搜索过相关问题，但没有得到预期的帮助。\n- [ ] 最新版本中该错误尚未修复。\n- [ ] 请注意，如果您提交的Bug描述缺少相应的环境信息和最小可复现的demo，我们将很难复现和解决该问题，从而降低收到反馈的可能性，甚至该问题将被关闭。\n### 🐞 问题详细描述\n            \nopenjiuwen 的日志路径要跟jiuwenswarm的放在一起，方便查看\n### 详细的环境信息描述\n            \n不限\n### 其他辅助信息\n            \n\n### 版本信息\n            \n\n\n\n感谢您的贡献 🎉!\n\n",
+    "assignee": {
+      "avatar_url": "https://cdn-img.gitcode.com/ae/bc/ae8316bc6d312f766b885b23966ca037b0349b6719d805faadd73b1bd2e2f5d5.jpg",
+      "html_url": "https://gitcode.com/xiaowenzihwl",
+      "id": "693635a5c27d9505fc7aa90d",
+      "login": "xiaowenzihwl",
+      "name": "hewenli",
+      "type": "User"
+    },
+    "repository": {
+      "id": 9297832,
+      "full_name": "openJiuwen/jiuwenswarm",
+      "human_name": "openJiuwen / jiuwenswarm",
+      "path": "jiuwenswarm",
+      "name": "jiuwenswarm",
+      "url": "https://gitcode.com/openJiuwen/jiuwenswarm",
+      "owner": {
+        "avatar_url": "https://cdn-img.gitcode.com/ae/bc/ae8316bc6d312f766b885b23966ca037b0349b6719d805faadd73b1bd2e2f5d5.jpg",
+        "html_url": "https://gitcode.com/xiaowenzihwl",
+        "id": "693635a5c27d9505fc7aa90d",
+        "login": "xiaowenzihwl",
+        "name": "hewenli",
+        "type": "User"
+      },
+      "assigner": {},
+      "paas": ""
+    },
+    "created_at": "2026-08-08T09:26:01+08:00",
+    "updated_at": "2026-08-31T09:11:46+08:00",
+    "labels": [],
+    "comments": 1,
+    "priority": 1,
+    "issue_state_detail": {
+      "title": "CLOSED",
+      "serial": 0,
+      "id": 3504
+    },
+    "issue_type_detail": {
+      "title": "Bug-Report",
+      "id": 2850,
+      "is_system": false
+    },
+    "parent_id": 0
+  }
+]
