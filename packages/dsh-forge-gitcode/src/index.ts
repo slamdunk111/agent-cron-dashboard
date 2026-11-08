@@ -114,12 +114,12 @@ export function capabilities(): readonly ProviderCapability[] {
     { capability: 'fetchChecks', implemented: false, note: 'api/v5 has no check-runs/check list endpoint (404 x5); only mergeable_state.ci_state_passed' },
     { capability: 'findByHead', implemented: true, note: null },
     { capability: 'readiness', implemented: true, note: 'GET /api/v5/user; anonymous access answers 400 private-token required' },
-    { capability: 'markReady', implemented: false, note: 'draft marking needs an authenticated PATCH probe (diff doc §4)' },
-    { capability: 'merge', implemented: false, note: 'merge endpoint shape needs an authenticated probe (diff doc §4)' },
+    { capability: 'markReady', implemented: false, note: 'route proven (OPTIONS: PATCH allowed) but body/permissions need a token probe (diff doc §4)' },
+    { capability: 'merge', implemented: false, note: 'route proven (PUT /pulls/{n}/merge) but body/permissions need a token probe (diff doc §4)' },
     { capability: 'diff', implemented: true, note: 'web /pull/{n}.diff (api .diff answers 400)' },
     { capability: 'fileText', implemented: true, note: 'contents?ref={commit} -> download_url on raw.gitcode.com' },
     { capability: 'fileUrl', implemented: true, note: null },
-    { capability: 'submitReview', implemented: false, note: 'no reviews endpoint (404); inline comment shape needs an authenticated probe' },
+    { capability: 'submitReview', implemented: false, note: 'comments route proven (OPTIONS: POST); reviews endpoint absent (404); inline shape needs a token probe' },
   ]
 }
 
@@ -164,19 +164,30 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
     maxOutputBytes: config.maxOutputBytes,
   }
   const hosts = config.hosts
+  /**
+   * Credentials only ever travel to a host this provider serves. A caller can
+   * hand any string in `ForgeChangeRequestRef.repository.host`, so every read
+   * re-checks it before a request (and its token) is built.
+   */
+  const served = (host: string | undefined): boolean =>
+    typeof host === 'string' && hosts.includes(host.toLowerCase())
+  const transportFor = (host: string): TransportFeatures => (served(host) ? transport : { ...transport, token: undefined })
 
   async function readPull(ref: ForgeChangeRequestRef, signal: AbortSignal): Promise<ChangeRequestSnapshot | ForgeFailure> {
+    if (!served(ref.repository.host)) {
+      return { code: 'unavailable', message: `host ${ref.repository.host} is not served by this provider` }
+    }
     const gitcode = asGitCode(ref)
     const result = await request(`${apiBase(gitcode)}/pulls/${ref.number}`, transport, signal)
     if (!result.ok) return result.failure
     const parsed = parseJson(result.text)
     if (!parsed.ok) return parsed.failure
     const pull = parsed.value as GitCodePullJson
-    const sizes = config.filesPageSize > 0 ? await readSizes(gitcode, signal) : undefined
-    if (sizes !== undefined && 'code' in sizes) {
-      // A missing `files` page degrades the counts, not the whole snapshot.
-      return snapshotOf(pull, ref)
-    }
+    if (config.filesPageSize === 0) return snapshotOf(pull, ref)
+    const sizes = await readSizes(gitcode, signal)
+    // A failed or oversized files page makes the line counts unknowable, and
+    // reporting 0/0 would be a wrong number rather than an honest failure.
+    if ('code' in sizes) return sizes
     return snapshotOf(pull, ref, sizes)
   }
 
@@ -193,7 +204,10 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       const rows = parsed.value as GitCodeFileJson[]
       if (!Array.isArray(rows) || rows.length === 0) break
       all.push(...rows)
-      if (rows.length < config.filesPageSize) break
+      if (rows.length < config.filesPageSize) return countFileLines(all)
+      if (page === 10) {
+        return { code: 'too-large', message: `more than ${10 * config.filesPageSize} changed files; line counts unavailable` }
+      }
     }
     return countFileLines(all)
   }
@@ -209,6 +223,7 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       return out
     },
     async findByHead(repository, branch, signal) {
+      if (!served(repository.host)) return []
       const ref: GitCodeChangeRequestRef = { repository: { ...repository }, number: 0 }
       const result = await request(
         `${apiBase(ref)}/pulls?state=open&head=${encodeURIComponent(branch)}&per_page=100`,
@@ -227,6 +242,7 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
         .map((pull) => ({ repository, number: pull.number as number }))
     },
     async readiness(host, signal) {
+      if (!served(host)) return { state: 'unavailable', message: `host ${host} is not served by this provider` }
       const result = await request(`https://${host}/api/v5/user`, transport, signal)
       if (result.ok) return { state: 'ready', message: null }
       if (result.failure.code === 'unauthenticated') {
@@ -235,11 +251,17 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       return { state: 'unavailable', message: result.failure.message }
     },
     async diff(ref, signal) {
+      if (!served(ref.repository.host)) {
+        return { code: 'unavailable', message: `host ${ref.repository.host} is not served by this provider` }
+      }
       const result = await request(diffUrl(asGitCode(ref)), transport, signal, 'text/plain')
       if (!result.ok) return result.failure
       return result.text
     },
     async fileText(ref, commit, path, signal) {
+      if (!served(ref.repository.host)) {
+        return { code: 'unavailable', message: `host ${ref.repository.host} is not served by this provider` }
+      }
       const gitcode = asGitCode(ref)
       const result = await request(`${apiBase(gitcode)}/contents/${path.replace(/^\//, '')}?ref=${encodeURIComponent(commit)}`, transport, signal)
       if (!result.ok) return result.failure
@@ -247,7 +269,8 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       if (!parsed.ok) return parsed.failure
       const entry = parsed.value as { download_url?: string; content?: string; encoding?: string }
       if (typeof entry.download_url === 'string') {
-        const raw = await request(entry.download_url, transport, signal, 'text/plain')
+        // `download_url` points at raw.gitcode.com; it never receives the token.
+        const raw = await request(entry.download_url, transportFor(new URL(entry.download_url).hostname), signal, 'text/plain')
         return raw.ok ? raw.text : raw.failure
       }
       if (typeof entry.content === 'string' && entry.encoding === 'base64') {

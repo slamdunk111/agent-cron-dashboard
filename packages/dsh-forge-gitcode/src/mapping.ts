@@ -184,14 +184,24 @@ function mergeReadyOf(pull: GitCodePullJson): boolean {
   return true
 }
 
+/**
+ * Aggregate review outcome, limited to what the host actually publishes.
+ *
+ * GitCode has no reviews endpoint (`/pulls/{n}/reviews` 404) and its merge
+ * state carries approval COUNTERS only (`approval_approvers_result` vs
+ * `approval_required_reviewers_count`), never an APPROVED/CHANGES_REQUESTED
+ * verdict. So `approved` means "the approval requirement is met" and
+ * `review-required` means "more approvals are needed"; a request that has
+ * changes requested cannot be distinguished and is not reported as such.
+ */
 function reviewDecisionOf(pull: GitCodePullJson): ReviewDecision {
   const mergeState = pull.mergeable_state
   if (mergeState === undefined) return 'none'
   const approvers = Number(mergeState['approval_approvers_result'] ?? 0)
   const required = Number(mergeState['approval_required_reviewers_count'] ?? 0)
-  if (mergeState['approval_reviewers_required_passed'] === false && approvers > 0) return 'changes-requested'
   if (required > 0 && approvers >= required) return 'approved'
   if (required > 0) return 'review-required'
+  if (mergeState['approval_reviewers_required_passed'] === false) return 'review-required'
   return 'none'
 }
 

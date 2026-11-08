@@ -318,3 +318,100 @@ describe('plugin row exports', () => {
     expect(mod.inject).toEqual(['forge'])
   })
 })
+
+describe('files pagination and no-token fallback (C4)', () => {
+  it('folds several files pages into one line count', async () => {
+    const sizes = validateConfig({ filesPageSize: 2 })
+    const pageOne = [{ filename: 'a', additions: 3, deletions: 1 }, { filename: 'b', additions: 4, deletions: 2 }]
+    const pageTwo = [{ filename: 'c', additions: 5, deletions: 0 }]
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.includes('/files') && url.includes('page=1')) return Response.json(pageOne)
+      if (url.includes('/files') && url.includes('page=2')) return Response.json(pageTwo)
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(sizes, { fetch: impl })
+    const result = await provider.fetch([ref], signalOf())
+    const snapshot = result.get(snapshotKey(ref)) as ChangeRequestSnapshot
+    expect({ additions: snapshot.additions, deletions: snapshot.deletions }).toEqual({ additions: 12, deletions: 3 })
+  })
+
+  it('reads public repositories with no token at all (clip below 400/403)', async () => {
+    const headersSeen: { privateToken?: string }[] = []
+    const impl = (async (input: string | URL | Request, init?: RequestInit) => {
+      headersSeen.push({ privateToken: (init?.headers as Record<string, string> | undefined)?.['private-token'] })
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: undefined })
+    const result = await provider.fetch([ref], signalOf())
+    expect((result.get(snapshotKey(ref)) as ChangeRequestSnapshot).state).toBe('open')
+    expect(headersSeen.every((entry) => entry.privateToken === undefined)).toBe(true)
+  })
+})
+
+describe('P1 review fixes (C1-C3)', () => {
+  const config = validateConfig({ tokenEnv: 'GITCODE_TOKEN' })
+
+  it('never sends the token to a host this provider does not serve (C1)', async () => {
+    const seen: { url: string; token: string | undefined }[] = []
+    const impl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      seen.push({ url, token: (init?.headers as Record<string, string>)['private-token'] })
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(config, { fetch: impl, token: 'secret-token' })
+    const evil = { repository: { forge: 'gitcode', host: 'evil.example', owner: 'o', name: 'n' }, number: 1 }
+    const result = await provider.fetch([evil], signalOf())
+    expect(result.get(snapshotKey(evil))).toMatchObject({ code: 'unavailable' })
+    expect(await provider.readiness('evil.example', signalOf())).toMatchObject({ state: 'unavailable' })
+    expect(await provider.diff(evil, signalOf())).toMatchObject({ code: 'unavailable' })
+    expect(await provider.fileText(evil, 'sha', 'p', signalOf())).toMatchObject({ code: 'unavailable' })
+    expect(await provider.findByHead(evil.repository, 'b', signalOf())).toEqual([])
+    expect(seen).toHaveLength(0)
+  })
+
+  it('sends the token only to the served host (C1)', async () => {
+    const tokens: Record<string, string | undefined> = {}
+    const impl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      tokens[new URL(url).hostname] = (init?.headers as Record<string, string>)['private-token']
+      if (url.includes('/contents/')) return Response.json({ download_url: 'https://raw.gitcode.com/x', encoding: 'base64', content: '' })
+      return new Response('hello', { status: 200 })
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(config, { fetch: impl, token: 'secret-token' })
+    await provider.fileText(ref, 'sha', 'a/b', signalOf())
+    expect(tokens['gitcode.com']).toBe('secret-token')
+    expect(tokens['raw.gitcode.com']).toBeUndefined()
+  })
+
+  it('reports 1 of 2 approvals as review-required, never changes-requested (C2)', () => {
+    const mergeState = { approval_required_reviewers_count: 2, approval_approvers_result: 1, approval_reviewers_required_passed: false }
+    const snapshot = snapshotOf({ ...pullOpen, mergeable_state: mergeState }, ref)
+    expect(snapshot.reviewDecision).toBe('review-required')
+    const enough = snapshotOf({ ...pullOpen, mergeable_state: { ...mergeState, approval_approvers_result: 2 } }, ref)
+    expect(enough.reviewDecision).toBe('approved')
+  })
+
+  it('fails the snapshot when the files page fails instead of reporting 0/0 (C3)', async () => {
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.includes('/files')) return new Response('{"error_message":"boom"}', { status: 500 })
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(config, { fetch: impl })
+    const result = await provider.fetch([ref], signalOf())
+    expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+  })
+
+  it('reports too-large when the file list overflows 10 full pages (C3)', async () => {
+    const page = Array.from({ length: 100 }, (_, index) => ({ filename: `f${index}`, additions: 1, deletions: 0 }))
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.includes('/files')) return Response.json(page)
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(config, { fetch: impl })
+    const result = await provider.fetch([ref], signalOf())
+    expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'too-large' })
+  })
+})
