@@ -6,10 +6,12 @@ import { describe, expect, it } from 'vitest'
  * versions and table layouts so a rename cannot silently orphan stored data.
  */
 describe('storage domain declarations', () => {
-  it('declares the seven domains with dsh-valid names', async () => {
+  it('declares the eight domains with dsh-valid names', async () => {
     const { DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const names = DOMAINS.map((spec) => spec.name)
     expect(names).toEqual([
+      // P4 inserts the graded-event log ahead of the P0 domains (ADR P4-1).
+      'workbench_events',
       'workbench_snapshot_pr',
       'workbench_snapshot_issue',
       'workbench_fleet_jobs',
@@ -29,6 +31,6 @@ describe('storage domain declarations', () => {
   it('declares one table per domain with the documented key space', async () => {
     const { DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const tables = DOMAINS.map((spec) => Object.keys(spec.tables))
-    expect(tables).toEqual([['snapshots'], ['snapshots'], ['jobs'], ['records'], ['fingerprints'], ['cursors'], ['health']])
+    expect(tables).toEqual([['events'], ['snapshots'], ['snapshots'], ['jobs'], ['records'], ['fingerprints'], ['cursors'], ['health']])
   })
 })

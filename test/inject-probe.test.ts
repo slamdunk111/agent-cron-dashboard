@@ -30,7 +30,7 @@ describe('inject vs ctx.get probe', () => {
     // path and releases the facility at the end (no assertion on domain state).
     const { WorkbenchService, DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = new WorkbenchService(ctx, {})
-    expect(DOMAINS).toHaveLength(7)
+    expect(DOMAINS).toHaveLength(8)
     expect(ctx.get('storageDomain')).toBeDefined()
     // Also proves ADR P0-6's second half: `ctx.get` returns the real facility.
     await ctx.get('storageDomain')?.closeAll()

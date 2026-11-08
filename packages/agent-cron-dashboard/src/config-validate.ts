@@ -32,6 +32,8 @@ const SSH_HOST_RE = /^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$/
  */
 const SSH_OPTION_RE = /^(?:ConnectTimeout|BatchMode|StrictHostKeyChecking|ServerAliveInterval|ServerAliveCountMax|IdentityFile|Port|User|KeepAliveInterval|ConnectRetries)=[A-Za-z0-9_.:=/,@-]+$/
 const CRON_RE = /^([0-9*,/-]+ ){4}[0-9*,/-]+$/
+/** Mirrors the schema's `timeZone` pattern: an IANA Area/Location (or `UTC`). */
+const TIME_ZONE_RE = /^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*\/[A-Za-z][A-Za-z0-9_+-]*)$/
 
 const PLATFORMS = ['github', 'gitcode'] as const
 const SOURCE_KINDS = ['hermes-ssh', 'jiuwenswarm-local', 'ssh-sqlite'] as const
@@ -127,7 +129,21 @@ export interface WorkbenchConfig {
   fleet: FleetSourceConfigResolved[]
   poll: { fleetIntervalMs: number; backoffMaxMs: number }
   analysis: { llm: { enabled: boolean }; greenRunsToVerify: number; retentionDays: number }
-  notify: { actionCards: boolean; digest: { enabled: boolean; cron: string } }
+  notify: {
+    actionCards: boolean
+    /** P4: same subject + same kind inside this window merges into one event. */
+    debounceMs: number
+    /** P4: offline backlogs of at least this many high events become one card. */
+    backlogMergeCount: number
+    digest: {
+      enabled: boolean
+      cron: string
+      /** P4: `schedule` demands an explicit zone for a cron timing. */
+      timeZone: string
+      /** P4: title the digest task is created and deleted under. */
+      taskTitle: string
+    }
+  }
 }
 
 function validateIdentity(path: string, value: unknown): IdentityConfig {
@@ -244,13 +260,19 @@ export function validateWorkbenchConfig(value: unknown): WorkbenchConfig {
 
   const rawNotify = value.notify
   if (rawNotify !== undefined && !isRecord(rawNotify)) throw new ConfigValidationError('$.notify', 'expected object')
-  if (rawNotify !== undefined) rejectUnknownKeys('$.notify', rawNotify, ['actionCards', 'digest'])
+  if (rawNotify !== undefined) rejectUnknownKeys('$.notify', rawNotify, ['actionCards', 'digest', 'debounceMs', 'backlogMergeCount'])
   const rawDigest = rawNotify?.digest
   if (rawDigest !== undefined && !isRecord(rawDigest)) throw new ConfigValidationError('$.notify.digest', 'expected object')
-  if (rawDigest !== undefined) rejectUnknownKeys('$.notify.digest', rawDigest, ['enabled', 'cron'])
+  if (rawDigest !== undefined) rejectUnknownKeys('$.notify.digest', rawDigest, ['enabled', 'cron', 'timeZone', 'taskTitle'])
 
   const cron = rawDigest?.cron === undefined ? '0 9 * * *' : strAt('$.notify.digest.cron', rawDigest.cron, 9, 64)
   if (!CRON_RE.test(cron)) throw new ConfigValidationError('$.notify.digest.cron', 'expected a 5-field cron expression')
+
+  // P4 digest task: `schedule` rejects a cron timing without an explicit zone.
+  const timeZone = rawDigest?.timeZone === undefined ? 'Asia/Shanghai' : strAt('$.notify.digest.timeZone', rawDigest.timeZone, 1, 64)
+  if (!TIME_ZONE_RE.test(timeZone)) throw new ConfigValidationError('$.notify.digest.timeZone', 'expected an IANA time zone such as Asia/Shanghai')
+  const taskTitle = rawDigest?.taskTitle === undefined ? 'workbench-digest' : strAt('$.notify.digest.taskTitle', rawDigest.taskTitle, 1, 120)
+  if (taskTitle.trim().length === 0) throw new ConfigValidationError('$.notify.digest.taskTitle', 'expected a non-blank title')
 
   return {
     identities,
@@ -270,7 +292,14 @@ export function validateWorkbenchConfig(value: unknown): WorkbenchConfig {
     },
     notify: {
       actionCards: boolAt('$.notify.actionCards', rawNotify?.actionCards, true),
-      digest: { enabled: boolAt('$.notify.digest.enabled', rawDigest?.enabled, true), cron },
+      debounceMs: intIn('$.notify.debounceMs', rawNotify?.debounceMs, 0, 3_600_000, 300_000),
+      backlogMergeCount: intIn('$.notify.backlogMergeCount', rawNotify?.backlogMergeCount, 1, 100, 2),
+      digest: {
+        enabled: boolAt('$.notify.digest.enabled', rawDigest?.enabled, true),
+        cron,
+        timeZone,
+        taskTitle,
+      },
     },
   }
 }

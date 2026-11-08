@@ -35,6 +35,6 @@ describe('openDomains single-flight', () => {
     const counts = new Map<string, number>()
     for (const name of calls) counts.set(name, (counts.get(name) ?? 0) + 1)
     expect([...counts.values()].filter((count) => count > 1)).toHaveLength(0)
-    expect(counts.size).toBe(7)
+    expect(counts.size).toBe(8)
   })
 })

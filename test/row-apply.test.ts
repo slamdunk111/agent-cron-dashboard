@@ -40,13 +40,13 @@ afterEach(() => {
 })
 
 describe('row apply opens the storage domains', () => {
-  it('opens seven domains and reports no domainError', async () => {
+  it('opens eight domains and reports no domainError', async () => {
     const ctx = await compose()
     const { makeWorkbenchService, getWorkbenchService, DOMAINS } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = makeWorkbenchService(ctx, {})
     expect(service).toBeInstanceOf(Object)
     // Mounting is asynchronous: wait for the domains the row opens itself.
-    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(8))
     expect(service.domainError).toBeNull()
     expect(Object.keys(service.domains).sort()).toEqual([...DOMAINS.map((spec) => spec.name)].sort())
     expect(getWorkbenchService()).toBe(service)
@@ -64,9 +64,9 @@ describe('row apply opens the storage domains', () => {
     const ctx = await compose()
     const { makeWorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = makeWorkbenchService(ctx, {})
-    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(8))
     await service.openDomains()
-    expect(Object.keys(service.domains)).toHaveLength(7)
+    expect(Object.keys(service.domains)).toHaveLength(8)
     expect(service.domainError).toBeNull()
   })
 })
@@ -78,7 +78,7 @@ describe('row unmount closes the domains it opened', () => {
     const ctx = await compose()
     const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = new WorkbenchService(ctx, {})
-    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(8))
     const fingerprints = service.domains.workbench_fingerprints as {
       table(name: string): { put(key: string, value: unknown): Promise<void>; get(key: string): unknown }
     }
@@ -91,7 +91,7 @@ describe('row unmount closes the domains it opened', () => {
     expect(fingerprints.table('fingerprints').get('sig-unmount')).toBeDefined()
     // Dispose the row: dsh calls the service's disposer on row unmount.
     await ctx.fiber.dispose()
-    expect(service.domainNames()).toHaveLength(7)
+    expect(service.domainNames()).toHaveLength(8)
     expect(() => fingerprints.table('fingerprints').get('sig-unmount')).toThrow(/closed/)
   })
 
@@ -99,7 +99,7 @@ describe('row unmount closes the domains it opened', () => {
     const ctx = await compose()
     const { WorkbenchService } = await import('../packages/agent-cron-dashboard/src/index.ts')
     const service = new WorkbenchService(ctx, {})
-    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(7))
+    await vi.waitFor(() => expect(Object.keys(service.domains)).toHaveLength(8))
     await ctx.fiber.dispose()
     const snapshot = Object.keys(service.domains).length
     await new Promise((resolve) => setTimeout(resolve, 1200))

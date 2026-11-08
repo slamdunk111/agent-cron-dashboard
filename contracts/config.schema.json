@@ -352,8 +352,36 @@
               "pattern": "^([0-9*,/-]+ ){4}[0-9*,/-]+$",
               "default": "0 9 * * *",
               "maxLength": 64
+            },
+            "timeZone": {
+              "type": "string",
+              "pattern": "^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*\\/[A-Za-z][A-Za-z0-9_+-]*)$",
+              "default": "Asia/Shanghai",
+              "maxLength": 64,
+              "description": "P4: IANA zone of the digest cron timing; the schedule service rejects a cron timing without one."
+            },
+            "taskTitle": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "default": "workbench-digest",
+              "description": "P4: title the daily digest task is created and deleted under."
             }
           }
+        },
+        "debounceMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000,
+          "default": 300000,
+          "description": "P4 change engine debounce window: the same subject and the same kind inside this window merge into one event."
+        },
+        "backlogMergeCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 2,
+          "description": "P4: high events that accumulated while no root agent was live are aggregated into one card when at least this many piled up."
         }
       }
     },
