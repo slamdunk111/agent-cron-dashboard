@@ -296,6 +296,9 @@ export class GithubProvider {
   private readonly log: (line: string) => void
   private readonly watches = new Map<string, { stopped: boolean }>()
   private readonly failures = new Map<string, number>()
+  /** In-flight `gh` calls; the adapter never runs more than CONCURRENCY at once. */
+  private readonly slots: Array<() => void> = []
+  private active = 0
 
   constructor(options: GithubProviderOptions = {}) {
     this.runner = options.runner ?? spawnGhApi
@@ -303,6 +306,19 @@ export class GithubProvider {
     this.now = options.now ?? (() => new Date())
     // Callers inject a redacting sink; the module never prints credentials itself.
     this.log = options.log ?? ((line: string) => console.log(redactLine(line)))
+  }
+
+  /** Run `task` while holding one of the CONCURRENCY slots. */
+  async withSlot<T>(task: () => Promise<T>): Promise<T> {
+    if (this.active >= GithubProvider.CONCURRENCY) await new Promise<void>((resolvePromise) => this.slots.push(resolvePromise))
+    this.active += 1
+    try {
+      return await task()
+    } finally {
+      this.active -= 1
+      const next = this.slots.shift()
+      if (next !== undefined) next()
+    }
   }
 
   /** How many change requests have an active loop. */
@@ -317,14 +333,15 @@ export class GithubProvider {
   subscribe(ref: GithubRef, listener: (update: GithubUpdate) => void): () => void {
     const key = githubKey(ref)
     if (this.watches.size >= GithubProvider.MAX_WATCHED && !this.watches.has(key)) {
-      // Quota ceiling: refuse to add more; the caller records `degraded`.
+      // Quota ceiling (plan §3.6): refuse to add more and say why.
+      this.log(`health community:github state=degraded message="GitHub quota limit, not watching ${ref.owner}/${ref.repo}#${ref.number}"`)
       return () => {}
     }
     const handle = { stopped: false }
     this.watches.set(key, handle)
     const poll = async (): Promise<void> => {
       if (handle.stopped) return
-      const result = await fetchGithub(ref, this.runner)
+      const result = await this.withSlot(() => fetchGithub(ref, this.runner))
       if (handle.stopped) return
       const fetchedAt = this.now().getTime()
       if ('code' in result) {

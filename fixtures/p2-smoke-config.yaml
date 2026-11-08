@@ -1,0 +1,11 @@
+# Run config of the P2 real-machine gate (plan §1: the only two repositories G1 uses).
+identities:
+  - platform: github
+    username: slamdunk111
+  - platform: gitcode
+    username: nawenyu139
+    tokenEnv: GITCODE_TOKEN
+watch:
+  repos:
+    - https://github.com/dptech-corp/Uni-Core
+    - https://gitcode.com/openJiuwen/jiuwenswarm
