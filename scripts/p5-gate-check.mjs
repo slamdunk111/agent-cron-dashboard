@@ -80,8 +80,9 @@ function judgeG1(text) {
   note(events.every((line) => /at=\d{4}-\d{2}-\d{2}T|key=/.test(line)), 'events carry key/time')
 
   // status tool fleet section is real
-  const status = lines.find((line) => line.startsWith('status scope=fleet'))
+  const status = lines.filter((line) => line.startsWith('status scope=fleet')).at(-1)
   note(status !== undefined, 'fleet status line present')
+  note(status !== undefined && /round=\d+/.test(status), 'fleet status line is a live-round reading')
   note(status !== undefined && /fleet="fleet: \d+ job\(s\)/.test(status), 'fleet status shows a job count instead of the placeholder')
 
   // no secret-shaped strings

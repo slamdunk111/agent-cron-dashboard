@@ -283,13 +283,13 @@ async function liveRound(bundle, round, opts) {
 }
 
 /** Status tool text over the replay tables (fleet section real numbers). */
-function statusLine(bundle, tables) {
+function statusLine(bundle, tables, round = 0) {
   const report = bundle.buildStatus(
     { events: { keys: () => [...tables.events.keys()], get: (k) => tables.events.get(k) }, prCount: () => 0, issueCount: () => 0, fleet: { jobs: tables.jobs.size, errors: 0, sourcesUp: tables.health.size, sourcesTotal: tables.health.size } },
     'fleet',
   )
   const fleetLine = report.text.split('\n').find((line) => line.startsWith('fleet:')) ?? ''
-  console.log(`status scope=fleet events=${String(report.stats.high + report.stats.medium)} fleet="${fleetLine}" text_len=${String(report.text.length)} at=${new Date().toISOString()}`)
+  console.log(`status scope=fleet events=${String(report.stats.high + report.stats.medium)} fleet="${fleetLine}" text_len=${String(report.text.length)} round=${String(round)} at=${new Date().toISOString()}`)
 }
 
 async function main(argv) {
@@ -306,10 +306,12 @@ async function main(argv) {
   }
   const bundle = await loadBundle()
   const tables = await replay(bundle)
-  statusLine(bundle, tables)
+  // Offline run: the replay is the whole window. Live runs print one status line per round.
+  if (noLive || rounds <= 0) statusLine(bundle, tables)
   if (!noLive && rounds > 0) {
     for (let round = 1; round <= rounds; round += 1) {
       await liveRound(bundle, round, { injectFailure })
+      statusLine(bundle, tables, round)
     }
   } else {
     console.log(`step live skipped=${new Date().toISOString()} reason=--no-live|rounds=0`)
