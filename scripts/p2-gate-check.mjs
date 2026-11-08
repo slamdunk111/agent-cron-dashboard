@@ -36,16 +36,19 @@ function countContains(lines, needle) {
 }
 
 function roundCounts(lines) {
+  // GitHub counts per PR: the same review key carries `pr=`, so the pair forms
+  // the identity. GitCode counts one line per cover batch (platform level).
   const counts = { github: 0, gitcode: 0 }
-  const githubKeys = new Set()
+  const perPr = new Map()
   for (const line of lines) {
-    const match = /^round#(\d+) platform=(\w+) key=([^\s]+)/.exec(line)
+    const match = /^round#(\d+) platform=(\w+) key=([^\s]+)(?: pr=(\d+))?/.exec(line)
     if (match === null) continue
     const platform = match[2]
-    if (platform === 'github') githubKeys.add(match[3])
+    if (platform === 'github') perPr.set(`${match[3]}#${match[4] ?? ''}`, (perPr.get(`${match[3]}#${match[4] ?? ''}`) ?? 0) + 1)
     if (platform === 'github' || platform === 'gitcode') counts[platform] += 1
   }
-  return { counts, githubPerKey: githubKeys.size }
+  const lowest = perPr.size === 0 ? 0 : Math.min(...perPr.values())
+  return { counts, githubPerKey: lowest, prCount: perPr.size }
 }
 
 function seedSet(lines, platform) {
@@ -74,7 +77,8 @@ function checkG1(argv) {
   }
   // GitHub: one `round#` line per PR and tick; GitCode: one per cover batch,
   // fanned out to every watched key in that batch.
-  if (round.githubPerKey < THRESHOLDS.github) problems.push(`github rounds per key ${round.githubPerKey} < ${THRESHOLDS.github}`)
+  if (round.prCount !== 3) problems.push(`github watched ${round.prCount} PR(s), expected 3`)
+  if (round.githubPerKey < THRESHOLDS.github) problems.push(`github lowest per-PR rounds ${round.githubPerKey} < ${THRESHOLDS.github}`)
   if (round.counts.gitcode < THRESHOLDS.gitcode) problems.push(`gitcode rounds ${round.counts.gitcode} < ${THRESHOLDS.gitcode}`)
   // Seed health `up` is the norm; the GitCode 3-page truncation is tolerated
   // only when named as such (the set comparison above still decides).
