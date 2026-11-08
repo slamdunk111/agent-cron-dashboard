@@ -357,18 +357,21 @@ describe('files pagination and no-token fallback (C4)', () => {
 
 describe('P1 review fixes R2 (redirects, payload shape, ci branch)', () => {
   it('refuses a redirect instead of forwarding credentials (C1 residual)', async () => {
-    const calls: string[] = []
+    const calls: { url: string; redirect: string | undefined }[] = []
+    // The double records what the transport asked for and answers 302 either
+    // way; the provider must refuse it without ever asking for a second request.
     const impl = (async (input: string | URL | Request, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input.toString()
-      calls.push(url)
-      if (init?.redirect !== 'manual') throw new Error(`expected redirect:manual, got ${String(init?.redirect)}`)
+      calls.push({ url, redirect: init?.redirect })
       return new Response('', { status: 302, headers: { location: 'https://evil.example/steal' } })
     }) as unknown as typeof fetch
     const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: 'secret-token' })
     const result = await provider.fetch([ref], signalOf())
     expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+    // One request only, and it was made with redirects disabled.
     expect(calls).toHaveLength(1)
-    expect(calls[0]).not.toContain('evil.example')
+    expect(calls[0]?.redirect).toBe('manual')
+    expect(calls.every((call) => !call.url.includes('evil.example'))).toBe(true)
   })
 
   it('fails when a files page answers 200 with a non-list body (C3 residual)', async () => {
@@ -389,13 +392,15 @@ describe('P1 review fixes R2 (redirects, payload shape, ci branch)', () => {
     expect(noTasks.checksRollup).toBe('none')
   })
 
-  it('never emits changes-requested even when the guard fails with approvals (M-C2)', () => {
-    const snapshot = snapshotOf(
-      { ...pullOpen, mergeable_state: { approval_required_reviewers_count: 2, approval_approvers_result: 1, approval_reviewers_required_passed: false } },
-      ref,
-    )
-    expect(snapshot.reviewDecision).not.toBe('changes-requested')
-    expect(['approved', 'review-required', 'none']).toContain(snapshot.reviewDecision)
+  it.each([
+    [{ approval_required_reviewers_count: 2, approval_approvers_result: 1, approval_reviewers_required_passed: false }, 'review-required'],
+    [{ approval_required_reviewers_count: 2, approval_approvers_result: 2, approval_reviewers_required_passed: true }, 'approved'],
+    [{ approval_required_reviewers_count: 0, approval_approvers_result: 3, approval_reviewers_required_passed: false }, 'review-required'],
+    [{ approval_required_reviewers_count: 0, approval_approvers_result: 0, approval_reviewers_required_passed: true }, 'none'],
+  ])('approval state %j maps to %s and never changes-requested (M-C2)', (mergeState, expected) => {
+    const snapshot = snapshotOf({ ...pullOpen, mergeable_state: mergeState }, ref)
+    // An exact value, so a revived `changes-requested` branch fails this case.
+    expect(snapshot.reviewDecision).toBe(expected)
   })
 })
 

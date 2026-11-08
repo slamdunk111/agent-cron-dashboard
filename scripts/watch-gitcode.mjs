@@ -7,7 +7,9 @@
  * drives the provider's `fetch` directly with the same code path dsh uses.
  *
  * Usage: node scripts/watch-gitcode.mjs [owner/repo#number] [seconds]
- *   default: openJiuwen/jiuwenswarm#9723, 60 s, interval 10 s
+ *   default: openJiuwen/jiuwenswarm#9723, 60 s, polling every 10 s. The interval
+ *   is deliberately far under the plan's 30-minute window, so the gate ("a
+ *   snapshot within 30 minutes") is met on the first poll.
  */
 import { makeGitCodeProvider, validateConfig } from '../build/packages/dsh-forge-gitcode/index.js'
 
