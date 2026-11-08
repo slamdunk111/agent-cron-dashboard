@@ -16,6 +16,7 @@
     "client/**/*.ts",
     "cordis.patch.yml",
     "locale/*.json",
+    "skills/**/*.md",
     "icon.svg",
     "README.md"
   ],

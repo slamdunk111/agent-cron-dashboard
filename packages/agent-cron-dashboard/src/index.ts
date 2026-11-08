@@ -14,6 +14,11 @@ import { CHANGE_LEVELS } from '../../../contracts/events.ts'
 import type { ChangeEvent } from '../../../contracts/events.ts'
 import type { IssueRecord, IssueSnapshot, PrSnapshot } from '../../../contracts/records.ts'
 import { Config as RowConfig, resolveConfig, type WorkbenchConfig } from './config.ts'
+import { ChangeEngine, type CursorTable, type EventsTable, type IssueSnapshotTable, type PrSnapshotTable } from './core/change-engine.ts'
+import { DigestController, type SchedulePort } from './core/digest.ts'
+import { NotifyService } from './core/notify.ts'
+import { NOTIFY_ACTION, notifyKind, skillText } from './core/notify-skill.ts'
+import { STATUS_DESCRIPTION, STATUS_SCOPES, STATUS_TOOL, buildStatus } from './core/tools-status.ts'
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
 const iso = z.string().min(19)
@@ -204,6 +209,20 @@ export const cursorsDomain = defineDomain({
   tables: { cursors: domainTable<string, z.infer<typeof cursorRecord>>(cursorRecord) },
 })
 
+/**
+ * Graded change events (P4), key `<at>|<subjectKey>|<kind>|<n>`.
+ *
+ * The key carries the emit instant so the domain's listing preserves order;
+ * the fourth segment keeps two events of the same instant/subject/kind unique.
+ */
+export const eventsDomain = defineDomain({
+  name: 'workbench_events',
+  version: 1,
+  layout: 'per-record',
+  invalidRecords: 'backup-and-skip',
+  tables: { events: domainTable<string, z.infer<typeof changeEvent>>(changeEvent) },
+})
+
 /** Source health snapshots, key `<sourceId>` (fleet health panel of design §5.3). */
 export const sourceHealthDomain = defineDomain({
   name: 'workbench_fleet_health',
@@ -213,6 +232,7 @@ export const sourceHealthDomain = defineDomain({
 
 /** Every domain the workbench owns, in declaration order. */
 export const DOMAINS = [
+  eventsDomain,
   prDomain,
   issueDomain,
   fleetJobsDomain,
@@ -224,6 +244,23 @@ export const DOMAINS = [
 
 /** Row config accepted by {@link apply}; dsh validates it with {@link RowConfig}. */
 export type Config = Partial<WorkbenchConfig>
+
+/**
+ * P4 row options that are not part of the frozen config schema.
+ *
+ * They are lifecycle switches (mount the change engine or not), so they stay
+ * out of `config.schema.json`; dsh's schemastery row rejects unknown keys.
+ */
+export interface RowOptions extends Config {
+  /** Mount the change engine and the notifier (default false: no tables read). */
+  readonly withNotify?: boolean
+  /** Feed pairs from a producer hook (`pr-watch`/`issue-watch` `onPair`). */
+  readonly feedPair?: (pair: { readonly key: string; readonly before: unknown; readonly after: unknown; readonly at: string }, scope: 'pr' | 'issue') => void
+  /** Install the digest task on mount (default true when the digest is enabled). */
+  readonly digestTask?: boolean
+  /** Override for the login used by "somebody else replied" (defaults to the identity). */
+  readonly me?: string
+}
 
 /** Plugin row name (dsh expects a `name` export; the loader keeps the row id). */
 export const name = 'workbench'
@@ -257,11 +294,20 @@ export class WorkbenchService extends Service {
   readonly startedAt = new Date().toISOString()
   /** Why storage domains failed to open (inspect-visible), or null while healthy. */
   domainError: string | null = null
+  /** Row options outside the frozen config (see {@link RowOptions}). */
+  readonly options: RowOptions
+  /** P4 change engine; null until the row mounted it (`withNotify`). */
+  changeEngine: ChangeEngine | null = null
+  /** P4 notifier; null until the row mounted it. */
+  notifyService: NotifyService | null = null
+  /** P4 digest task controller; null until mount. */
+  digestController: DigestController | null = null
   /** Open in progress; retries join it instead of opening the same domains again. */
   private opening: Promise<void> | undefined
 
   constructor(ctx: Context, raw: Config) {
     super(ctx, 'workbench')
+    this.options = raw
     this.config = resolveConfig(raw)
     // Published for read-only inspect reads.
     workbenchService = this
@@ -453,6 +499,193 @@ export function apply(ctx: Context, raw: Config = {}): void {
       unregister?.()
     }
   }, 'workbench:announce')
+  // P4: the change engine, the notifier and the digest task ride on this row.
+  ctx.effect(() => mountP4(ctx, raw as RowOptions), 'workbench:p4')
+}
+
+/**
+ * P4 mount: notifier, change engine, card kind, status tool and digest task.
+ *
+ * Everything here is optional and named when absent: a profile without
+ * `actionCards`/`schedule`/`tools` keeps the same behaviour as before P4
+ * (events are still stored), and the row leaves no disposer behind.
+ * @param ctx - row context.
+ * @param options - row options (`withNotify` gates the whole mount).
+ * @returns the uninstaller for the effect.
+ */
+function mountP4(ctx: Context, options: RowOptions): () => void {
+  const disposers: Array<() => void> = []
+  const service = workbenchService
+  if (options.withNotify !== true || service === undefined) {
+    return () => {
+      for (const dispose of disposers) dispose()
+    }
+    // Nothing below runs without the row options: no table read, no token read.
+  }
+  const log = (line: string) => {
+    ctx.logger?.('workbench')?.info?.(line)
+    console.log(line)
+  }
+  const notifier = new NotifyService({
+    actionCards: service.config.notify.actionCards,
+    backlogMergeCount: service.config.notify.backlogMergeCount,
+    // A card needs an online root agent; the row cannot know before first use.
+    agentLive: () => rootAgentsLive(ctx),
+    log,
+  })
+  service.notifyService = notifier
+  const engineOf = (tables: P4Tables) =>
+    new ChangeEngine({
+      events: tables.events,
+      prTable: tables.pr,
+      issueTable: tables.issue,
+      cursors: tables.cursors,
+      drainQueue: () => Promise.resolve([]),
+      debounceMs: service.config.notify.debounceMs,
+      me: options.me,
+      log,
+      onEvent: (event) => {
+        notifier.route(event)
+      },
+    })
+  // The engine needs the opened domains; the row opens them asynchronously.
+  let engine: ChangeEngine | undefined
+  disposers.push(() => {
+    service.changeEngine = null
+    service.notifyService = null
+    service.digestController = null
+  })
+  void Promise.resolve().then(async () => {
+    const tables = await waitForTables(service)
+    if (tables === undefined) {
+      log('p4 skipped: storage domains did not open; the change engine stays unmounted')
+      return
+    }
+    engine = engineOf(tables)
+    service.changeEngine = engine
+    // A producer hook (P2/P3 `onPair`) hands pairs straight to the engine.
+    if (options.feedPair !== undefined) {
+      const feed = options.feedPair
+      ;(globalThis as { __workbenchFeed?: typeof feed }).__workbenchFeed = (pair, scope) => {
+        if (service.changeEngine === null) return
+        void service.changeEngine.consumePair(pair, scope)
+      }
+    }
+    const cards = ctx.get?.('actionCards') as { register(kind: unknown): () => void } | undefined
+    if (cards === undefined) {
+      notifier.markRegistered(false)
+    } else {
+      disposers.push(cards.register(notifyKind()))
+      notifier.markRegistered(true)
+    }
+    const tools = ctx.get?.('tools') as { register(definition: unknown): () => void } | undefined
+    if (tools === undefined) {
+      log('p4 skipped: the tools service is not mounted; workbench_status is not registered')
+    } else {
+      disposers.push(
+        tools.register({
+          name: STATUS_TOOL,
+          description: STATUS_DESCRIPTION,
+          parameters: {
+            scope: { type: 'string', enum: STATUS_SCOPES, default: 'all', description: 'Which half of the workbench to summarize.' },
+            since: { type: 'string', description: 'ISO 8601 floor; defaults to 24 hours before the call.' },
+          },
+          output: {
+            schema: {
+              type: 'object',
+              additionalProperties: false,
+              properties: { text: { type: 'string', required: true } },
+            },
+            render: (_args: unknown, value: { text: string }) => [{ type: 'text', text: value.text }],
+          },
+          execute: async (args: { scope?: 'all' | 'community' | 'fleet'; since?: string }) =>
+            ({ text: statusText(service, args.scope ?? 'all', args.since) }),
+        }),
+      )
+    }
+    const schedule = ctx.get?.('schedule') as SchedulePort | undefined
+    const digest = new DigestController({
+      enabled: service.config.notify.digest.enabled,
+      cron: service.config.notify.digest.cron,
+      timeZone: service.config.notify.digest.timeZone,
+      taskTitle: service.config.notify.digest.taskTitle,
+      schedule,
+      log,
+    })
+    service.digestController = digest
+    const action = await digest.ensure().catch((error: unknown) => {
+      log(`digest ensure failed: ${error instanceof Error ? error.message : String(error)}`)
+      return 'skipped' as const
+    })
+    log(`digest task action=${action} title="${service.config.notify.digest.taskTitle}"`)
+  })
+  disposers.push(() => {
+    void service.digestController?.clear().catch(() => undefined)
+  })
+  return () => {
+    for (const dispose of disposers.splice(0).reverse()) dispose()
+  }
+}
+
+/** The tables the engine needs (all four are opened by the row itself). */
+interface P4Tables {
+  readonly events: EventsTable
+  readonly pr: PrSnapshotTable
+  readonly issue: IssueSnapshotTable
+  readonly cursors: CursorTable
+}
+
+/** Read the opened domains back as the engine's table surface. */
+function p4Tables(service: WorkbenchService): P4Tables | undefined {
+  const domains = service.domains as Record<string, unknown>
+  const events = domains.workbench_events as { table(name: string): EventsTable } | undefined
+  const pr = domains.workbench_snapshot_pr as { table(name: string): PrSnapshotTable } | undefined
+  const issue = domains.workbench_snapshot_issue as { table(name: string): IssueSnapshotTable } | undefined
+  const cursors = domains.workbench_cursors as { table(name: string): CursorTable } | undefined
+  if (events === undefined || pr === undefined || issue === undefined || cursors === undefined) return undefined
+  return { events: events.table('events'), pr: pr.table('snapshots'), issue: issue.table('snapshots'), cursors: cursors.table('cursors') }
+}
+
+/** Wait (bounded) for the row to open its domains, then hand them back. */
+async function waitForTables(service: WorkbenchService, waitedMs = 0): Promise<P4Tables | undefined> {
+  const tables = p4Tables(service)
+  if (tables !== undefined) return tables
+  if (waitedMs >= 10_000) return undefined
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return waitForTables(service, waitedMs + 500)
+}
+
+/** Whether at least one root agent is live (the action-card host condition). */
+function rootAgentsLive(ctx: Context): boolean {
+  const agents = ctx.get?.('agents') as { roots?: () => readonly unknown[] } | undefined
+  try {
+    return (agents?.roots?.() ?? []).length > 0
+  } catch {
+    return false
+  }
+}
+
+/** Status text for the tool and the smoke (same builder, same numbers). */
+function statusText(service: WorkbenchService, scope: 'all' | 'community' | 'fleet', since?: string): string {
+  const tables = p4Tables(service)
+  const events = tables?.events as unknown as { keys(): readonly string[]; get(key: string): ChangeEvent | undefined } | undefined
+  const prSnapshots = (service.domains as Record<string, unknown>).workbench_snapshot_pr as
+    | { table(name: string): { keys(): readonly string[] } }
+    | undefined
+  const issueSnapshots = (service.domains as Record<string, unknown>).workbench_snapshot_issue as
+    | { table(name: string): { keys(): readonly string[] } }
+    | undefined
+  const report = buildStatus(
+    {
+      events: events ?? { keys: () => [], get: () => undefined },
+      prCount: () => prSnapshots?.table('snapshots').keys().length ?? 0,
+      issueCount: () => issueSnapshots?.table('snapshots').keys().length ?? 0,
+      fleet: null,
+    },
+    scope,
+    since,
+  )
+  return report.text
 }
 
 /**
