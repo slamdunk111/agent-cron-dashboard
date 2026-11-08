@@ -20,7 +20,7 @@ GitCode（`https://gitcode.com/api/v5`）的 `dsh-experimental-forge` provider�
 | 能力 | 状态 | 说明 |
 |---|---|---|
 | `repositoryFromRemote` / `changeRequestFromUrl` / `changeRequestUrl` | 支持 | 远端 `https/git@/ssh://` 三形；页面 `/pull/{n}`、`/pulls/{n}`、`/merge_requests/{n}` 三形 |
-| `fetch` | 支持 | 详情端点；增删行由 `files` 汇总（PR 体不带） |
+| `fetch` | 支持 | 详情端点；增删行由网页 `.diff` 逐行计数（PR 体不带，`files` 端点不支持分页） |
 | `findByHead` | 支持 | `?state=open&head=<branch>` |
 | `readiness` | 支持 | `GET /api/v5/user`；匿名 403 `no scopes:read_user` 视为未认证 |
 | `diff` | 支持 | 网页 `/pull/{n}.diff`（API `.diff` 返回 400） |

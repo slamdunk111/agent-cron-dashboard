@@ -161,16 +161,15 @@ function mergeReadyOf(pull: GitCodePullJson): boolean {
   const mergeState = pull.mergeable_state
   if (mergeState === undefined) return false
   const guards = Object.entries(mergeState).filter(([key, value]) => key.endsWith('_passed') && typeof value === 'boolean')
-  const blocking = guards.filter(([key, value]) => value === false).map(([key]) => key)
-  // Approval counters must also meet the required count when the host reports one.
-  const required = Number(mergeState['approval_reviewers_required_passed'])
-  if (blocking.length > 0 && !(blocking.every((key) => key === 'merged_by_user_passed' || key === 'merge_by_self_passed') && Number.isNaN(required))) {
-    // `merged_by_user_passed` reports the signed-in user's own merge permission;
-    // a reader without PUSH rights still sees the request as mergeable by others.
-    const readerOnly = blocking.filter((key) => key !== 'merged_by_user_passed' && key !== 'merge_by_self_passed')
-    if (readerOnly.length > 0) return false
-  }
-  return true
+  // `merged_by_user_passed` / `merge_by_self_passed` describe the READER's own
+  // permissions (gitcode answers "you have no PUSH permission" for anonymous
+  // readers); they are the only guards excluded here. Every other guard — CI,
+  // conflicts, work-in-progress, discussions, approvals — blocks merge readiness.
+  const blocking = guards
+    .filter(([key, value]) => value === false)
+    .map(([key]) => key)
+    .filter((key) => key !== 'merged_by_user_passed' && key !== 'merge_by_self_passed')
+  return blocking.length === 0
 }
 
 /**
