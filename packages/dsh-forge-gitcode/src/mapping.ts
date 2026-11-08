@@ -116,7 +116,7 @@ function mergeabilityOf(pull: GitCodePullJson): Mergeability {
  *
  * - `true`                                 -> `success`
  * - `false` with tasks counted              -> `failure` (checks exist and the
- *   host says they do not pass; measured on open PR #9724 and merged PR #9723)
+ *   host says they do not pass; measured on PRs #9723 and #9724 while open)
  * - `false` with no tasks                  -> `none` (no checks configured)
  * - absent                                 -> `none` (the payload hid the field)
  */
@@ -145,7 +145,7 @@ function checksOf(pull: GitCodePullJson, ref: ChangeRequestRef): readonly Change
       url: `${refUrlBase(ref)}/commit/${pull.head?.sha ?? ''}/checks`,
       workflow: 'gitcode-ci',
       startedAt: null,
-      completedAt: state === 'pending' ? null : (pull.updated_at ?? null),
+      completedAt: state === 'pending' ? null : (filled(pull.updated_at) ?? null),
     },
   ]
 }

@@ -113,7 +113,7 @@ export function capabilities(): readonly ProviderCapability[] {
     { capability: 'fetch', implemented: true, note: 'detail endpoint; line counts from the web .diff (the files list cannot page)' },
     { capability: 'fetchChecks', implemented: false, note: 'api/v5 has no check-runs/check list endpoint (404 x5); only mergeable_state.ci_state_passed' },
     { capability: 'findByHead', implemented: true, note: null },
-    { capability: 'readiness', implemented: true, note: 'GET /api/v5/user; anonymous access answers 400 private-token required' },
+    { capability: 'readiness', implemented: true, note: 'GET /api/v5/user; anonymous access answers 403 no scopes:read_user (400 private-token only when the header is missing)' },
     { capability: 'markReady', implemented: false, note: 'route proven (OPTIONS: PATCH allowed) but body/permissions need a token probe (diff doc §4)' },
     { capability: 'merge', implemented: false, note: 'route proven (PUT /pulls/{n}/merge) but body/permissions need a token probe (diff doc §4)' },
     { capability: 'diff', implemented: true, note: 'web /pull/{n}.diff (api .diff answers 400)' },
@@ -270,7 +270,13 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       const entry = parsed.value as { download_url?: string; content?: string; encoding?: string }
       if (typeof entry.download_url === 'string') {
         // `download_url` points at raw.gitcode.com; it never receives the token.
-        const raw = await request(entry.download_url, transportFor(new URL(entry.download_url).hostname), signal, 'text/plain')
+        let downloadHost: string
+        try {
+          downloadHost = new URL(entry.download_url).hostname
+        } catch {
+          return { code: 'unavailable', message: `unparsable download_url for ${path}` }
+        }
+        const raw = await request(entry.download_url, transportFor(downloadHost), signal, 'text/plain')
         return raw.ok ? raw.text : raw.failure
       }
       if (typeof entry.content === 'string' && entry.encoding === 'base64') {
@@ -295,6 +301,10 @@ export function apply(ctx: Context, config: Config): void {
       ctx.logger?.('forge-gitcode')?.info?.('no GitCode token in %s; reading public repositories only', resolved.tokenEnv)
     }
     // `inject: ['forge']` guarantees the registry is mounted before apply runs.
-    return (ctx as unknown as { forge: { register(provider: unknown): () => Promise<void> } }).forge.register(provider)
+    // One narrow cast: cordis installs the registry on the context at runtime and
+    // the cordis `Context` type does not declare it (measurement: without
+    // `inject` the read throws `cannot get property "forge" without inject`).
+    const registry = (ctx as unknown as { forge: { register(provider: unknown): () => Promise<void> } }).forge
+    return registry.register(provider)
   }, 'forge-gitcode:register')
 }

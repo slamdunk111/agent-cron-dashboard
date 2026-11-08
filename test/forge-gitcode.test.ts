@@ -109,8 +109,8 @@ describe('gitcode snapshot mapping (fixture PR #9723)', () => {
       mergeability: 'mergeable',
       mergeReady: false,
     })
-    // #9723 is merged; the host reports ci_state_passed=false with 1 task:
-    // checks exist and do not pass, so the rollup is `failure`, not `pending`.
+    // #9723 was open when captured; the host reports ci_state_passed=false with
+    // 1 task: checks exist and do not pass, so the rollup is `failure`.
     expect(snapshot.checksRollup).toBe('failure')
     expect(snapshot.checks).toHaveLength(1)
     expect(snapshot.checks[0]?.name).toContain('ci')
