@@ -1,0 +1,503 @@
+{
+ "version": 1,
+ "purpose": "P6 fingerprint verification set. Every case is derived from P5 measured samples; no random or synthesized messages.",
+ "derivedAt": "2026-11-09T07:20:00+08:00",
+ "transforms": {
+  "verbatim": "the measured row copied unchanged",
+  "fields": "only the message field of the measured row (the surrounding logger/session/instant differ)",
+  "rotate_ts": "the measured row message with its instant replaced by another measured instant of the same file"
+ },
+ "sameCauseGroups": [
+  {
+   "id": "S1",
+   "cases": [
+    "S1-a",
+    "S1-b",
+    "S1-c"
+   ],
+   "cause": "vision tower absent"
+  },
+  {
+   "id": "S2",
+   "cases": [
+    "S2-a",
+    "S2-b",
+    "S2-c"
+   ],
+   "cause": "tool returned error (variance is the duration)"
+  },
+  {
+   "id": "S3",
+   "cases": [
+    "S3-a",
+    "S3-b"
+   ],
+   "cause": "script path blocked; variance is the instant"
+  },
+  {
+   "id": "S6",
+   "cases": [
+    "S6-a",
+    "S6-b",
+    "S6-c"
+   ],
+   "cause": "prefetch retain visibility timeout"
+  },
+  {
+   "id": "S7",
+   "cases": [
+    "S7-a",
+    "S7-b",
+    "S7-c"
+   ],
+   "cause": "todo tool invocation failed"
+  },
+  {
+   "id": "S8",
+   "cases": [
+    "S8-a",
+    "S8-b",
+    "S8-c"
+   ],
+   "cause": "stream ended without finish reason"
+  }
+ ],
+ "cases": [
+  {
+   "id": "S1-a",
+   "group": "S1",
+   "expect": "same",
+   "cause": "vision tower absent (400, engine without vision tower), logger line at 17:34",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[0]",
+    "ts": "2026-11-05 17:34:31,352"
+   }
+  },
+  {
+   "id": "S1-b",
+   "group": "S1",
+   "expect": "same",
+   "cause": "same logger line at 19:21",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[1]",
+    "ts": "2026-11-05 19:21:49,755"
+   }
+  },
+  {
+   "id": "S1-c",
+   "group": "S1",
+   "expect": "same",
+   "cause": "same logger line at 10:17",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[8]",
+    "ts": "2026-11-07 10:17:01,939"
+   }
+  },
+  {
+   "id": "S2-a",
+   "group": "S2",
+   "expect": "same",
+   "cause": "tool returned error, duration 0.30s",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.task_executor",
+   "message": "Tool vision_analyze returned error (0.30s): {",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[12]",
+    "ts": "2026-11-05 17:34:31,378"
+   }
+  },
+  {
+   "id": "S2-b",
+   "group": "S2",
+   "expect": "same",
+   "cause": "same text with 0.36s",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.task_executor",
+   "message": "Tool vision_analyze returned error (0.36s): {",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[13]",
+    "ts": "2026-11-05 17:34:31,433"
+   }
+  },
+  {
+   "id": "S2-c",
+   "group": "S2",
+   "expect": "same",
+   "cause": "same text with 0.12s",
+   "sourceId": "hermes-nas",
+   "jobId": "tools.task_executor",
+   "message": "Tool vision_analyze returned error (0.12s): {",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[15]",
+    "ts": "2026-11-05 19:30:42,378"
+   }
+  },
+  {
+   "id": "S3-a",
+   "group": "S3",
+   "expect": "same",
+   "cause": "script path blocked outside scripts dir (systemd_health_check.py)",
+   "sourceId": "hermes-nas",
+   "jobId": "68f64ca3b0b1",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/systemd_health_check.py'",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[0]",
+    "ts": "2026-09-28T17:20:21+08:00"
+   }
+  },
+  {
+   "id": "S3-b",
+   "group": "S3",
+   "expect": "same",
+   "cause": "script path blocked: a different hour of the same blocked script (rotate_ts from the S3-a row)",
+   "sourceId": "hermes-nas",
+   "jobId": "68f64ca3b0b1",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/systemd_health_check.py'",
+   "transform": "rotate_ts",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[0]",
+    "ts": "2026-09-28T16:20:20+08:00"
+   }
+  },
+  {
+   "id": "S3-c",
+   "group": "S3",
+   "expect": "diff",
+   "cause": "script path blocked but a different blocked script (headroom_phase0_monitor.py): different cause, not a skin change",
+   "sourceId": "hermes-nas",
+   "jobId": "2d4f5e1bbf08",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/headroom_phase0_monitor.py'",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[4]",
+    "ts": "2026-09-28T16:17:20+08:00"
+   }
+  },
+  {
+   "id": "S6-a",
+   "group": "S6",
+   "expect": "same",
+   "cause": "prefetch retain visibility timeout after 10.0s",
+   "sourceId": "hermes-nas",
+   "jobId": "memory.prefetch",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[14]",
+    "ts": "2026-11-05 17:49:33,420"
+   }
+  },
+  {
+   "id": "S6-b",
+   "group": "S6",
+   "expect": "same",
+   "cause": "same text, later row",
+   "sourceId": "hermes-nas",
+   "jobId": "memory.prefetch",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[20]",
+    "ts": "2026-11-05 19:35:46,087"
+   }
+  },
+  {
+   "id": "S6-c",
+   "group": "S6",
+   "expect": "same",
+   "cause": "same text, another instant",
+   "sourceId": "hermes-nas",
+   "jobId": "memory.prefetch",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[23]",
+    "ts": "2026-11-05 19:56:53,141"
+   }
+  },
+  {
+   "id": "S7-a",
+   "group": "S7",
+   "expect": "same",
+   "cause": "todo tool invocation failed, 2026-10-04",
+   "sourceId": "jiuwen-gmk",
+   "jobId": "cron-todo",
+   "message": "Todo modify tool invocation failed",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/jiuwenswarm/error-landing-sample.json",
+    "path": "tool_log_error_lines[0]",
+    "ts": "2026-10-04 11:18:45"
+   }
+  },
+  {
+   "id": "S7-b",
+   "group": "S7",
+   "expect": "same",
+   "cause": "todo tool invocation failed, 2026-11-06",
+   "sourceId": "jiuwen-gmk",
+   "jobId": "cron-todo",
+   "message": "Todo modify tool invocation failed",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/jiuwenswarm/error-landing-sample.json",
+    "path": "tool_log_error_lines[3]",
+    "ts": "2026-11-06 15:07:35"
+   }
+  },
+  {
+   "id": "S7-c",
+   "group": "S7",
+   "expect": "same",
+   "cause": "todo tool invocation failed again",
+   "sourceId": "jiuwen-gmk",
+   "jobId": "cron-todo",
+   "message": "Todo modify tool invocation failed",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/jiuwenswarm/error-landing-sample.json",
+    "path": "tool_log_error_lines[2]",
+    "ts": "2026-10-26 05:01:20"
+   }
+  },
+  {
+   "id": "S8-a",
+   "group": "S8",
+   "expect": "same",
+   "cause": "stream drop without finish reason, first instant",
+   "sourceId": "hermes-nas",
+   "jobId": "agent.chat",
+   "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop.",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[16]",
+    "ts": "2026-11-05 19:35:19,639"
+   }
+  },
+  {
+   "id": "S8-b",
+   "group": "S8",
+   "expect": "same",
+   "cause": "stream drop, six seconds later",
+   "sourceId": "hermes-nas",
+   "jobId": "agent.chat",
+   "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop.",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[17]",
+    "ts": "2026-11-05 19:35:29,970"
+   }
+  },
+  {
+   "id": "S8-c",
+   "group": "S8",
+   "expect": "same",
+   "cause": "stream drop text replayed verbatim (rotate_ts not used: message is timestamp-free)",
+   "sourceId": "hermes-nas",
+   "jobId": "agent.chat",
+   "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop.",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[16]",
+    "ts": "2026-11-05 19:35:19,639"
+   }
+  },
+  {
+   "id": "D1",
+   "group": "D1",
+   "expect": "diff",
+   "cause": "redirect restart limit exceeded (different logger)",
+   "sourceId": "hermes-nas",
+   "jobId": "agent.chat",
+   "message": "Redirected-message restart limit (3) exceeded; ending turn instead of refunding the iteration budget indefinitely.",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[18]",
+    "ts": "2026-11-05 19:35:35,746"
+   }
+  },
+  {
+   "id": "D2",
+   "group": "D1",
+   "expect": "diff",
+   "cause": "relay instrumentation skipped (different logger)",
+   "sourceId": "hermes-nas",
+   "jobId": "agent.chat",
+   "message": "Skipping Relay instrumentation for concurrent Hermes turn 20261019_234153_47501950:***:851d1291 in session 20261019_234153_47501950",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[19]",
+    "ts": "2026-11-05 19:35:35,812"
+   }
+  },
+  {
+   "id": "D3",
+   "group": "D2",
+   "expect": "diff",
+   "cause": "skill_manage needs action field",
+   "sourceId": "hermes-nas",
+   "jobId": "skills.manage",
+   "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs an 'action'.\", \"success\": false}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[21]",
+    "ts": "2026-11-05 19:37:39,488"
+   }
+  },
+  {
+   "id": "D4",
+   "group": "D2",
+   "expect": "diff",
+   "cause": "skill_manage needs name field (same tool, different requirement)",
+   "sourceId": "hermes-nas",
+   "jobId": "skills.manage",
+   "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs a 'name' (the skill it targets).\", \"success\": false}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[22]",
+    "ts": "2026-11-05 19:39:51,427"
+   }
+  },
+  {
+   "id": "D5",
+   "group": "D3",
+   "expect": "diff",
+   "cause": "headroom phase0 monitor blocked outside scripts dir (other script)",
+   "sourceId": "hermes-nas",
+   "jobId": "2d4f5e1bbf08",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/headroom_phase0_monitor.py'",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[4]",
+    "ts": "2026-09-28T16:17:20+08:00"
+   }
+  },
+  {
+   "id": "D6",
+   "group": "D3",
+   "expect": "diff",
+   "cause": "agy failure check blocked outside scripts dir (other script)",
+   "sourceId": "hermes-nas",
+   "jobId": "a3f91c7e2b08",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/agy_failure_check.py'",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[22]",
+    "ts": "2026-09-28T09:30:07+08:00"
+   }
+  },
+  {
+   "id": "D7",
+   "group": "D4",
+   "expect": "diff",
+   "cause": "io daily report 401 auth failure (RuntimeError, other job)",
+   "sourceId": "hermes-nas",
+   "jobId": "7368f3f37d75",
+   "message": "RuntimeError: Error code: 401 - {'error': {'code': '1000', 'message': '身份验证失败。'}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[30]",
+    "ts": "2026-09-28T08:00:26+08:00"
+   }
+  },
+  {
+   "id": "D8",
+   "group": "D4",
+   "expect": "diff",
+   "cause": "ai daily report blocked outside scripts dir (other job)",
+   "sourceId": "hermes-nas",
+   "jobId": "f1dcbf1808ae",
+   "message": "Blocked: script path resolves outside the scripts directory (/data_s001/18058169312/openclaw-data/.hermes/scripts): '/home/18058169312/.hermes/scripts/headroom_phase0_monitor.py'",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/cron-run-events-sample.json",
+    "path": "rows[28]",
+    "ts": "2026-09-28T08:17:07+08:00"
+   }
+  },
+  {
+   "id": "D10",
+   "group": "D5",
+   "expect": "diff",
+   "cause": "todo create invocation failed (create vs modify)",
+   "sourceId": "jiuwen-gmk",
+   "jobId": "cron-todo",
+   "message": "Todo create tool invocation failed",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/jiuwenswarm/error-landing-sample.json",
+    "path": "tool_log_error_lines[1]",
+    "ts": "2026-10-16 05:00:26"
+   }
+  },
+  {
+   "id": "D11",
+   "group": "D6",
+   "expect": "diff",
+   "cause": "vision error on job 68f64ca3b0b1 (same text, other job)",
+   "sourceId": "hermes-nas",
+   "jobId": "68f64ca3b0b1",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[0]",
+    "ts": "2026-11-05 17:34:31,352"
+   }
+  },
+  {
+   "id": "D12",
+   "group": "D6",
+   "expect": "diff",
+   "cause": "vision error on the gmk source (same text, other source)",
+   "sourceId": "jiuwen-gmk",
+   "jobId": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+   "transform": "verbatim",
+   "derived_from": {
+    "file": "fixtures/hermes/errors-log-sample.json",
+    "path": "lines[11]",
+    "ts": "2026-11-08 12:49:37,194"
+   }
+  }
+ ],
+ "casesSha256": "73fa5dad5af7fe4e778baeaf6d8f9c18e883463fe12766447fe52c11f7cf50c9"
+}
