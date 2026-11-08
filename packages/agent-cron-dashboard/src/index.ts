@@ -773,6 +773,18 @@ export {
   type RoundOutcome,
   type StartIssueWatchOptions,
 } from './community/community-row.ts'
+/**
+ * Core surface (P4): the grading table, the change engine, the notifier, the
+ * digest task and the read-only status tool (the smoke drives them directly).
+ */
+export { ChangeEngine, RING_SIZE, EVIDENCE_CAP, type ChangeEngineOptions, type CursorTable, type EventsTable, type IssueSnapshotTable, type PrSnapshotTable, type PairScope } from './core/change-engine.ts'
+export { CHANGE_LEVELS, classifyChange, type ChangeEvent, type ChangeKind, type ChangeLevel, type SnapshotPair } from '../../../contracts/events.ts'
+export { COMMUNITY_RULES, FIRST_OBSERVATION_KINDS, FLEET_KINDS, EVIDENCE_CAP_TRUNCATION_MARKER, gradePair, gradeIssuePair, isFirstObservation, type GradedChange } from './core/grade.ts'
+export { NotifyService, makeEventLog, type CardProposal, type NotifyState, type NotifyOptions, type Route } from './core/notify.ts'
+export { DigestController, DIGEST_WINDOW_HOURS, digestPrompt, type DigestAction, type SchedulePort, type ScheduleTaskLike } from './core/digest.ts'
+export { buildStatus, STATUS_TOOL, STATUS_DESCRIPTION, STATUS_SCOPES, STATUS_WINDOW_HOURS, type StatusReport } from './core/tools-status.ts'
+export { NOTIFY_ACTION, NOTIFY_SKILL, notifyDetails, notifyKind, skillText } from './core/notify-skill.ts'
+export type { ScheduleTiming } from './core/schedule-types.ts'
 export {
   fetchHttpGet,
   parseJson,
