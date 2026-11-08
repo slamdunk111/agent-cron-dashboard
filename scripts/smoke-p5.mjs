@@ -27,12 +27,19 @@ import { resolve } from 'node:path'
 const ROOT = resolve(import.meta.dirname, '..')
 const HANDOFF = resolve(ROOT, '../docs/handoff')
 
+/** ISO timestamp in +08:00 (the owner's zone); every gate line uses one zone. */
+function stamp(at = new Date()) {
+  const value = at instanceof Date ? at : new Date(at)
+  const shifted = new Date(value.getTime() + 8 * 3_600_000)
+  return `${shifted.toISOString().replace('Z', '+08:00')}`
+}
+
 /** Discipline §9b: capture the environment before anything timing-related. */
 function environmentHeader(at) {
   const loads = loadavg()
   const nproc = cpus().length
   const ratio = nproc === 0 ? 0 : loads[0] / nproc
-  console.log(`env TZ_OFFSET=${String(new Date().getTimezoneOffset())} load=${loads.map((v) => v.toFixed(2)).join(',')} nproc=${String(nproc)} loads=<${at}>`)
+  console.log(`env TZ_OFFSET=${String(new Date().getTimezoneOffset())} load=${loads.map((v) => v.toFixed(2)).join(',')} nproc=${String(nproc)} loads=<${stamp(at)}>`)
   console.log(ratio > 1 ? `env_state OVERLOADED ratio=${ratio.toFixed(3)} (readings are an upper bound only)` : `env_state OK ratio=${ratio.toFixed(3)}`)
   return ratio <= 1
 }
@@ -251,7 +258,7 @@ async function liveRound(bundle, round, opts) {
   } catch (error) {
     line += ` rc=1 jobs=0 runs=0 script_error=0 cursor=0 errors=0 message="${String(error instanceof Error ? error.message : error).slice(0, 80)}"`
   }
-  console.log(`${line} at=${new Date().toISOString()} ms=${String(Date.now() - started)}`)
+  console.log(`${line} at=${stamp()} ms=${String(Date.now() - started)}`)
 
   const jw = new JiuwenswarmLocalAdapter({
     config: { id: 'jiuwen-gmk', kind: 'jiuwenswarm-local', paths: { state: `${process.env.HOME ?? ''}/.jiuwenswarm` } },
@@ -269,7 +276,7 @@ async function liveRound(bundle, round, opts) {
   } catch (error) {
     gmkLine += ` rc=1 health=down jobs=0 runs=0 errors=0 message="${String(error instanceof Error ? error.message : error).slice(0, 80)}"`
   }
-  console.log(`${gmkLine} at=${new Date().toISOString()} ms=${String(Date.now() - jwStarted)}`)
+  console.log(`${gmkLine} at=${stamp()} ms=${String(Date.now() - jwStarted)}`)
 
   if (opts.injectFailure && round === 1) {
     // A host that does not exist: the round must report down without touching the others.
@@ -278,7 +285,7 @@ async function liveRound(bundle, round, opts) {
     const failures = 1
     const health = await probe.health()
     const backoff = bundle.backoffFor(failures, 300_000, 3_600_000)
-    console.log(`bad round=${String(round)} health=${health.state} failures=${String(failures)} backoff=${String(backoff)} at=${new Date().toISOString()}`)
+    console.log(`bad round=${String(round)} health=${health.state} failures=${String(failures)} backoff=${String(backoff)} at=${stamp()}`)
   }
 }
 
@@ -289,7 +296,7 @@ function statusLine(bundle, tables, round = 0) {
     'fleet',
   )
   const fleetLine = report.text.split('\n').find((line) => line.startsWith('fleet:')) ?? ''
-  console.log(`status scope=fleet events=${String(report.stats.high + report.stats.medium)} fleet="${fleetLine}" text_len=${String(report.text.length)} round=${String(round)} at=${new Date().toISOString()}`)
+  console.log(`status scope=fleet events=${String(report.stats.high + report.stats.medium)} fleet="${fleetLine}" text_len=${String(report.text.length)} round=${String(round)} at=${stamp()}`)
 }
 
 async function main(argv) {
@@ -297,7 +304,7 @@ async function main(argv) {
   const rounds = Number(argOf(argv, '--rounds', '1'))
   const noLive = argv.includes('--no-live')
   const injectFailure = argv.includes('--inject-failure')
-  console.log(`smoke p5 start=${startedAt} rounds=${String(rounds)} live=${String(!noLive && rounds > 0)} inject_failure=${String(injectFailure)}`)
+  console.log(`smoke p5 start=${stamp(startedAt)} rounds=${String(rounds)} live=${String(!noLive && rounds > 0)} inject_failure=${String(injectFailure)}`)
   const healthy = environmentHeader(startedAt)
   if (!healthy) {
     console.log('ENV_OVERLOADED: readings are an upper bound only; the gate treats this run as not-passing')
@@ -316,7 +323,7 @@ async function main(argv) {
   } else {
     console.log(`step live skipped=${new Date().toISOString()} reason=--no-live|rounds=0`)
   }
-  console.log(`env_end at=${new Date().toISOString()}`)
+  console.log(`env_end at=${stamp()}`)
   console.log('p5_smoke_end')
   return 0
 }
