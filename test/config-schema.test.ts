@@ -68,4 +68,29 @@ describe('typed validator (mirror of contracts/config.schema.json; the JSON Sche
     expect(validateWorkbenchConfig({ fleet: [base] }).fleet[0]?.query).toBe('SELECT id FROM t')
     expect(() => validateWorkbenchConfig({ fleet: [{ ...base, query: 'SELECT id FROM t; DROP TABLE t' }] })).toThrow(ConfigValidationError)
   })
+
+  // P5 (ADR P5-1): the generic adapter reads its three optional queries through
+  // the same single-SELECT rule as `query`.
+  it('accepts the three optional adapter queries and normalises them', () => {
+    const base = {
+      id: 'any-ssh',
+      kind: 'ssh-sqlite' as const,
+      ssh: { host: 'example', dbPath: '/srv/app.db' },
+      query: 'SELECT id FROM t',
+      runsQuery: 'SELECT id, job_id, started_at, status FROM runs',
+      jobsQuery: 'SELECT job_id, name, schedule FROM jobs',
+      errorsQuery: 'SELECT occurred_at, severity, message FROM errors;',
+    }
+    const resolved = validateWorkbenchConfig({ fleet: [base] }).fleet[0]
+    expect(resolved?.runsQuery).toBe('SELECT id, job_id, started_at, status FROM runs')
+    expect(resolved?.jobsQuery).toBe('SELECT job_id, name, schedule FROM jobs')
+    expect(resolved?.errorsQuery).toBe('SELECT occurred_at, severity, message FROM errors')
+  })
+
+  it('rejects a second statement inside any optional adapter query', () => {
+    for (const key of ['runsQuery', 'jobsQuery', 'errorsQuery'] as const) {
+      const candidate = { id: 'any-ssh', kind: 'ssh-sqlite' as const, ssh: { host: 'example' }, query: 'SELECT id FROM t', [key]: 'SELECT id FROM t; DELETE FROM t' }
+      expect(() => validateWorkbenchConfig({ fleet: [candidate] })).toThrow(ConfigValidationError)
+    }
+  })
 })

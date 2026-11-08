@@ -127,6 +127,12 @@ export interface FleetSourceConfigResolved {
   ssh?: FleetSshConfigResolved
   paths?: { state: string }
   query?: string
+  /** P5 (ADR P5-1): optional incremental run query for the generic adapter. */
+  runsQuery?: string
+  /** P5: optional job list query for the generic adapter. */
+  jobsQuery?: string
+  /** P5: optional error stream query for the generic adapter. */
+  errorsQuery?: string
 }
 
 export interface WorkbenchConfig {
@@ -167,7 +173,7 @@ function validateIdentity(path: string, value: unknown): IdentityConfig {
 
 function validateFleetSource(path: string, value: unknown): FleetSourceConfigResolved {
   if (!isRecord(value)) throw new ConfigValidationError(path, 'expected object')
-  rejectUnknownKeys(path, value, ['id', 'kind', 'label', 'enabled', 'ssh', 'paths', 'query'])
+  rejectUnknownKeys(path, value, ['id', 'kind', 'label', 'enabled', 'ssh', 'paths', 'query', 'runsQuery', 'jobsQuery', 'errorsQuery'])
   const id = strAt(`${path}.id`, value.id, 1, 64)
   if (!SOURCE_ID_RE.test(id)) throw new ConfigValidationError(`${path}.id`, 'expected [A-Za-z0-9_.-]+')
   if (!SOURCE_KINDS.includes(value.kind as never)) {
@@ -206,6 +212,12 @@ function validateFleetSource(path: string, value: unknown): FleetSourceConfigRes
   if (value.query !== undefined) {
     source.query = validateSshQuery(`${path}.query`, value.query)
   }
+  // ADR P5-1: the same single-SELECT rule covers the three optional queries of
+  // the generic adapter; each is validated even when the kind never reads it,
+  // so a wrong query fails at activation instead of at first poll.
+  if (value.runsQuery !== undefined) source.runsQuery = validateSshQuery(`${path}.runsQuery`, value.runsQuery)
+  if (value.jobsQuery !== undefined) source.jobsQuery = validateSshQuery(`${path}.jobsQuery`, value.jobsQuery)
+  if (value.errorsQuery !== undefined) source.errorsQuery = validateSshQuery(`${path}.errorsQuery`, value.errorsQuery)
   if (source.kind === 'hermes-ssh' || source.kind === 'ssh-sqlite') {
     if (source.ssh === undefined) throw new ConfigValidationError(`${path}.ssh`, `required for kind ${source.kind}`)
   }

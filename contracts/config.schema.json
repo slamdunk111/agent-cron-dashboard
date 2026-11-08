@@ -147,6 +147,15 @@
         },
         "query": {
           "$ref": "#/$defs/readOnlyQuery"
+        },
+        "runsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
+        },
+        "jobsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
+        },
+        "errorsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
         }
       },
       "allOf": [
