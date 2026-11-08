@@ -100,9 +100,17 @@ export async function request(
     // caller's URL did not name (a served host could bounce to any domain).
     const response = await doFetch(url, { method: 'GET', headers, signal: deadline.signal, redirect: 'manual' })
     const max = features.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES
-    const text = await response.text()
-    if (text.length > max) {
-      return { ok: false, failure: { code: 'too-large', message: `response is ${text.length} bytes, limit ${max}` } }
+    // The limit is in bytes, and decoding is fatal so a malformed body becomes a
+    // mapped failure instead of a rejection that escapes the request contract.
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    if (bytes.byteLength > max) {
+      return { ok: false, failure: { code: 'too-large', message: `response is ${bytes.byteLength} bytes, limit ${max}` } }
+    }
+    let text: string
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    } catch {
+      return { ok: false, failure: { code: 'unavailable', message: 'response body is not valid UTF-8' } }
     }
     if (response.status >= 300 && response.status < 400) {
       // A redirected read is refused rather than followed, so credentials stay

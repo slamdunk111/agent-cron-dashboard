@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { ChangeRequestSnapshot, ChecksRollup, Mergeability } from '../packages/dsh-forge-gitcode/src/contracts.ts'
-import { countDiffLines, countFileLines, snapshotOf, type GitCodeFileJson, type GitCodePullJson } from '../packages/dsh-forge-gitcode/src/mapping.ts'
+import { countDiffLines, snapshotOf, type GitCodeFileJson, type GitCodePullJson } from '../packages/dsh-forge-gitcode/src/mapping.ts'
 import { makeGitCodeProvider, snapshotKey, validateConfig } from '../packages/dsh-forge-gitcode/src/index.ts'
 import { changeRequestFromUrl, changeRequestUrl, diffUrl, repositoryFromRemote } from '../packages/dsh-forge-gitcode/src/urls.ts'
 
@@ -126,10 +126,15 @@ describe('gitcode snapshot mapping (fixture PR #9723)', () => {
     expect(snapshot.mergeReady).toBe(false)
   })
 
-  it('derives line counts from the files payload', () => {
-    expect(countFileLines(files)).toEqual({ additions: 387, deletions: 26 })
-    expect(countDiffLines(diffText)).toMatchObject({ additions: expect.any(Number), deletions: expect.any(Number) })
-    expect(countDiffLines(diffText).additions).toBeGreaterThan(300)
+  it('counts the captured patch to the numbers the files list reports', () => {
+    // `fixtures/gitcode/pr-9723-files.json` sums to 387/26 on the host; the
+    // patch is the source the provider actually counts.
+    const filesSum = files.reduce<{ additions: number; deletions: number }>(
+      (total, file) => ({ additions: total.additions + (file.additions ?? 0), deletions: total.deletions + (file.deletions ?? 0) }),
+      { additions: 0, deletions: 0 },
+    )
+    expect(filesSum).toEqual({ additions: 387, deletions: 26 })
+    expect(countDiffLines(diffText)).toEqual(filesSum)
   })
 
   it('maps lifecycle and conflict states', () => {
@@ -463,5 +468,41 @@ describe('P1 review fixes (C1-C3)', () => {
     }) as unknown as typeof fetch
     const provider = makeGitCodeProvider(validateConfig({ maxOutputBytes: 200 }), { fetch: impl })
     expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'too-large' })
+  })
+})
+
+describe('R5 hardening (bytes, encoding, malformed body)', () => {
+  it('counts the output limit in bytes, not UTF-16 units (P2)', async () => {
+    // Four-byte characters: 40 of them are 160 bytes but only 80 UTF-16 units,
+    // so a UTF-16-based limit of 100 would let this through.
+    const body = '{"title":"' + '😀'.repeat(40) + '"}'
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.endsWith('.diff')) return new Response('diff --git a/a b/b\n@@ -1 +1 @@\n-x\n+y\n', { status: 200 })
+      return new Response(body, { status: 200 })
+    }) as unknown as typeof fetch
+    const strict = makeGitCodeProvider(validateConfig({ maxOutputBytes: 100, filesPageSize: 0 }), { fetch: impl })
+    expect((await strict.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'too-large' })
+  })
+
+  it('maps an invalid UTF-8 body to a failure instead of rejecting (P2)', async () => {
+    const impl = (async () => new Response(new Uint8Array([0xff, 0xfe, 0x00]), { status: 200 })) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+  })
+
+  it('encodes every path segment of fileText (P2)', async () => {
+    const urls: string[] = []
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      urls.push(url)
+      return Response.json({ content: Buffer.from('ok').toString('base64'), encoding: 'base64' })
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    await provider.fileText(ref, 'abc', 'docs/a b/c#d?x', signalOf())
+    const request = urls[0] ?? ''
+    // `?` inside a path must not start the query string.
+    expect(request).toContain('/contents/docs/a%20b/c%23d%3Fx?ref=abc')
+    expect(request.indexOf('?ref=')).toBe(request.lastIndexOf('?'))
   })
 })

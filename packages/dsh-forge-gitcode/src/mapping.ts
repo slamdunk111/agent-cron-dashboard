@@ -57,6 +57,11 @@ export interface GitCodeFileJson {
   readonly deletions?: number
 }
 
+/** GitCode sends `""` (not null) for timestamps that do not exist. */
+function filled(value: string | null | undefined): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
 /** A `.diff` hunk header: `@@ -a,b +c,d @@`. */
 const HUNK = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/m
 
@@ -76,22 +81,6 @@ export function countDiffLines(diff: string): { additions: number; deletions: nu
     else if (line.startsWith('-')) deletions += 1
   }
   return { additions, deletions }
-}
-
-/** Sum `files` rows; undefined rows (truncated page) fall back to the patch count. */
-export function countFileLines(files: readonly GitCodeFileJson[]): { additions: number; deletions: number } {
-  let additions = 0
-  let deletions = 0
-  for (const file of files) {
-    additions += typeof file.additions === 'number' ? file.additions : 0
-    deletions += typeof file.deletions === 'number' ? file.deletions : 0
-  }
-  return { additions, deletions }
-}
-
-/** GitCode sends `""` (not null) for timestamps that do not exist. */
-function filled(value: string | null | undefined): string | null {
-  return typeof value === 'string' && value.length > 0 ? value : null
 }
 
 function stateOf(pull: GitCodePullJson): ChangeRequestSnapshot['state'] {
@@ -240,7 +229,7 @@ export function snapshotOf(
     checksTruncated: false,
     // No endpoint exposes per-thread resolution; 0 means "unknown, not counted".
     unresolvedThreads: 0,
-    updatedAt: pull.updated_at ?? pull.created_at ?? '',
+    updatedAt: filled(pull.updated_at) ?? filled(pull.created_at) ?? '',
     closedAt: state === 'open' ? null : (filled(pull.merged_at) ?? filled(pull.closed_at)),
   }
 }

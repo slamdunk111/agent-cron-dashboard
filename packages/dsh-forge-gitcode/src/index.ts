@@ -21,7 +21,7 @@ import type {
 } from './contracts.ts'
 import type { GitCodeChangeRequestRef, GitCodeRepository } from './urls.ts'
 import { apiBase, changeRequestFromUrl, changeRequestUrl, diffUrl, fileUrl, repositoryFromRemote } from './urls.ts'
-import { countDiffLines, countFileLines, snapshotOf, type GitCodeFileJson, type GitCodePullJson } from './mapping.ts'
+import { countDiffLines, snapshotOf, type GitCodePullJson } from './mapping.ts'
 import { parseJson, request, type TransportFeatures } from './transport.ts'
 
 /** Row name recorded by dsh's loader. */
@@ -51,7 +51,7 @@ export interface Config {
   timeoutMs?: number
   /** Largest accepted response body. */
   maxOutputBytes?: number
-  /** Whether to read the unified patch for line counts; 0 disables the extra read. */
+  /** 0 disables the extra patch read (line counts then stay 0). */
   filesPageSize?: number
 }
 
@@ -263,7 +263,12 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
         return { code: 'unavailable', message: `host ${ref.repository.host} is not served by this provider` }
       }
       const gitcode = asGitCode(ref)
-      const result = await request(`${apiBase(gitcode)}/contents/${path.replace(/^\//, '')}?ref=${encodeURIComponent(commit)}`, transport, signal)
+      const encoded = path
+        .replace(/^\//, '')
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/')
+      const result = await request(`${apiBase(gitcode)}/contents/${encoded}?ref=${encodeURIComponent(commit)}`, transport, signal)
       if (!result.ok) return result.failure
       const parsed = parseJson(result.text)
       if (!parsed.ok) return parsed.failure
