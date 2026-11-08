@@ -29,6 +29,11 @@ import { HermesSshAdapter } from './fleet/hermes-ssh.ts'
 import { JiuwenswarmLocalAdapter, type LocalFiles, type LocalServiceProbe } from './fleet/jiuwenswarm-local.ts'
 import { GenericSshSqliteAdapter } from './fleet/generic-ssh-sqlite.ts'
 import { makeRunRemote } from './fleet/ssh-exec.ts'
+import { RUN_EVENTS_SQL, ErrorPipeline, pullRunEventErrors, type PipelineTables } from './fleet/error-pipeline.ts'
+import { decodeEventKey, eventKeyOf } from './fleet/event-key.ts'
+import { ErrorAnalyzer, type AnalysisChunk, type AnalysisPort, type AnalysisRequest } from './fleet/analyzer.ts'
+import { ErrorResolver } from './fleet/resolver.ts'
+import { ERRORS_DESCRIPTION, RESOLVE_DESCRIPTION, RESOLVE_TOOL, ERRORS_TOOL } from './fleet/tools-errors.ts'
 
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
@@ -273,6 +278,14 @@ export interface RowOptions extends Config {
   readonly me?: string
   /** P5: mount the fleet watch and poll the configured sources (default false). */
   readonly withFleet?: boolean
+  /** P6: mount the error pipeline and the two error tools (default true once `withFleet` is on). */
+  readonly withErrors?: boolean
+  /** P6: inject the analysis port (tests/smoke); absent means the host `ctx.llm` (or no model at all). */
+  readonly analysisPort?: AnalysisPort
+  /** P6: run the `cron_run_events` → error-entry bridge after every watch round (default true when mounted). */
+  readonly runEventBridge?: boolean
+  /** P6: handed to the P5 watch so every round's error entries reach the pipeline (set by `mountP6`). */
+  onRound?: (round: readonly { readonly sourceId: string; readonly state: string; readonly jobs: number; readonly runs: number; readonly errors: number; readonly backoffMs: number; readonly skipped: boolean; readonly message: string | null }[]) => Promise<void>
   /** P5: injectable adapters (tests and the smoke replace the SSH executor). */
   readonly fleetOverrides?: FleetOverrides
 }
@@ -330,6 +343,8 @@ export class WorkbenchService extends Service {
   fleetWatch: FleetWatchService | null = null
   /** P5 adapters in configured order (empty while the fleet is not mounted). */
   fleetSources: readonly FleetSource[] = []
+  /** P6 error pipeline (ledger, analyser, verification); null until `mountP6`. */
+  errorPipeline: ErrorPipeline | null = null
   /** Open in progress; retries join it instead of opening the same domains again. */
   private opening: Promise<void> | undefined
 
@@ -531,6 +546,8 @@ export function apply(ctx: Context, raw: Config = {}): void {
   ctx.effect(() => mountP4(ctx, raw as RowOptions), 'workbench:p4')
   // P5: the fleet watch rides on the same row (opt-in through `withFleet`).
   ctx.effect(() => mountP5(ctx, raw as RowOptions), 'workbench:p5')
+  // P6: the error pipeline rides on the same row (needs P5's watch and P4's event domain).
+  ctx.effect(() => mountP6(ctx, raw as RowOptions), 'workbench:p6')
 }
 
 /**
@@ -755,6 +772,7 @@ function mountP5(ctx: Context, options: RowOptions): () => void {
         backoffMaxMs: service.config.poll.backoffMaxMs,
         log,
         autoStart: false,
+        ...(options.onRound === undefined ? {} : { onRound: options.onRound }),
       })
       service.fleetWatch = watch
       log(`p5 ready: ${String(sources.length)} fleet source(s), interval ${String(service.config.poll.fleetIntervalMs)}ms`)
@@ -768,6 +786,226 @@ function mountP5(ctx: Context, options: RowOptions): () => void {
     service.fleetWatch = null
     service.fleetSources = []
   }
+}
+
+/**
+ * P6 mount: the error pipeline, the `script_error` bridge, and the two error tools.
+ *
+ * Ordering rules that the code cannot infer:
+ * - the watch is created by `mountP5`, which runs first; when it is not in seat
+ *   the pipeline still mounts (fixtures can drive it) and the bridge stays off;
+ * - the bridge needs a *whitelisted* remote reader, so it only turns on for a
+ *   `hermes-ssh` source whose `ssh.dbPath` is configured (plan §2.5);
+ * - writes only exist through the approval seam: `workbench_resolve` is
+ *   registered with a `tools/pre-execute` guard that asks `ctx.approval`
+ *   (`allowed-once` is the only grant). A profile without the seam gets no tool.
+ * @param ctx - row context.
+ * @param options - row options.
+ * @returns the uninstaller for the effect.
+ */
+function mountP6(ctx: Context, options: RowOptions): () => void {
+  const service = workbenchService
+  if (service === undefined || options.withFleet !== true || options.withErrors === false) return () => undefined
+  const log = (line: string) => {
+    ctx.logger?.('workbench')?.info?.(line)
+    console.log(line)
+  }
+  const disposers: Array<(() => void)> = []
+  let stopped = false
+  void Promise.resolve().then(async () => {
+    const tables = await waitForPipelineTables(service)
+    if (tables === undefined) {
+      log('p6 skipped: error/fingerprint/event domains did not open; the error pipeline stays unmounted')
+      return
+    }
+    if (stopped) return
+    const port = options.analysisPort ?? hostAnalysisPort(ctx, service.config)
+    const analyzer = service.config.analysis.llm.enabled && port !== undefined ? new ErrorAnalyzer({ port }) : undefined
+    if (!service.config.analysis.llm.enabled) log('p6: analysis.llm.enabled=false; every record stays pending (named)')
+    else if (analyzer === undefined) log('p6: no LLM service is mounted in this profile; every record stays pending (named)')
+    const pipeline = new ErrorPipeline({
+      tables,
+      analyzer,
+      greenRunsToVerify: service.config.analysis.greenRunsToVerify,
+      retentionDays: service.config.analysis.retentionDays,
+      recentRuns: (sourceId, jobId) => recentRunsOf(service, sourceId, jobId),
+      log,
+    })
+    service.errorPipeline = pipeline
+    const resolver = new ErrorResolver({ pipeline })
+    // The watch (P5) hands each round's error entries to the pipeline.
+    const watch = service.fleetWatch
+    const watcher = service as { onRound?: (round: readonly { sourceId: string; errors: number }[]) => Promise<void> }
+    if (options.runEventBridge !== false && watcher.onRound === undefined) {
+      watcher.onRound = async () => {
+        await pipeline.verify()
+      }
+    }
+    const watchPresent = watch !== null
+    if (!watchPresent) log('p6: the fleet watch is not in seat; the pipeline waits for fixture replay')
+    const bridge = options.runEventBridge === false ? undefined : makeRunEventBridge(service, pipeline, log)
+    if (bridge !== undefined) {
+      disposers.push(bridge.stop)
+      bridge.start()
+    }
+    registerErrorTools(ctx, pipeline, resolver, log, disposers)
+    log(`p6 ready: greenRunsToVerify=${String(service.config.analysis.greenRunsToVerify)} retentionDays=${String(service.config.analysis.retentionDays)} bridge=${bridge === undefined ? 'off' : 'on'}`)
+  })
+  return () => {
+    stopped = true
+    for (const dispose of disposers.splice(0).reverse()) dispose()
+    service.errorPipeline = null
+  }
+}
+
+/** Wait (bounded) for the three P6 tables to be open. */
+async function waitForPipelineTables(service: WorkbenchService, waitedMs = 0): Promise<PipelineTables | undefined> {
+  const tables = pipelineTablesOf(service)
+  if (tables !== undefined) return tables
+  if (waitedMs >= 10_000) return undefined
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return waitForPipelineTables(service, waitedMs + 500)
+}
+
+/** Read the error/fingerprint/job/event tables out of the opened domains. */
+function pipelineTablesOf(service: WorkbenchService): PipelineTables | undefined {
+  const domains = service.domains as Record<string, unknown>
+  const errors = domains.workbench_fleet_errors as { table(name: string): PipelineTables['errors'] } | undefined
+  const fingerprints = domains.workbench_fingerprints as { table(name: string): PipelineTables['fingerprints'] } | undefined
+  const jobs = domains.workbench_fleet_jobs as { table(name: string): PipelineTables['jobs'] } | undefined
+  const events = domains.workbench_events as { table(name: string): PipelineTables['events'] } | undefined
+  if (errors === undefined || fingerprints === undefined || jobs === undefined || events === undefined) return undefined
+  return { errors: errors.table('records'), fingerprints: fingerprints.table('fingerprints'), jobs: jobs.table('jobs'), events: events.table('events') }
+}
+
+/** The last runs of one job, newest first (empty when the watch has not seen it yet). */
+function recentRunsOf(service: WorkbenchService, sourceId: string, jobId: string): readonly { startedAt: string; status: string }[] {
+  const record = pipelineTablesOf(service)?.jobs.get(`${sourceId}/${jobId}`)
+  return record === undefined || record.lastRunAt === null ? [] : [{ startedAt: record.lastRunAt, status: record.lastStatus ?? 'unknown' }]
+}
+
+/**
+ * Adapter from dsh-llm to the analyser port: the host's default provider/model
+ * (`ctx.llm.listProviders()` order, `agent-default-model` when mounted), or
+ * undefined when the profile carries no LLM service.
+ */
+function hostAnalysisPort(ctx: Context, _config: WorkbenchConfig): AnalysisPort | undefined {
+  const llm = ctx.get?.('llm') as
+    | {
+        stream(options: { provider: string; model: string; messages: readonly { role: 'user'; content: string }[]; system?: string; maxTokens?: number }): AsyncIterable<AnalysisChunk>
+        listProviders?(): readonly { id?: string; models?: readonly { id: string }[] }[]
+      }
+    | undefined
+  if (llm === undefined) return undefined
+  const providers = llm.listProviders?.() ?? []
+  const first = providers[0]
+  const firstModel = first?.models?.[0]
+  if (first?.id === undefined || firstModel?.id === undefined) return undefined
+  return {
+    provider: first.id,
+    model: firstModel.id,
+    stream: (request: AnalysisRequest) =>
+      llm.stream({ provider: request.provider, model: request.model, messages: request.messages, system: request.system, maxTokens: request.maxTokens }),
+  }
+}
+
+/** The bridge: `cron_run_events` → error entries, on the P5 ssh whitelist. */
+function makeRunEventBridge(service: WorkbenchService, pipeline: ErrorPipeline, log: (line: string) => void): { start: () => void; stop: () => void } | undefined {
+  const source = service.config.fleet.find((entry) => entry.kind === 'hermes-ssh' && entry.enabled !== false && entry.ssh?.dbPath !== undefined)
+  if (source === undefined || source.ssh?.dbPath === undefined) {
+    log('p6: no hermes-ssh source with ssh.dbPath is configured; the cron_run_events bridge stays off (named)')
+    return undefined
+  }
+  const dbPath = source.ssh.dbPath
+  const target = { host: source.ssh.host, sshOptions: source.ssh.sshOptions }
+  const run = makeRunRemote(target, { spawn: spawnProcess })
+  let timer: ReturnType<typeof setInterval> | undefined
+  let stopped = false
+  let token: string | null = null
+  const tick = async () => {
+    if (stopped) return
+    const pulled = await pullRunEventErrors({ sourceId: source.id, dbPath, query: (sql) => run({ kind: 'sqlite-json', dbPath, sql }).then((answer) => ({ code: answer.code, stdout: answer.stdout, stderr: answer.stderr })) }, token === null ? null : { token })
+    token = pulled.cursor.token
+    if (pulled.entries.length > 0) {
+      const outcome = await pipeline.ingest(pulled.entries)
+      log(`p6 bridge source=${source.id} opened=${String(outcome.opened)} revisited=${String(outcome.revisited)} reopened=${String(outcome.reopened)}`)
+    }
+  }
+  return {
+    start: () => {
+      void tick().catch((error: unknown) => log(`p6 bridge round failed: ${error instanceof Error ? error.message : String(error)}`))
+      timer = setInterval(() => {
+        void tick().catch((error: unknown) => log(`p6 bridge round failed: ${error instanceof Error ? error.message : String(error)}`))
+      }, service.config.poll.fleetIntervalMs)
+    },
+    stop: () => {
+      stopped = true
+      if (timer !== undefined) clearInterval(timer)
+    },
+  }
+}
+
+/**
+ * Register `workbench_errors` (read-only) and `workbench_resolve` (write).
+ *
+ * The write tool is guarded by `tools/pre-execute`: it asks `ctx.approval` and
+ * runs only on `allowed-once`. Without an approval seam the tool is not
+ * registered at all, so the write path fails closed instead of silently writing.
+ */
+function registerErrorTools(ctx: Context, pipeline: ErrorPipeline, resolver: ErrorResolver, log: (line: string) => void, disposers: Array<() => void>): void {
+  const tools = ctx.get?.('tools') as { register(definition: unknown): () => void; on?(event: 'tools/pre-execute', listener: (exec: { name: string }, next: () => Promise<unknown>) => Promise<unknown>): () => void } | undefined
+  if (tools === undefined) {
+    log('p6 skipped: the tools service is not mounted; workbench_errors/workbench_resolve are not registered')
+    return
+  }
+  disposers.push(
+    tools.register({
+      name: ERRORS_TOOL,
+      description: ERRORS_DESCRIPTION,
+      parameters: {
+        source: { type: 'string', description: 'Fleet source id.' },
+        state: { type: 'string', description: 'Lifecycle state filter.' },
+        severity: { type: 'string', description: 'Severity filter.' },
+        limit: { type: 'number', description: 'Maximum records.' },
+      },
+      output: { schema: { type: 'object', additionalProperties: false, properties: { text: { type: 'string', required: true } } }, render: (_args: unknown, value: { text: string }) => [{ type: 'text', text: value.text }] },
+      execute: async (args: { source?: string; state?: string; severity?: string; limit?: number }) =>
+        ({ text: (await import('./fleet/tools-errors.ts')).renderErrors(pipeline.records(), args as never) }),
+    }),
+  )
+  const approval = ctx.get?.('approval') as { request(request: unknown): Promise<string> } | undefined
+  if (tools.on === undefined || approval === undefined) {
+    log('p6: no approval seam in this profile; workbench_resolve is not registered (the write path fails closed)')
+    return
+  }
+  disposers.push(
+    tools.on('tools/pre-execute', async (exec, next) => {
+      if (exec.name !== RESOLVE_TOOL) return next()
+      const agent = (exec as { agent?: unknown }).agent
+      const outcome = await approval.request({ agent, toolName: RESOLVE_TOOL, reason: 'workbench_resolve writes the error ledger (fix-applied / wontfix / reopen)' })
+      if (outcome !== 'allowed-once') return { kind: 'deny', reason: `workbench_resolve requires approval (${String(outcome)})` }
+      return next()
+    }),
+  )
+  disposers.push(
+    tools.register({
+      name: RESOLVE_TOOL,
+      description: RESOLVE_DESCRIPTION,
+      parameters: {
+        recordId: { type: 'string', description: 'Ledger record id.' },
+        action: { type: 'string', enum: ['fix-applied', 'wontfix', 'reopen'], description: 'Which resolution step to register.' },
+        note: { type: 'string', description: 'What was done.' },
+      },
+      output: {
+        schema: { type: 'object', additionalProperties: false, properties: { text: { type: 'string', required: true }, ok: { type: 'boolean', required: true } } },
+        render: (_args: unknown, value: { text: string }) => [{ type: 'text', text: value.text }],
+      },
+      execute: async (args: { recordId: string; action: 'fix-applied' | 'wontfix' | 'reopen'; note?: string }) => {
+        const outcome = await resolver.resolve({ ...args, by: 'tool' })
+        return { text: outcome.text, ok: outcome.ok }
+      },
+    }),
+  )
 }
 
 /** Build the three adapter kinds from the frozen config (unknown kinds are named and skipped). */
@@ -1035,6 +1273,18 @@ export { DigestController, DIGEST_WINDOW_HOURS, digestPrompt, type DigestAction,
 export { buildStatus, STATUS_TOOL, STATUS_DESCRIPTION, STATUS_SCOPES, STATUS_WINDOW_HOURS, type StatusReport } from './core/tools-status.ts'
 export { NOTIFY_ACTION, NOTIFY_SKILL, notifyDetails, notifyKind, skillText } from './core/notify-skill.ts'
 export type { ScheduleTiming } from './core/schedule-types.ts'
+/**
+ * Error surface (P6): masking, fingerprint, state machine, analyser, pipeline,
+ * resolver, the two tools and the event-key codec.
+ */
+export { maskSecrets, sampleOf, SAMPLE_MAX_BYTES, TRUNCATION_MARKER } from './fleet/secret-mask.ts'
+export { normalize, signatureOf, evaluateSamples, SIGNATURE_PREFIX, type FingerprintSet, type FingerprintCase, type FingerprintVerdict } from './fleet/fingerprint.ts'
+export { ISSUE_STATES, LEGAL_TRANSITIONS, IllegalTransitionError, canTransition, assertTransition, stepOf, applyStep, maybeVerify, recordWithAnalysis, type AnalysisPayload } from './fleet/issues-machine.ts'
+export { ErrorAnalyzer, AnalysisFormatError, buildPrompt, parseAnalysis, detailHashOf, detailTextOf, similarity, levenshtein, ANALYSIS_OUTPUT_SCHEMA_TEXT, DEFAULT_CACHE_SIMILARITY, type AnalysisPort, type AnalysisChunk, type AnalysisRequest, type AnalysisOutput, type AnalysisCallResult } from './fleet/analyzer.ts'
+export { ErrorPipeline, pullRunEventErrors, SAMPLE_RING, RUN_EVENTS_SQL, type PipelineTables, type ErrorPipelineOptions, type IngestOutcome, type PumpOutcome } from './fleet/error-pipeline.ts'
+export { eventKeyOf as errorEventKeyOf, decodeEventKey, ESCAPE_TABLES, type EventKeyParts } from './fleet/event-key.ts'
+export { ErrorResolver, RESOLVE_ACTIONS, stateBadge, type ResolveAction, type ResolveOutcome } from './fleet/resolver.ts'
+export { ERRORS_TOOL, RESOLVE_TOOL, ERRORS_DESCRIPTION, RESOLVE_DESCRIPTION, errorsTool, resolveTool, renderErrors, DEFAULT_LIMIT, type ErrorsQuery } from './fleet/tools-errors.ts'
 export {
   fetchHttpGet,
   parseJson,
