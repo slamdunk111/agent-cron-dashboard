@@ -351,6 +351,9 @@ export class GithubProvider {
       if ('code' in result) {
         const count = (this.failures.get(key) ?? 0) + 1
         this.failures.set(key, count)
+        // A 403 means the quota/token is exhausted: stop the loop instead of
+        // hammering the API for 30 minutes with backoff.
+        if (result.code === 'unauthenticated') handle.stopped = true
         listener({ key, fetchedAt, failure: result })
       } else {
         this.failures.delete(key)
