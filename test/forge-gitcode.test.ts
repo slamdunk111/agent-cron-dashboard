@@ -32,7 +32,6 @@ function fixtureFetch(overrides: Record<string, { status: number; body: string }
     // Unknown request numbers answer 404 on every endpoint.
     if (/\/pulls\/40400(\/|\.|\?|$)/.test(url)) return new Response('{"error_message":"not found"}', { status: 404 })
     if (url.endsWith('/pulls/9723')) return Response.json(pull9723)
-    if (url.includes('/pulls/9723/files')) return Response.json(files)
     if (url.includes('/pulls/9723/commits')) return Response.json(commits)
     if (url.includes('/pulls?state=open')) return Response.json(pulls.filter((pull) => pull.state === 'open'))
     if (url.endsWith('/api/v5/user')) return new Response(anonUser, { status: 403, headers: { 'content-type': 'application/json' } })
@@ -180,13 +179,16 @@ describe('gitcode snapshot mapping (fixture PR #9723)', () => {
 describe('gitcode provider over replayed HTTP', () => {
   const config = validateConfig({})
 
-  it('fetch reads the detail payload and folds in file counts', async () => {
+  it('fetch reads the detail payload and folds in the patch line counts', async () => {
     const { impl, calls } = fixtureFetch()
     const provider = makeGitCodeProvider(config, { fetch: impl })
     const result = await provider.fetch([ref], signalOf())
     const snapshot = result.get(snapshotKey(ref)) as ChangeRequestSnapshot
-    expect(snapshot.additions).toBe(387)
-    expect(calls.some((url) => url.includes('/pulls/9723/files'))).toBe(true)
+    // Counted from fixtures/gitcode/pr-9723.diff, the same numbers the files
+    // list reports for this request (387/26).
+    expect({ additions: snapshot.additions, deletions: snapshot.deletions }).toEqual({ additions: 387, deletions: 26 })
+    expect(calls.some((url) => url.endsWith('/pull/9723.diff'))).toBe(true)
+    expect(calls.some((url) => url.includes('/files'))).toBe(false)
   })
 
   it('fetch returns a mapped failure for a missing request', async () => {
@@ -320,20 +322,14 @@ describe('plugin row exports', () => {
 })
 
 describe('files pagination and no-token fallback (C4)', () => {
-  it('folds several files pages into one line count', async () => {
-    const sizes = validateConfig({ filesPageSize: 2 })
-    const pageOne = [{ filename: 'a', additions: 3, deletions: 1 }, { filename: 'b', additions: 4, deletions: 2 }]
-    const pageTwo = [{ filename: 'c', additions: 5, deletions: 0 }]
+  it('reports binary patches as unavailable instead of 0/0 (R4-01)', async () => {
     const impl = (async (input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input.toString()
-      if (url.includes('/files') && url.includes('page=1')) return Response.json(pageOne)
-      if (url.includes('/files') && url.includes('page=2')) return Response.json(pageTwo)
+      if (url.endsWith('.diff')) return new Response('diff --git a/i.png b/i.png\nGIT binary patch\nliteral 12\n', { status: 200 })
       return Response.json(pullOpen)
     }) as unknown as typeof fetch
-    const provider = makeGitCodeProvider(sizes, { fetch: impl })
-    const result = await provider.fetch([ref], signalOf())
-    const snapshot = result.get(snapshotKey(ref)) as ChangeRequestSnapshot
-    expect({ additions: snapshot.additions, deletions: snapshot.deletions }).toEqual({ additions: 12, deletions: 3 })
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
   })
 
   it('reads public repositories with no token at all (clip below 400/403)', async () => {
@@ -374,10 +370,10 @@ describe('P1 review fixes R2 (redirects, payload shape, ci branch)', () => {
     expect(calls.every((call) => !call.url.includes('evil.example'))).toBe(true)
   })
 
-  it('fails when a files page answers 200 with a non-list body (C3 residual)', async () => {
+  it('fails when the patch cannot be read for line counts (C3 residual)', async () => {
     const impl = (async (input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input.toString()
-      if (url.includes('/files')) return Response.json({ message: 'nope' })
+      if (url.endsWith('.diff')) return new Response('{"error_message":"nope"}', { status: 500 })
       return Response.json(pullOpen)
     }) as unknown as typeof fetch
     const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
@@ -447,10 +443,10 @@ describe('P1 review fixes (C1-C3)', () => {
     expect(enough.reviewDecision).toBe('approved')
   })
 
-  it('fails the snapshot when the files page fails instead of reporting 0/0 (C3)', async () => {
+  it('fails the snapshot when the size read fails instead of reporting 0/0 (C3)', async () => {
     const impl = (async (input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input.toString()
-      if (url.includes('/files')) return new Response('{"error_message":"boom"}', { status: 500 })
+      if (url.endsWith('.diff')) return new Response('{"error_message":"boom"}', { status: 500 })
       return Response.json(pullOpen)
     }) as unknown as typeof fetch
     const provider = makeGitCodeProvider(config, { fetch: impl })
@@ -458,15 +454,14 @@ describe('P1 review fixes (C1-C3)', () => {
     expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
   })
 
-  it('reports too-large when the file list overflows 10 full pages (C3)', async () => {
-    const page = Array.from({ length: 100 }, (_, index) => ({ filename: `f${index}`, additions: 1, deletions: 0 }))
+  it('reports too-large when the patch exceeds maxOutputBytes (C3)', async () => {
     const impl = (async (input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input.toString()
-      if (url.includes('/files')) return Response.json(page)
+      if (url.includes('/files')) return Response.json([{ filename: 'f', additions: 1, deletions: 0 }])
+      if (url.endsWith('.diff')) return new Response(diffText, { status: 200 })
       return Response.json(pullOpen)
     }) as unknown as typeof fetch
-    const provider = makeGitCodeProvider(config, { fetch: impl })
-    const result = await provider.fetch([ref], signalOf())
-    expect(result.get(snapshotKey(ref))).toMatchObject({ code: 'too-large' })
+    const provider = makeGitCodeProvider(validateConfig({ maxOutputBytes: 200 }), { fetch: impl })
+    expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'too-large' })
   })
 })

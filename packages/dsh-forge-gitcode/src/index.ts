@@ -51,7 +51,7 @@ export interface Config {
   timeoutMs?: number
   /** Largest accepted response body. */
   maxOutputBytes?: number
-  /** How many `files` pages to read for line counts; 0 disables the extra read. */
+  /** Whether to read the unified patch for line counts; 0 disables the extra read. */
   filesPageSize?: number
 }
 
@@ -110,7 +110,7 @@ export function capabilities(): readonly ProviderCapability[] {
     { capability: 'repositoryFromRemote', implemented: true, note: null },
     { capability: 'changeRequestFromUrl', implemented: true, note: null },
     { capability: 'changeRequestUrl', implemented: true, note: null },
-    { capability: 'fetch', implemented: true, note: null },
+    { capability: 'fetch', implemented: true, note: 'detail endpoint; line counts from the web .diff (the files list cannot page)' },
     { capability: 'fetchChecks', implemented: false, note: 'api/v5 has no check-runs/check list endpoint (404 x5); only mergeable_state.ci_state_passed' },
     { capability: 'findByHead', implemented: true, note: null },
     { capability: 'readiness', implemented: true, note: 'GET /api/v5/user; anonymous access answers 400 private-token required' },
@@ -191,29 +191,25 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
     return snapshotOf(pull, ref, sizes)
   }
 
-  async function readSizes(
-    ref: GitCodeChangeRequestRef,
-    signal: AbortSignal,
-  ): Promise<{ additions: number; deletions: number } | ForgeFailure> {
-    const all: GitCodeFileJson[] = []
-    for (let page = 1; page <= 10; page += 1) {
-      const result = await request(`${apiBase(ref)}/pulls/${ref.number}/files?per_page=${config.filesPageSize}&page=${page}`, transport, signal)
-      if (!result.ok) return result.failure
-      const parsed = parseJson(result.text)
-      if (!parsed.ok) return parsed.failure
-      const rows = parsed.value as GitCodeFileJson[]
-      if (!Array.isArray(rows)) {
-        // A 200 that is not a file list makes the counts unknowable.
-        return { code: 'unavailable', message: `unexpected files payload on page ${page}` }
-      }
-      if (rows.length === 0) return countFileLines(all)
-      all.push(...rows)
-      if (rows.length < config.filesPageSize) return countFileLines(all)
-      if (page === 10) {
-        return { code: 'too-large', message: `more than ${10 * config.filesPageSize} changed files; line counts unavailable` }
-      }
+  /**
+   * Line counts of the change request, from the host's own unified patch.
+   *
+   * Measured: the `files` list endpoint IGNORES `page`/`per_page` (page 2 of a
+   * 3-file and of a 14-file request returns the identical first page), so
+   * paging it would silently mis-count. The web `.diff` has no such cap and
+   * its `diff --git` block count equals the `files` row count on every sampled
+   * request, so the patch is the honest source; a patch over
+   * `maxOutputBytes` reports `too-large` instead of an undercount.
+   */
+  async function readSizes(ref: GitCodeChangeRequestRef, signal: AbortSignal): Promise<{ additions: number; deletions: number } | ForgeFailure> {
+    const result = await request(diffUrl(ref), transport, signal, 'text/plain')
+    if (!result.ok) return result.failure
+    if (result.text.includes('GIT binary patch')) {
+      // Binary diffs carry no `+`/`-` body lines; counting them as 0/0 would be
+      // a wrong number for a request that changed binaries.
+      return { code: 'unavailable', message: 'the patch contains binary files; line counts are not available from the diff' }
     }
-    return countFileLines(all)
+    return countDiffLines(result.text)
   }
 
   return {
