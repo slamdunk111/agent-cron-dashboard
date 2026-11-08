@@ -1,4 +1,9 @@
+# The registry row goes first: the provider registers itself through it
+# (`inject: ['forge']`). Mounting the provider without the registry leaves the
+# row reporting an error, never a silent no-op.
 - insert:
+    - id: forge
+      name: '@deepseek-ai/dsh-experimental-forge'
     - id: forge-gitcode
       name: dsh-forge-gitcode
       config:

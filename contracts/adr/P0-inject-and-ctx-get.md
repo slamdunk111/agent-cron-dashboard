@@ -31,3 +31,12 @@
 ## 备注（P3-03 登记）
 
 契约里的 `query` 只约束语句形态（单条 SELECT、无双语句）。SQLite 的 `SELECT` 仍可调用有副作用的函数（`writefile`、`load_extension` 等），**P5 实现 ssh-sqlite 适配器时必须用只读方式打开库**（`sqlite3 -json 'file:…?mode=ro'` 或等价 `-readonly`），不得仅依赖语句检查。
+
+## 追加实测（P1，forge-gitcode）
+
+`dsh-forge-gitcode` 的行与主包同一形态：声明 `inject = ['forge']` 后，`apply` 里读 `ctx.forge`
+才可用；**未声明 `inject` 时 cordis 代理直接抛 `cannot get property "forge" without inject`**
+（P1 首轮真机 boot 实测，行报错不激活）。因此规则统一为：
+
+- 行要用哪个服务，就在插件对象上声明 `inject`（dsh 的激活次序与代理守卫都靠它）；
+- 取值的两种写法都可行：`ctx.<service>`（已声明 inject 时）与 `ctx.get('<service>')`（不受守卫限制）。

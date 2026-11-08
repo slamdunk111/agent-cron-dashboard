@@ -24,6 +24,16 @@ import { apiBase, changeRequestFromUrl, changeRequestUrl, diffUrl, fileUrl, repo
 import { countDiffLines, countFileLines, snapshotOf, type GitCodeFileJson, type GitCodePullJson } from './mapping.ts'
 import { parseJson, request, type TransportFeatures } from './transport.ts'
 
+/** Row name recorded by dsh's loader. */
+export const name = 'forge-gitcode'
+
+/**
+ * The forge registry is provided by `@deepseek-ai/dsh-experimental-forge`.
+ * Without this declaration cordis' service proxy refuses the read, and the row
+ * fails to activate (measured: `cannot get property "forge" without inject`).
+ */
+export const inject = ['forge']
+
 /**
  * Token env name rule. The same rule lives in `contracts/config-validate.ts`
  * validateTokenEnv; a note in ADR P0-4 records why a package-local copy is kept.
@@ -261,10 +271,7 @@ export function apply(ctx: Context, config: Config): void {
     if (!hasToken(resolved)) {
       ctx.logger?.('forge-gitcode')?.info?.('no GitCode token in %s; reading public repositories only', resolved.tokenEnv)
     }
-    // `forge` is injected by `@deepseek-ai/dsh-experimental-forge`; the registry
-    // service is read the same way the workbench reads `storageDomain` (ADR P0-6).
-    const forge = (ctx as unknown as { forge?: { register(provider: unknown): () => Promise<void> } }).forge
-    if (forge === undefined) throw new Error('forge-gitcode: the forge registry is not mounted (add @deepseek-ai/dsh-experimental-forge)')
-    return forge.register(provider)
+    // `inject: ['forge']` guarantees the registry is mounted before apply runs.
+    return (ctx as unknown as { forge: { register(provider: unknown): () => Promise<void> } }).forge.register(provider)
   }, 'forge-gitcode:register')
 }
