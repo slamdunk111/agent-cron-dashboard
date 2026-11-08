@@ -1,0 +1,1829 @@
+{
+ "derived_at": "2026-11-09T00:03:20+08:00",
+ "note": "P5 replay fixtures derived from the measured samples under fixtures/hermes and fixtures/jiuwenswarm (no network, no new data).",
+ "sources": {
+  "hermes": {
+   "jobs_json": {
+    "captured_at": "2026-11-08T23:45:41+08:00",
+    "updated_at": "2026-11-08T23:45:26.797657+08:00",
+    "count": 39,
+    "jobs": [
+     {
+      "id": "f1dcbf1808ae",
+      "name": "diag-cron-health-6h",
+      "schedule": {
+       "kind": "cron",
+       "expr": "15 */6 * * *",
+       "display": "15 */6 * * *"
+      },
+      "script": "cron_health_check.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T18:15:10.560560+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 509
+      }
+     },
+     {
+      "id": "68f64ca3b0b1",
+      "name": "diag-systemd-health-1h",
+      "schedule": {
+       "kind": "cron",
+       "expr": "20 * * * *",
+       "display": "20 * * * *"
+      },
+      "script": "systemd_health_check.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:20:08.954920+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 3003
+      }
+     },
+     {
+      "id": "a3f91c7e2b08",
+      "name": "diag-agy-failures-daily",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 9 * * *",
+       "display": "30 9 * * *"
+      },
+      "script": "agy_failure_check.py",
+      "enabled": false,
+      "state": "paused",
+      "last_run_at": "2026-10-18T09:30:13.510461+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 107
+      }
+     },
+     {
+      "id": "7368f3f37d75",
+      "name": "io-daily-report",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 8 * * *",
+       "display": "0 8 * * *"
+      },
+      "script": null,
+      "enabled": false,
+      "state": "paused",
+      "last_run_at": "2026-10-01T08:25:19.655815+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 90
+      }
+     },
+     {
+      "id": "87257b4237b5",
+      "name": "halogen-metrics-baseline-daily",
+      "schedule": {
+       "kind": "cron",
+       "expr": "5 0 * * *",
+       "display": "5 0 * * *"
+      },
+      "script": "halogen_baseline.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T00:05:09.766515+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 40
+      }
+     },
+     {
+      "id": "243b69b85448",
+      "name": "halogen-metrics-report-10am",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 10 * * *",
+       "display": "0 10 * * *"
+      },
+      "script": "halogen_vm_report.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T10:00:10.667487+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 43
+      }
+     },
+     {
+      "id": "abc35ee123d7",
+      "name": "halogen-metrics-report-10pm",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 22 * * *",
+       "display": "0 22 * * *"
+      },
+      "script": "halogen_vm_report.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T22:00:10.259673+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 41
+      }
+     },
+     {
+      "id": "60aa33e115ef",
+      "name": "hindsight-daily-report-2300",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 23 * * *",
+       "display": "0 23 * * *"
+      },
+      "script": null,
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:03:10.714208+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 41
+      }
+     },
+     {
+      "id": "9bdf18b9897a",
+      "name": "daily-host-security-audit",
+      "schedule": {
+       "kind": "cron",
+       "expr": "10 2 * * *",
+       "display": "10 2 * * *"
+      },
+      "script": "host_security_audit.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T02:12:42.768779+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 38
+      }
+     },
+     {
+      "id": "b2194c1116da",
+      "name": "aly-exit-watchdog-10min",
+      "schedule": {
+       "kind": "cron",
+       "expr": "35,55 * * * *",
+       "display": "35,55 * * * *"
+      },
+      "script": "aly_exit_watchdog.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:35:13.967653+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 1823
+      }
+     },
+     {
+      "id": "e641c1d2fbf7",
+      "name": "aly-hourly-healthcheck",
+      "schedule": {
+       "kind": "cron",
+       "expr": "15 * * * *",
+       "display": "15 * * * *"
+      },
+      "script": "aly_hourly_healthcheck.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:15:49.966287+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 903
+      }
+     },
+     {
+      "id": "8a0657590a4a",
+      "name": "smb-mount-patrol-4h",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 240,
+       "display": "every 240m"
+      },
+      "script": "smb_mount_patrol.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T20:05:49.164392+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 222
+      }
+     },
+     {
+      "id": "2c6cb42190e9",
+      "name": "hindsight-retry-failed-retains-daily",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 * * * *",
+       "display": "0 * * * *"
+      },
+      "script": "hindsight_retry_failed_retains.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:00:14.429611+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 712
+      }
+     },
+     {
+      "id": "054f2bb2d8ed",
+      "name": "skills-assembly-reconcile-6h",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 */6 * * *",
+       "display": "0 */6 * * *"
+      },
+      "script": "daily_planreview_hindsight_sync.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T18:00:52.834310+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 100
+      }
+     },
+     {
+      "id": "3be6a06b87ed",
+      "name": "halogen-version-check-daily",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 10 * * *",
+       "display": "0 10 * * *"
+      },
+      "script": "halogen_version_daily.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T10:01:45.258610+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 28
+      }
+     },
+     {
+      "id": "d26d1bb80a8f",
+      "name": "hindsight-failed-ops-daily-clear",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 21 * * *",
+       "display": "30 21 * * *"
+      },
+      "script": "hindsight_failed_ops_daily.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T21:30:10.592931+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 28
+      }
+     },
+     {
+      "id": "32d158da241d",
+      "name": "macmini-ssd-hourly-check",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 60,
+       "display": "every 60m"
+      },
+      "script": "macmini_ssd_hourly_check.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:15:09.826833+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 615
+      }
+     },
+     {
+      "id": "7b6b75044e70",
+      "name": "jiuwenswarm-browser-zombie-check",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 60,
+       "display": "every 60m"
+      },
+      "script": "jiuwenswarm_browser_zombie_check.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:20:09.531589+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 606
+      }
+     },
+     {
+      "id": "e3429f14c178",
+      "name": "github-gitcode-triage",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 9,21 * * *",
+       "display": "0 9,21 * * *"
+      },
+      "script": null,
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T21:11:03.267874+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 52
+      }
+     },
+     {
+      "id": "dc9e0000f20e",
+      "name": "gmk-disk-daily-monitor",
+      "schedule": {
+       "kind": "cron",
+       "expr": "40 8 * * *",
+       "display": "40 8 * * *"
+      },
+      "script": "gmk_disk_daily_monitor.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T08:45:03.713738+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 25
+      }
+     },
+     {
+      "id": "1e89a7df0310",
+      "name": "agy-gemini4-daily-probe",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 9 * * *",
+       "display": "every day at 9:30"
+      },
+      "script": "agy_gemini4_daily_probe.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T09:30:14.586786+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 25
+      }
+     },
+     {
+      "id": "562fe5f9eef9",
+      "name": "opendesign-reset-monitor",
+      "schedule": {
+       "kind": "cron",
+       "expr": "40 9 * * *",
+       "display": "40 9 * * *"
+      },
+      "script": "opendesign_reset_monitor.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T09:40:20.595670+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 25
+      }
+     },
+     {
+      "id": "827a97b62699",
+      "name": "tailscale-mesh-proxy-daily",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 8 * * *",
+       "display": "0 8 * * *"
+      },
+      "script": "tailscale_mesh_proxy_check.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T08:01:42.361199+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 24
+      }
+     },
+     {
+      "id": "aa6a0332311a",
+      "name": "jiuwenswarm-daily-upgrade",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 4 * * *",
+       "display": "30 4 * * *"
+      },
+      "script": "jiuwenswarm_daily_upgrade.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T04:30:17.409819+08:00",
+      "last_status": "error",
+      "repeat": {
+       "times": null,
+       "completed": 22
+      }
+     },
+     {
+      "id": "d8b4107ddcb0",
+      "name": "droid-agy-daily-guard",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 8,20 * * *",
+       "display": "30 8,20 * * *"
+      },
+      "script": "droid_agy_daily_guard.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T20:31:09.717134+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 44
+      }
+     },
+     {
+      "id": "6cc9fb9eea1a",
+      "name": "srvm-5way-alert-sentinel",
+      "schedule": {
+       "kind": "cron",
+       "expr": "7,37 * * * *",
+       "display": "7,37 * * * *"
+      },
+      "script": "srvm_5way_alert_check.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:37:37.307725+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 1017
+      }
+     },
+     {
+      "id": "b35c712cc3b4",
+      "name": "nas-root-disk-monitor",
+      "schedule": {
+       "kind": "cron",
+       "expr": "*/30 * * * *",
+       "display": "*/30 * * * *"
+      },
+      "script": "nas_root_disk_monitor.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:30:08.953835+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 994
+      }
+     },
+     {
+      "id": "09ba7482cb32",
+      "name": "mcr-sentinel-patrol-hourly",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 60,
+       "display": "every 60m"
+      },
+      "script": "mcr_sentinel_patrol.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:17:10.353754+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 441
+      }
+     },
+     {
+      "id": "f83174aa538d",
+      "name": "hindsight-3machine-patrol-2x",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 8,20 * * *",
+       "display": "30 8,20 * * *"
+      },
+      "script": "hindsight_3machine_patrol.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T20:30:47.278943+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 34
+      }
+     },
+     {
+      "id": "63773a457c6b",
+      "name": "hindsight-probe-daily-cleanup",
+      "schedule": {
+       "kind": "cron",
+       "expr": "15 4 * * *",
+       "display": "15 4 * * *"
+      },
+      "script": "hindsight_probe_daily_cleanup.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T04:15:25.814441+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 17
+      }
+     },
+     {
+      "id": "93043f0082d7",
+      "name": "agy-health-sentinel-30m",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 30,
+       "display": "every 30m"
+      },
+      "script": "agy_health_sentinel.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:23:39.456549+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 733
+      }
+     },
+     {
+      "id": "6ab47c82390d",
+      "name": "dsh-web-3machine-sentinel",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 15,
+       "display": "every 15m"
+      },
+      "script": "dsh_web_sentinel.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:35:10.322668+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 1260
+      }
+     },
+     {
+      "id": "4579664fa1f8",
+      "name": "xiaomi-5g-congestion-hourly",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 60,
+       "display": "every 60m"
+      },
+      "script": "xiaomi_5g_hourly.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:40:56.331017+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 155
+      }
+     },
+     {
+      "id": "e8fc6c7bf5db",
+      "name": "group-daily-task-broadcast-8am",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 8 * * *",
+       "display": "0 8 * * *"
+      },
+      "script": null,
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T08:01:21.592879+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 4
+      }
+     },
+     {
+      "id": "3a13f06b4dd4",
+      "name": "ascend-weekly-summary",
+      "schedule": {
+       "kind": "cron",
+       "expr": "30 9 * * 1",
+       "display": "every monday 9:30"
+      },
+      "script": "ascend_weekly_sentinel.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": null,
+      "last_status": null,
+      "repeat": {
+       "times": null,
+       "completed": 0
+      }
+     },
+     {
+      "id": "96223a25f4ba",
+      "name": "ascend-daily-increment",
+      "schedule": {
+       "kind": "cron",
+       "expr": "0 9 * * *",
+       "display": "0 9 * * *"
+      },
+      "script": "ascend_daily_sentinel.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T09:00:30.520987+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 2
+      }
+     },
+     {
+      "id": "858f6b42632d",
+      "name": "三机工具链每日升级",
+      "schedule": {
+       "kind": "cron",
+       "expr": "20 5 * * *",
+       "display": "20 5 * * *"
+      },
+      "script": "tool_upgrades_daily.sh",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T05:23:16.744708+08:00",
+      "last_status": "error",
+      "repeat": {
+       "times": null,
+       "completed": 2
+      }
+     },
+     {
+      "id": "3d07ff83ef9f",
+      "name": "dsh-headless-3machine-sentinel-15m",
+      "schedule": {
+       "kind": "interval",
+       "minutes": 15,
+       "display": "every 15m"
+      },
+      "script": "dsh_headless_sentinel.py",
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:45:26.795773+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 129
+      }
+     },
+     {
+      "id": "71672df594bf",
+      "name": "eco-recur-9368-sentinel",
+      "schedule": {
+       "kind": "cron",
+       "expr": "*/30 * * * *",
+       "display": "*/30 * * * *"
+      },
+      "script": null,
+      "enabled": true,
+      "state": "scheduled",
+      "last_run_at": "2026-11-08T23:30:24.740694+08:00",
+      "last_status": "ok",
+      "repeat": {
+       "times": null,
+       "completed": 6
+      }
+     }
+    ]
+   },
+   "metrics": [
+    {
+     "job_id": "2d4f5e1bbf08",
+     "metric_name": "check_runs_total",
+     "value": 358,
+     "updated_at": "2026-09-28T16:17:20+08:00"
+    },
+    {
+     "job_id": "2d4f5e1bbf08",
+     "metric_name": "delivery_suppressed_total",
+     "value": 13,
+     "updated_at": "2026-07-16T04:17:10+08:00"
+    },
+    {
+     "job_id": "2d4f5e1bbf08",
+     "metric_name": "script_errors_total",
+     "value": 264,
+     "updated_at": "2026-09-28T16:17:20+08:00"
+    },
+    {
+     "job_id": "68f64ca3b0b1",
+     "metric_name": "check_runs_total",
+     "value": 1458,
+     "updated_at": "2026-09-28T17:20:21+08:00"
+    },
+    {
+     "job_id": "68f64ca3b0b1",
+     "metric_name": "delivery_suppressed_total",
+     "value": 422,
+     "updated_at": "2026-07-29T14:20:17+08:00"
+    },
+    {
+     "job_id": "68f64ca3b0b1",
+     "metric_name": "script_errors_total",
+     "value": 1036,
+     "updated_at": "2026-09-28T17:20:21+08:00"
+    },
+    {
+     "job_id": "7368f3f37d75",
+     "metric_name": "check_runs_total",
+     "value": 61,
+     "updated_at": "2026-09-28T08:00:07+08:00"
+    },
+    {
+     "job_id": "7368f3f37d75",
+     "metric_name": "script_errors_total",
+     "value": 21,
+     "updated_at": "2026-09-28T08:00:26+08:00"
+    },
+    {
+     "job_id": "a3f91c7e2b08",
+     "metric_name": "check_runs_total",
+     "value": 61,
+     "updated_at": "2026-09-28T09:30:07+08:00"
+    },
+    {
+     "job_id": "a3f91c7e2b08",
+     "metric_name": "script_errors_total",
+     "value": 43,
+     "updated_at": "2026-09-28T09:30:07+08:00"
+    },
+    {
+     "job_id": "dc-job",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    },
+    {
+     "job_id": "e3cd58f0c88d",
+     "metric_name": "check_runs_total",
+     "value": 1823,
+     "updated_at": "2026-07-23T16:20:37+08:00"
+    },
+    {
+     "job_id": "e3cd58f0c88d",
+     "metric_name": "delivery_suppressed_total",
+     "value": 1199,
+     "updated_at": "2026-07-23T15:10:57+08:00"
+    },
+    {
+     "job_id": "e3cd58f0c88d",
+     "metric_name": "script_errors_total",
+     "value": 4,
+     "updated_at": "2026-07-23T15:00:50+08:00"
+    },
+    {
+     "job_id": "empty-job",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:31:56+08:00"
+    },
+    {
+     "job_id": "f1dcbf1808ae",
+     "metric_name": "check_runs_total",
+     "value": 247,
+     "updated_at": "2026-09-28T12:25:27+08:00"
+    },
+    {
+     "job_id": "f1dcbf1808ae",
+     "metric_name": "delivery_suppressed_total",
+     "value": 66,
+     "updated_at": "2026-07-29T12:15:16+08:00"
+    },
+    {
+     "job_id": "f1dcbf1808ae",
+     "metric_name": "script_errors_total",
+     "value": 177,
+     "updated_at": "2026-09-28T12:25:28+08:00"
+    },
+    {
+     "job_id": "f373a71381ac",
+     "metric_name": "check_runs_total",
+     "value": 1,
+     "updated_at": "2026-07-13T20:27:55+08:00"
+    },
+    {
+     "job_id": "job-a",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    },
+    {
+     "job_id": "job-b",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    },
+    {
+     "job_id": "monitor-job",
+     "metric_name": "check_runs_total",
+     "value": 84,
+     "updated_at": "2026-07-11T10:31:59+08:00"
+    },
+    {
+     "job_id": "monitor-job",
+     "metric_name": "delivery_suppressed_total",
+     "value": 60,
+     "updated_at": "2026-07-11T10:31:59+08:00"
+    },
+    {
+     "job_id": "monitor-job",
+     "metric_name": "script_errors_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:31:59+08:00"
+    },
+    {
+     "job_id": "s1",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    },
+    {
+     "job_id": "s2",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    },
+    {
+     "job_id": "tg-job",
+     "metric_name": "check_runs_total",
+     "value": 12,
+     "updated_at": "2026-07-11T10:32:00+08:00"
+    }
+   ],
+   "errors_log": {
+    "captured_at": "2026-11-08T23:46:23+08:00",
+    "source": "nas:/root/.hermes/logs/errors.log (tail -c 200000, redacted)",
+    "total_lines_read": 1179,
+    "matched": 509,
+    "kept": 24,
+    "lines": [
+     {
+      "ts": "2026-11-05 17:34:31,352",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-05 19:21:49,755",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-05 19:30:42,338",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-06 12:10:16,204",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-06 21:49:24,972",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-06 21:53:39,712",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-07 01:12:39,248",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-07 07:35:26,754",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-07 10:17:01,939",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-07 16:03:18,229",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-07 16:03:18,272",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-08 12:49:37,194",
+      "level": "ERROR",
+      "logger": "tools.vision_tools",
+      "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+     },
+     {
+      "ts": "2026-11-05 17:34:31,378",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.tool_executor",
+      "message": "Tool vision_analyze returned error (0.30s): {"
+     },
+     {
+      "ts": "2026-11-05 17:34:31,433",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.tool_executor",
+      "message": "Tool vision_analyze returned error (0.36s): {"
+     },
+     {
+      "ts": "2026-11-05 17:49:33,420",
+      "level": "WARNING",
+      "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+      "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+     },
+     {
+      "ts": "2026-11-05 19:30:42,378",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.tool_executor",
+      "message": "Tool vision_analyze returned error (0.12s): {"
+     },
+     {
+      "ts": "2026-11-05 19:35:19,639",
+      "level": "WARNING",
+      "logger": "agent.chat_completion_helpers",
+      "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop."
+     },
+     {
+      "ts": "2026-11-05 19:35:29,970",
+      "level": "WARNING",
+      "logger": "agent.chat_completion_helpers",
+      "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop."
+     },
+     {
+      "ts": "2026-11-05 19:35:35,746",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.conversation_loop",
+      "message": "Redirected-message restart limit (3) exceeded; ending turn instead of refunding the iteration budget indefinitely."
+     },
+     {
+      "ts": "2026-11-05 19:35:35,812",
+      "level": "WARNING",
+      "logger": "agent.relay_runtime",
+      "message": "Skipping Relay instrumentation for concurrent Hermes turn 20261019_234153_47501950:***:851d1291 in session 20261019_234153_47501950"
+     },
+     {
+      "ts": "2026-11-05 19:35:46,087",
+      "level": "WARNING",
+      "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+      "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+     },
+     {
+      "ts": "2026-11-05 19:37:39,488",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.tool_executor",
+      "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs an 'action'.\", \"success\": false}"
+     },
+     {
+      "ts": "2026-11-05 19:39:51,427",
+      "level": "WARNING",
+      "logger": "[20261019_234153_47501950] agent.tool_executor",
+      "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs a 'name' (the skill it targets).\", \"success\": false}"
+     },
+     {
+      "ts": "2026-11-05 19:56:53,141",
+      "level": "WARNING",
+      "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+      "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+     }
+    ]
+   }
+  },
+  "jiuwenswarm": {
+   "cron_jobs": {
+    "captured_at": "2026-11-08T23:46:32+08:00",
+    "source": "/home/nawenyu/.jiuwenswarm/agent/home/cron_jobs.json (redacted)",
+    "version": 1,
+    "count": 34,
+    "jobs": [
+     {
+      "id": "782a89a8f9ea42b6b0c32a0b9e45f943",
+      "name": "运营部-每日任务复盘报告",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 52 1 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791071244.74072,
+      "updated_at": 1794073934.3236198,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "5784e7628c2542b7a8a86bf1362881fd",
+      "name": "运维部-每日错误复盘",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 30 4 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791071244.7904847,
+      "updated_at": 1794083424.007502,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "127ecdb4024b45028ce7273761133e80",
+      "name": "GitHub TOP10 AI Coding开源项目日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 4 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791071244.7988944,
+      "updated_at": 1794081669.4483392,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "2d390f96de3c4f23ae71133eeeec6634",
+      "name": "环境健康监控",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 */6 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791071244.8037195,
+      "updated_at": 1794132133.471181,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "8a960b51c5144296a83f85fb39307599",
+      "name": "每日安全巡检",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 30 1 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076733.0559154,
+      "updated_at": 1794072737.1544151,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "f0203cb0632a43209d3c9d1c3d82700e",
+      "name": "全网AI Coding Plan价格日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 5 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076733.1394415,
+      "updated_at": 1794086072.9244196,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "b51f20245126419fb5b8c175ea3d2fe3",
+      "name": "AMD AI MAX 395 Mini PC 优惠信息日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 3 ? * FRI *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076733.1491425,
+      "updated_at": 1793905343.3790302,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "4e05cff43211417bafa2a1ee60c6579f",
+      "name": "苹果AI产品洞察日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 30 1 ? * WED *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076733.1568046,
+      "updated_at": 1793727197.1455283,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "76805537a9ac435caa30cb4438fb2ea0",
+      "name": "Jetsam进程Kill每日监控",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 10 0 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076733.1641624,
+      "updated_at": 1794067815.9425178,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "646f09c1854c41e0966c8cc73ebdc88a",
+      "name": "多主机磁盘+缓存巡检",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 40 7 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.6698968,
+      "updated_at": 1794095115.9835284,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "536414fb3505476387a656fead1698be",
+      "name": "清理僵尸浏览器进程",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 8 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.7784977,
+      "updated_at": 1794096041.9569962,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "04ecce550ad749c8b146a8de51fc8eca",
+      "name": "每日运维健康报告",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 15 8 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.7894351,
+      "updated_at": 1794096925.0067198,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "bd84ed48c81143a1ad933881b6902461",
+      "name": "常驻进程健康状态日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 9 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.7974162,
+      "updated_at": 1794099703.7770433,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "6420f6efd9984eafa7236c7657f19d88",
+      "name": "定时任务健康汇总",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 1,9,17 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.8062947,
+      "updated_at": 1794128419.9879472,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "bbd2388253d049d6b933805f9cf1b12e",
+      "name": "每日备份",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 6 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076843.8154726,
+      "updated_at": 1791111755.369099,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "1cb2ea34011d4860aa836aac22c6fc03",
+      "name": "每日运营任务",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 20 6 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076928.134803,
+      "updated_at": 1794090416.4419794,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "1fb92a6a4f584f54856976fd7e2ce511",
+      "name": "每日昇腾知识学习",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 0 7 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076928.2187817,
+      "updated_at": 1794092689.0353723,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "fac95484b0b043ddb41370cbe2bdb308",
+      "name": "MCP僵尸进程收割日报",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 50 22 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076928.2299871,
+      "updated_at": 1794149410.8344307,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "4fcc485187ac410d9810a35927ee33c6",
+      "name": "agy 调用失败日分析",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 17 2 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076928.2396417,
+      "updated_at": 1794075429.0418415,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "7967a1b15b6640d4b5723633f8215ed2",
+      "name": "Hindsight directive 健康检查",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 20 4 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791076928.2477899,
+      "updated_at": 1794082807.776768,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "dd3bd63ebec64c93b445dea571c6ec2a",
+      "name": "daily-disk-report",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 30 7 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077183.5671692,
+      "updated_at": 1791077183.5671692,
+      "last_session_id": null
+     },
+     {
+      "id": "c13142e38d1a4e9488cd3172339a8834",
+      "name": "每日综合任务",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 6 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077183.6557343,
+      "updated_at": 1791077183.6557343,
+      "last_session_id": null
+     },
+     {
+      "id": "d8bf977d07ce42c4baaac0c414298658",
+      "name": "磁盘占用每日监控",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 0 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077183.6782374,
+      "updated_at": 1791077183.6782374,
+      "last_session_id": null
+     },
+     {
+      "id": "63de12b2bd8d4774ab14ba8dce1cca51",
+      "name": "one-api 同步失败即时告警",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 */2 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077183.7669775,
+      "updated_at": 1791077183.7669775,
+      "last_session_id": null
+     },
+     {
+      "id": "1896abe02e774e1dbab76bf17bd8db58",
+      "name": "124主机 One-API 运维日报",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 10 3 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077183.778157,
+      "updated_at": 1791077183.778157,
+      "last_session_id": null
+     },
+     {
+      "id": "94a2c938d3e947a8816826d1914d20fe",
+      "name": "Windows 定时任务健康日报",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 14 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077385.994469,
+      "updated_at": 1791077385.994469,
+      "last_session_id": null
+     },
+     {
+      "id": "6776734ae73e49438036a29043985f17",
+      "name": "One-API Channel 健康巡检",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 * * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077386.0586762,
+      "updated_at": 1791077386.0586762,
+      "last_session_id": null
+     },
+     {
+      "id": "148681b2f03a4f278114ccca7bafb2f1",
+      "name": "one-api-sync-monitor-resume-reminder",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 5 9 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077386.067171,
+      "updated_at": 1791077386.067171,
+      "last_session_id": null
+     },
+     {
+      "id": "e136fb18d6f74010a1c82883935f058a",
+      "name": "One-API 渠道分布监控",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 20 2 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077386.075629,
+      "updated_at": 1791077386.075629,
+      "last_session_id": null
+     },
+     {
+      "id": "6e46c72c273043d0923ac58a27c5c59b",
+      "name": "Ollama向量模型运营日报",
+      "enabled": false,
+      "expired": false,
+      "cron_expr": "0 0 23 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1791077386.0834072,
+      "updated_at": 1791077386.0834072,
+      "last_session_id": null
+     },
+     {
+      "id": "5017a991a37b45ed9fa161116ac9dccb",
+      "name": "NAS-Hermes每日升级",
+      "enabled": true,
+      "expired": false,
+      "cron_expr": "0 40 6 * * ? *",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1792200244.6032562,
+      "updated_at": 1794091430.1531472,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "d87211f91a884d1c8e557059f2f48baf",
+      "name": "今晚21:30提醒-与李吉宗评审突击队材料",
+      "enabled": false,
+      "expired": true,
+      "cron_expr": "0 30 21 5 11 ? 2026",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1793879553.3893888,
+      "updated_at": 1793885406.928905,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "980e80ec32d94d0b86060da4b44ddf20",
+      "name": "今靔10:30提醒-跟马雪龙核对西南事情",
+      "enabled": false,
+      "expired": true,
+      "cron_expr": "0 30 10 6 11 ? 2026",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1793927265.6724217,
+      "updated_at": 1793932212.581662,
+      "last_session_id": "<session>"
+     },
+     {
+      "id": "89b9c65975ae46019cd5e57eb0ce2943",
+      "name": "今11:30提醒-马雪龙讨论内容与生态案例选登",
+      "enabled": false,
+      "expired": true,
+      "cron_expr": "0 30 11 6 11 ? 2026",
+      "timezone": "Asia/Shanghai",
+      "targets": "feishu",
+      "created_at": 1793934244.260044,
+      "updated_at": 1793935806.9071262,
+      "last_session_id": "<session>"
+     }
+    ]
+   },
+   "run_ledger": {
+    "captured_at": "2026-11-08T23:46:32+08:00",
+    "source": "cron_run_ledger.db cron_runs (last 40 by started_at)",
+    "rows": [
+     {
+      "run_id": "fac95484b0b043ddb41370cbe2bdb308:1794149400",
+      "job_id": "fac95484b0b043ddb41370cbe2bdb308",
+      "state": "finished",
+      "started_at": 1794149401.7677598,
+      "ended_at": 1794149410.1022725,
+      "trip_reason": null
+     },
+     {
+      "run_id": "2d390f96de3c4f23ae71133eeeec6634:1794132000",
+      "job_id": "2d390f96de3c4f23ae71133eeeec6634",
+      "state": "finished",
+      "started_at": 1794132011.0408802,
+      "ended_at": 1794132132.741722,
+      "trip_reason": null
+     },
+     {
+      "run_id": "6420f6efd9984eafa7236c7657f19d88:1794128400",
+      "job_id": "6420f6efd9984eafa7236c7657f19d88",
+      "state": "finished",
+      "started_at": 1794128402.0893335,
+      "ended_at": 1794128419.2237055,
+      "trip_reason": null
+     },
+     {
+      "run_id": "2d390f96de3c4f23ae71133eeeec6634:1794110400",
+      "job_id": "2d390f96de3c4f23ae71133eeeec6634",
+      "state": "finished",
+      "started_at": 1794110401.8359077,
+      "ended_at": 1794110501.742757,
+      "trip_reason": null
+     },
+     {
+      "run_id": "bd84ed48c81143a1ad933881b6902461:1794099600",
+      "job_id": "bd84ed48c81143a1ad933881b6902461",
+      "state": "finished",
+      "started_at": 1794099601.9530573,
+      "ended_at": 1794099703.0298986,
+      "trip_reason": null
+     },
+     {
+      "run_id": "6420f6efd9984eafa7236c7657f19d88:1794099600",
+      "job_id": "6420f6efd9984eafa7236c7657f19d88",
+      "state": "finished",
+      "started_at": 1794099601.758873,
+      "ended_at": 1794099630.5684097,
+      "trip_reason": null
+     },
+     {
+      "run_id": "04ecce550ad749c8b146a8de51fc8eca:1794096900",
+      "job_id": "04ecce550ad749c8b146a8de51fc8eca",
+      "state": "finished",
+      "started_at": 1794096900.8041656,
+      "ended_at": 1794096924.258689,
+      "trip_reason": null
+     },
+     {
+      "run_id": "536414fb3505476387a656fead1698be:1794096000",
+      "job_id": "536414fb3505476387a656fead1698be",
+      "state": "finished",
+      "started_at": 1794096000.7054381,
+      "ended_at": 1794096041.1456604,
+      "trip_reason": null
+     },
+     {
+      "run_id": "646f09c1854c41e0966c8cc73ebdc88a:1794094800",
+      "job_id": "646f09c1854c41e0966c8cc73ebdc88a",
+      "state": "finished",
+      "started_at": 1794094800.7110062,
+      "ended_at": 1794095115.2273974,
+      "trip_reason": null
+     },
+     {
+      "run_id": "1fb92a6a4f584f54856976fd7e2ce511:1794092400",
+      "job_id": "1fb92a6a4f584f54856976fd7e2ce511",
+      "state": "finished",
+      "started_at": 1794092400.7917001,
+      "ended_at": 1794092688.258623,
+      "trip_reason": null
+     },
+     {
+      "run_id": "5017a991a37b45ed9fa161116ac9dccb:1794091200",
+      "job_id": "5017a991a37b45ed9fa161116ac9dccb",
+      "state": "finished",
+      "started_at": 1794091200.8709304,
+      "ended_at": 1794091429.3976896,
+      "trip_reason": null
+     },
+     {
+      "run_id": "1cb2ea34011d4860aa836aac22c6fc03:1794090000",
+      "job_id": "1cb2ea34011d4860aa836aac22c6fc03",
+      "state": "finished",
+      "started_at": 1794090000.4429343,
+      "ended_at": 1794090415.666123,
+      "trip_reason": null
+     },
+     {
+      "run_id": "2d390f96de3c4f23ae71133eeeec6634:1794088800",
+      "job_id": "2d390f96de3c4f23ae71133eeeec6634",
+      "state": "finished",
+      "started_at": 1794088800.9083426,
+      "ended_at": 1794088919.2421453,
+      "trip_reason": null
+     },
+     {
+      "run_id": "f0203cb0632a43209d3c9d1c3d82700e:1794085200",
+      "job_id": "f0203cb0632a43209d3c9d1c3d82700e",
+      "state": "finished",
+      "started_at": 1794085200.7820053,
+      "ended_at": 1794086072.1420848,
+      "trip_reason": null
+     },
+     {
+      "run_id": "5784e7628c2542b7a8a86bf1362881fd:1794083400",
+      "job_id": "5784e7628c2542b7a8a86bf1362881fd",
+      "state": "finished",
+      "started_at": 1794083409.6021023,
+      "ended_at": 1794083423.2748826,
+      "trip_reason": null
+     },
+     {
+      "run_id": "7967a1b15b6640d4b5723633f8215ed2:1794082800",
+      "job_id": "7967a1b15b6640d4b5723633f8215ed2",
+      "state": "finished",
+      "started_at": 1794082800.666993,
+      "ended_at": 1794082807.0190465,
+      "trip_reason": null
+     },
+     {
+      "run_id": "127ecdb4024b45028ce7273761133e80:1794081600",
+      "job_id": "127ecdb4024b45028ce7273761133e80",
+      "state": "finished",
+      "started_at": 1794081601.6777556,
+      "ended_at": 1794081668.7078674,
+      "trip_reason": null
+     },
+     {
+      "run_id": "4fcc485187ac410d9810a35927ee33c6:1794075420",
+      "job_id": "4fcc485187ac410d9810a35927ee33c6",
+      "state": "finished",
+      "started_at": 1794075421.370805,
+      "ended_at": 1794075428.306133,
+      "trip_reason": null
+     },
+     {
+      "run_id": "782a89a8f9ea42b6b0c32a0b9e45f943:1794073920",
+      "job_id": "782a89a8f9ea42b6b0c32a0b9e45f943",
+      "state": "finished",
+      "started_at": 1794073921.849241,
+      "ended_at": 1794073933.5904894,
+      "trip_reason": null
+     },
+     {
+      "run_id": "8a960b51c5144296a83f85fb39307599:1794072600",
+      "job_id": "8a960b51c5144296a83f85fb39307599",
+      "state": "finished",
+      "started_at": 1794072605.0643134,
+      "ended_at": 1794072736.4189444,
+      "trip_reason": null
+     },
+     {
+      "run_id": "6420f6efd9984eafa7236c7657f19d88:1794070800",
+      "job_id": "6420f6efd9984eafa7236c7657f19d88",
+      "state": "finished",
+      "started_at": 1794070801.3344061,
+      "ended_at": 1794070811.3402247,
+      "trip_reason": null
+     },
+     {
+      "run_id": "76805537a9ac435caa30cb4438fb2ea0:1794067800",
+      "job_id": "76805537a9ac435caa30cb4438fb2ea0",
+      "state": "finished",
+      "started_at": 1794067801.6934733,
+      "ended_at": 1794067815.191017,
+      "trip_reason": null
+     },
+     {
+      "run_id": "2d390f96de3c4f23ae71133eeeec6634:1794067200",
+      "job_id": "2d390f96de3c4f23ae71133eeeec6634",
+      "state": "finished",
+      "started_at": 1794067201.684948,
+      "ended_at": 1794067453.9794037,
+      "trip_reason": null
+     },
+     {
+      "run_id": "fac95484b0b043ddb41370cbe2bdb308:1794063000",
+      "job_id": "fac95484b0b043ddb41370cbe2bdb308",
+      "state": "finished",
+      "started_at": 1794063002.6337457,
+      "ended_at": 1794063027.5218277,
+      "trip_reason": null
+     },
+     {
+      "run_id": "bd84ed48c81143a1ad933881b6902461:1792026000",
+      "job_id": "bd84ed48c81143a1ad933881b6902461",
+      "state": "finished",
+      "started_at": 1792026000.1334462,
+      "ended_at": 1792026060.7558787,
+      "trip_reason": null
+     },
+     {
+      "run_id": "6420f6efd9984eafa7236c7657f19d88:1792026000",
+      "job_id": "6420f6efd9984eafa7236c7657f19d88",
+      "state": "finished",
+      "started_at": 1792026000.0398667,
+      "ended_at": 1792026043.8952744,
+      "trip_reason": null
+     },
+     {
+      "run_id": "04ecce550ad749c8b146a8de51fc8eca:1792023300",
+      "job_id": "04ecce550ad749c8b146a8de51fc8eca",
+      "state": "finished",
+      "started_at": 1792023300.0625799,
+      "ended_at": 1792023322.9960608,
+      "trip_reason": null
+     },
+     {
+      "run_id": "536414fb3505476387a656fead1698be:1792022400",
+      "job_id": "536414fb3505476387a656fead1698be",
+      "state": "finished",
+      "started_at": 1792022400.0552063,
+      "ended_at": 1792022427.4132605,
+      "trip_reason": null
+     },
+     {
+      "run_id": "646f09c1854c41e0966c8cc73ebdc88a:1792021200",
+      "job_id": "646f09c1854c41e0966c8cc73ebdc88a",
+      "state": "finished",
+      "started_at": 1792021200.048087,
+      "ended_at": 1792021354.946457,
+      "trip_reason": null
+     },
+     {
+      "run_id": "1fb92a6a4f584f54856976fd7e2ce511:1792018800",
+      "job_id": "1fb92a6a4f584f54856976fd7e2ce511",
+      "state": "finished",
+      "started_at": 1792018800.0566423,
+      "ended_at": 1792019918.650413,
+      "trip_reason": null
+     },
+     {
+      "run_id": "1cb2ea34011d4860aa836aac22c6fc03:1792016400",
+      "job_id": "1cb2ea34011d4860aa836aac22c6fc03",
+      "state": "finished",
+      "started_at": 1792016400.0219467,
+      "ended_at": 1792016811.744159,
+      "trip_reason": null
+     },
+     {
+      "run_id": "2d390f96de3c4f23ae71133eeeec6634:1792015200",
+      "job_id": "2d390f96de3c4f23ae71133eeeec6634",
+      "state": "finished",
+      "started_at": 1792015200.0180967,
+      "ended_at": 1792015232.961218,
+      "trip_reason": null
+     },
+     {
+      "run_id": "f0203cb0632a43209d3c9d1c3d82700e:1792011600",
+      "job_id": "f0203cb0632a43209d3c9d1c3d82700e",
+      "state": "finished",
+      "started_at": 1792011600.0219443,
+      "ended_at": 1792011839.0312574,
+      "trip_reason": null
+     },
+     {
+      "run_id": "5784e7628c2542b7a8a86bf1362881fd:1792009800",
+      "job_id": "5784e7628c2542b7a8a86bf1362881fd",
+      "state": "finished",
+      "started_at": 1792009800.0226352,
+      "ended_at": 1792009813.2897654,
+      "trip_reason": null
+     },
+     {
+      "run_id": "7967a1b15b6640d4b5723633f8215ed2:1792009200",
+      "job_id": "7967a1b15b6640d4b5723633f8215ed2",
+      "state": "finished",
+      "started_at": 1792009200.0225847,
+      "ended_at": 1792009207.20309,
+      "trip_reason": null
+     },
+     {
+      "run_id": "127ecdb4024b45028ce7273761133e80:1792008000",
+      "job_id": "127ecdb4024b45028ce7273761133e80",
+      "state": "finished",
+      "started_at": 1792008000.0270994,
+      "ended_at": 1792008075.802722,
+      "trip_reason": null
+     },
+     {
+      "run_id": "4fcc485187ac410d9810a35927ee33c6:1792001820",
+      "job_id": "4fcc485187ac410d9810a35927ee33c6",
+      "state": "finished",
+      "started_at": 1792001820.0247252,
+      "ended_at": 1792001828.1824648,
+      "trip_reason": null
+     },
+     {
+      "run_id": "782a89a8f9ea42b6b0c32a0b9e45f943:1792000320",
+      "job_id": "782a89a8f9ea42b6b0c32a0b9e45f943",
+      "state": "finished",
+      "started_at": 1792000320.024506,
+      "ended_at": 1792000342.2530627,
+      "trip_reason": null
+     },
+     {
+      "run_id": "8a960b51c5144296a83f85fb39307599:1791999000",
+      "job_id": "8a960b51c5144296a83f85fb39307599",
+      "state": "finished",
+      "started_at": 1791999000.0228474,
+      "ended_at": 1791999113.6858847,
+      "trip_reason": null
+     },
+     {
+      "run_id": "6420f6efd9984eafa7236c7657f19d88:1791997200",
+      "job_id": "6420f6efd9984eafa7236c7657f19d88",
+      "state": "finished",
+      "started_at": 1791997200.0309517,
+      "ended_at": 1791997215.428163,
+      "trip_reason": null
+     }
+    ]
+   },
+   "error_landing": {
+    "captured_at": "2026-11-08T23:47:33+08:00",
+    "source": {
+     "tool_log": "/home/nawenyu/.jiuwenswarm/logs/tool.log",
+     "worker_logs_dir": "/home/nawenyu/.jiuwenswarm/run/worker-logs"
+    },
+    "tool_log_error_lines": [
+     {
+      "ts": "2026-10-04 11:18:45",
+      "module": "tool",
+      "level": "ERROR",
+      "event_type": "tool_call_error",
+      "message": "Todo modify tool invocation failed"
+     },
+     {
+      "ts": "2026-10-16 05:00:26",
+      "module": "tool",
+      "level": "ERROR",
+      "event_type": "tool_call_error",
+      "message": "Todo create tool invocation failed"
+     },
+     {
+      "ts": "2026-10-26 05:01:20",
+      "module": "tool",
+      "level": "ERROR",
+      "event_type": "tool_call_error",
+      "message": "Todo modify tool invocation failed"
+     },
+     {
+      "ts": "2026-11-06 15:07:35",
+      "module": "tool",
+      "level": "ERROR",
+      "event_type": "tool_call_error",
+      "message": "Todo modify tool invocation failed"
+     }
+    ],
+    "worker_logs_count": 44,
+    "worker_logs_newest": "runtime-worker-8e8d2456de8c445595d918873680f09e.stderr.log",
+    "log_sizes": {
+     "runner.log.1": 20971491,
+     "runner.log.2": 20971156,
+     "sys_operation.log.2": 20970724,
+     "sys_operation.log.1": 20970008,
+     "sys_operation.log": 18097359,
+     "llm.log": 14356691,
+     "runner.log": 10670744,
+     "deployment_service.log": 2785222,
+     "server.log": 2231972,
+     "deployment_service.log.2.gz": 1833270
+    }
+   }
+  }
+ }
+}

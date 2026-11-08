@@ -7,11 +7,16 @@
  * declared deviation from the plan's "six domains", see ADR P0-2), and an
  * empty `WorkbenchService` that later plans (P2-P7) fill in node by node.
  */
+import { spawn } from 'node:child_process'
+import { execFile } from 'node:child_process'
+import { promises as fsPromises } from 'node:fs'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { defineDomain, domainTable, type DomainFacility } from '@deepseek-ai/dsh-storage-domain'
 import z from 'zod'
 import { CHANGE_LEVELS } from '../../../contracts/events.ts'
 import type { ChangeEvent } from '../../../contracts/events.ts'
+import type { FleetSource } from '../../../contracts/fleet-source.ts'
+import type { FleetSourceConfigResolved } from '../../../contracts/config-validate.ts'
 import type { IssueRecord, IssueSnapshot, PrSnapshot } from '../../../contracts/records.ts'
 import { Config as RowConfig, resolveConfig, type WorkbenchConfig } from './config.ts'
 import { ChangeEngine, type CursorTable, type EventsTable, type IssueSnapshotTable, type PrSnapshotTable } from './core/change-engine.ts'
@@ -19,6 +24,12 @@ import { DigestController, type SchedulePort } from './core/digest.ts'
 import { NotifyService } from './core/notify.ts'
 import { NOTIFY_ACTION, notifyKind, skillText } from './core/notify-skill.ts'
 import { STATUS_DESCRIPTION, STATUS_SCOPES, STATUS_TOOL, buildStatus } from './core/tools-status.ts'
+import { FleetWatchService, type FleetWatchTables } from './fleet/fleet-watch.ts'
+import { HermesSshAdapter } from './fleet/hermes-ssh.ts'
+import { JiuwenswarmLocalAdapter, type LocalFiles, type LocalServiceProbe } from './fleet/jiuwenswarm-local.ts'
+import { GenericSshSqliteAdapter } from './fleet/generic-ssh-sqlite.ts'
+import { makeRunRemote } from './fleet/ssh-exec.ts'
+
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
 const iso = z.string().min(19)
@@ -260,6 +271,19 @@ export interface RowOptions extends Config {
   readonly digestTask?: boolean
   /** Override for the login used by "somebody else replied" (defaults to the identity). */
   readonly me?: string
+  /** P5: mount the fleet watch and poll the configured sources (default false). */
+  readonly withFleet?: boolean
+  /** P5: injectable adapters (tests and the smoke replace the SSH executor). */
+  readonly fleetOverrides?: FleetOverrides
+}
+
+/** P5 seams a test or smoke can hand the row: process spawner, local files and the service probe. */
+export interface FleetOverrides {
+  readonly spawn?: (command: string, args: readonly string[], timeoutMs: number, signal?: AbortSignal) => Promise<{ code: number; stdout: string; stderr: string }>
+  readonly localFiles?: LocalFiles
+  readonly serviceProbe?: LocalServiceProbe
+  /** Build adapters directly (the smoke assembles the three real ones). */
+  readonly makeSources?: (config: WorkbenchConfig) => readonly FleetSource[]
 }
 
 /** Plugin row name (dsh expects a `name` export; the loader keeps the row id). */
@@ -302,6 +326,10 @@ export class WorkbenchService extends Service {
   notifyService: NotifyService | null = null
   /** P4 digest task controller; null until mount. */
   digestController: DigestController | null = null
+  /** P5 fleet watch; null until the row mounted it (`withFleet`). */
+  fleetWatch: FleetWatchService | null = null
+  /** P5 adapters in configured order (empty while the fleet is not mounted). */
+  fleetSources: readonly FleetSource[] = []
   /** Open in progress; retries join it instead of opening the same domains again. */
   private opening: Promise<void> | undefined
 
@@ -501,6 +529,8 @@ export function apply(ctx: Context, raw: Config = {}): void {
   }, 'workbench:announce')
   // P4: the change engine, the notifier and the digest task ride on this row.
   ctx.effect(() => mountP4(ctx, raw as RowOptions), 'workbench:p4')
+  // P5: the fleet watch rides on the same row (opt-in through `withFleet`).
+  ctx.effect(() => mountP5(ctx, raw as RowOptions), 'workbench:p5')
 }
 
 /**
@@ -680,12 +710,232 @@ function statusText(service: WorkbenchService, scope: 'all' | 'community' | 'fle
       events: events ?? { keys: () => [], get: () => undefined },
       prCount: () => prSnapshots?.table('snapshots').keys().length ?? 0,
       issueCount: () => issueSnapshots?.table('snapshots').keys().length ?? 0,
-      fleet: null,
+      fleet: fleetCounts(service),
     },
     scope,
     since,
   )
   return report.text
+}
+
+
+/**
+ * P5 mount: build the adapters from the configured sources and start the watch.
+ *
+ * Everything is opt-in (`withFleet`) and named when absent, and the sources
+ * themselves decide how to reach their hosts (injectable through
+ * {@link FleetOverrides} so the smoke can replay without touching a real machine).
+ * @param ctx - row context.
+ * @param options - row options.
+ * @returns the uninstaller for the effect.
+ */
+function mountP5(ctx: Context, options: RowOptions): () => void {
+  const service = workbenchService
+  if (options.withFleet !== true || service === undefined) return () => undefined
+  const log = (line: string) => {
+    ctx.logger?.('workbench')?.info?.(line)
+    console.log(line)
+  }
+  let watch: FleetWatchService | null = null
+  let stopped = false
+  void Promise.resolve().then(async () => {
+    const tables = await waitForFleetTables(service)
+    if (tables === undefined) {
+      log('p5 skipped: fleet storage domains did not open; the fleet watch stays unmounted')
+      return
+    }
+    if (stopped) return
+    const sources = options.fleetOverrides?.makeSources?.(service.config) ?? buildSources(service.config, options.fleetOverrides, log)
+    service.fleetSources = sources
+    try {
+      watch = new FleetWatchService({
+        sources,
+        tables,
+        intervalMs: service.config.poll.fleetIntervalMs,
+        backoffMaxMs: service.config.poll.backoffMaxMs,
+        log,
+        autoStart: false,
+      })
+      service.fleetWatch = watch
+      log(`p5 ready: ${String(sources.length)} fleet source(s), interval ${String(service.config.poll.fleetIntervalMs)}ms`)
+    } catch (error: unknown) {
+      log(`p5 skipped: fleet watch failed to start (${error instanceof Error ? error.message : String(error)})`)
+    }
+  })
+  return () => {
+    stopped = true
+    watch?.stop()
+    service.fleetWatch = null
+    service.fleetSources = []
+  }
+}
+
+/** Build the three adapter kinds from the frozen config (unknown kinds are named and skipped). */
+function buildSources(config: WorkbenchConfig, overrides: FleetOverrides | undefined, log: (line: string) => void): readonly FleetSource[] {
+  const sources: FleetSource[] = []
+  for (const entry of config.fleet) {
+    if (entry.enabled === false) {
+      log(`p5: fleet source ${entry.id} is disabled in config; not polled`)
+      continue
+    }
+    if (entry.kind === 'hermes-ssh') {
+      const ssh = entry.ssh
+      if (ssh === undefined) continue
+      const run = makeRunRemote({ host: ssh.host, sshOptions: ssh.sshOptions }, { spawn: overrides?.spawn ?? spawnProcess })
+      sources.push(new HermesSshAdapter({ config: entry, run, log }))
+      continue
+    }
+    if (entry.kind === 'jiuwenswarm-local') {
+      const files = overrides?.localFiles ?? makeLocalFiles()
+      const service = overrides?.serviceProbe ?? makeSystemdProbe()
+      sources.push(new JiuwenswarmLocalAdapter({ config: entry, files, service, log }))
+      continue
+    }
+    if (entry.kind === 'ssh-sqlite') {
+      const ssh = entry.ssh
+      if (ssh === undefined) continue
+      const run = makeRunRemote({ host: ssh.host, sshOptions: ssh.sshOptions }, { spawn: overrides?.spawn ?? spawnProcess })
+      sources.push(new GenericSshSqliteAdapter({ config: entry as unknown as FleetSourceConfigWithQueries, run, log }))
+      continue
+    }
+    log(`p5: fleet source ${entry.id} has unknown kind; skipped`)
+  }
+  return sources
+}
+
+/** The generic config carries the three optional queries added by ADR P5-1. */
+type FleetSourceConfigWithQueries = Parameters<typeof GenericSshSqliteAdapter.prototype.listJobs> extends never ? never : (FleetSourceConfigResolved & { query?: string; runsQuery?: string; jobsQuery?: string; errorsQuery?: string })
+
+/** Spawn one process and collect its streams (SIGKILL on abort or timeout). */
+function spawnProcess(command: string, args: readonly string[], timeoutMs: number, signal?: AbortSignal): Promise<{ code: number; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, [...args], { stdio: ['ignore', 'pipe', 'pipe'] })
+    let stdout = ''
+    let stderr = ''
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+    }, timeoutMs)
+    const abort = () => {
+      child.kill('SIGKILL')
+    }
+    signal?.addEventListener('abort', abort)
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += chunk.toString('utf8')
+    })
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString('utf8')
+    })
+    child.on('error', (error: Error) => {
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', abort)
+      reject(error)
+    })
+    child.on('close', (code: number | null) => {
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', abort)
+      resolve({ code: code ?? -1, stdout, stderr })
+    })
+  })
+}
+
+/** Local files through `node:fs` (read-only; SQL through a `mode=ro` URI). */
+function makeLocalFiles(): LocalFiles {
+  const readTail = async (path: string, bytes: number): Promise<{ code: number; text: string }> => {
+    try {
+      const stat = await fsPromises.stat(path)
+      const start = Math.max(0, stat.size - bytes)
+      const handle = await fsPromises.open(path, 'r')
+      try {
+        const buffer = Buffer.alloc(stat.size - start)
+        await handle.read(buffer, 0, buffer.length, start)
+        return { code: 0, text: buffer.toString('utf8') }
+      } finally {
+        await handle.close()
+      }
+    } catch (error: unknown) {
+      return { code: 2, text: String(error) }
+    }
+  }
+  return {
+    tail: readTail,
+    stat: async (path: string) => {
+      try {
+        const stat = await fsPromises.stat(path)
+        return { code: 0, text: `${String(stat.dev)} ${String(stat.ino)} ${String(stat.size)}` }
+      } catch {
+        return { code: 2, text: '' }
+      }
+    },
+    list: async (path: string) => {
+      try {
+        return { code: 0, names: await fsPromises.readdir(path) }
+      } catch {
+        return { code: 2, names: [] }
+      }
+    },
+    sqlite: async (dbPath: string, sql: string) => {
+      try {
+        const { execFile } = await import('node:child_process')
+        const uri = `file:${dbPath}?mode=ro`
+        return await new Promise<{ code: number; text: string }>((resolve) => {
+          execFile('sqlite3', ['-json', uri, sql], { timeout: 30_000 }, (error, stdout) => {
+            resolve({ code: error === null ? 0 : 2, text: stdout })
+          })
+        })
+      } catch {
+        return { code: 2, text: '' }
+      }
+    },
+  }
+}
+
+/** The systemd user unit probe; the bus env is filled in when the caller's shell lacks it. */
+function makeSystemdProbe(): LocalServiceProbe {
+  return {
+    isActive: async () => {
+      const env = { ...process.env } as Record<string, string>
+      env['XDG_RUNTIME_DIR'] ??= `/run/user/${String(typeof process.getuid === 'function' ? process.getuid() : 1000)}`
+      env['DBUS_SESSION_BUS_ADDRESS'] ??= `unix:path=${env['XDG_RUNTIME_DIR']}/systemd/private`
+      const result = await new Promise<{ code: number; out: string }>((resolve) => {
+        execFile('systemctl', ['--user', 'is-active', 'jiuwenswarm.service'], { env, timeout: 10_000 }, (error, stdout) => {
+          resolve({ code: error === null ? 0 : 2, out: stdout.trim() })
+        })
+      })
+      return { active: result.code === 0 && result.out === 'active', message: result.code === 0 ? null : `systemctl --user is-active returned ${result.out || 'an error'}` }
+    },
+  }
+}
+
+/** Wait (bounded) for the fleet tables to be open. */
+async function waitForFleetTables(service: WorkbenchService, waitedMs = 0): Promise<FleetWatchTables | undefined> {
+  const tables = fleetTables(service)
+  if (tables !== undefined) return tables
+  if (waitedMs >= 10_000) return undefined
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return waitForFleetTables(service, waitedMs + 500)
+}
+
+/** Read the three fleet domain tables plus the event log. */
+function fleetTables(service: WorkbenchService): FleetWatchTables | undefined {
+  const domains = service.domains as Record<string, unknown>
+  const jobs = domains.workbench_fleet_jobs as { table(name: string): FleetWatchTables['jobs'] } | undefined
+  const cursors = domains.workbench_cursors as { table(name: string): FleetWatchTables['cursors'] } | undefined
+  const health = domains.workbench_fleet_health as { table(name: string): FleetWatchTables['health'] } | undefined
+  const events = domains.workbench_events as { table(name: string): FleetWatchTables['events'] } | undefined
+  if (jobs === undefined || cursors === undefined || health === undefined || events === undefined) return undefined
+  return { jobs: jobs.table('jobs'), cursors: cursors.table('cursors'), health: health.table('health'), events: events.table('events') }
+}
+
+/** Fleet counters for the status tool (null while the fleet is not mounted). */
+function fleetCounts(service: WorkbenchService): { jobs: number; errors: number; sourcesUp: number; sourcesTotal: number } | null {
+  const domains = service.domains as Record<string, unknown>
+  const fleetJobs = domains.workbench_fleet_jobs as { table(name: string): { keys(): readonly string[] } } | undefined
+  const fleetErrors = domains.workbench_fleet_errors as { table(name: string): { keys(): readonly string[] } } | undefined
+  const fleetHealth = domains.workbench_fleet_health as { table(name: string): { keys(): readonly string[]; get(key: string): { state?: string } | undefined } } | undefined
+  if (fleetJobs === undefined && fleetErrors === undefined && fleetHealth === undefined) return null
+  const healthKeys = fleetHealth?.table('health').keys() ?? []
+  const up = healthKeys.filter((key) => fleetHealth?.table('health').get(key)?.state === 'up').length
+  return { jobs: fleetJobs?.table('jobs').keys().length ?? 0, errors: fleetErrors?.table('records').keys().length ?? 0, sourcesUp: up, sourcesTotal: healthKeys.length }
 }
 
 /**
@@ -804,3 +1054,15 @@ export type {
   ListedIssue,
   PollResult,
 } from './community/issue-types.ts'
+
+/**
+ * Fleet surface (P5): the SSH executor with the read-only whitelist, the tail
+ * cursor, the three adapters, the grading table and the watch.
+ */
+export { assertReadOnly, buildRemoteCommand, makeRunRemote, sshArgs, stripTunnelNoise, type RemoteReadonly, type RemoteResult, type RunRemote, type SshTarget, type RunRemoteDeps } from './fleet/ssh-exec.ts'
+export { advance, parseLogLines, type FileMark, type ParsedLogLine, type TailResult } from './fleet/log-tail.ts'
+export { HermesSshAdapter, HERMES_DEFAULTS, HERMES_LOG_WINDOW_BYTES, jobOf, markOf, parseJobsJson, parseJsonRows, runsFromRows, runsSql, type HermesOptions, type HermesRunRow } from './fleet/hermes-ssh.ts'
+export { JiuwenswarmLocalAdapter, JIUWENSWARM_PATHS, jobOf as jiuwenswarmJobOf, ledgerSql, parseJobs, parseSqliteJson, runOf, statusOfRow, type JiuwenswarmOptions, type JiuwenswarmRunRow, type LocalFiles, type LocalServiceProbe } from './fleet/jiuwenswarm-local.ts'
+export { GenericSshSqliteAdapter, boundarySql, errorOfRow, jobOfRow, parseRows, runOfRow, type GenericOptions, type GenericNotes, type GenericSourceConfig } from './fleet/generic-ssh-sqlite.ts'
+export { P5_EMITTABLE_KINDS, P6_RESERVED_KINDS, gradeHealth, gradeRun, healthKey, runKey, type FleetGraded } from './fleet/grade-fleet.ts'
+export { FleetWatchService, backoffFor, eventKeyOf, type FleetWatchOptions, type FleetWatchTables, type SourceRound } from './fleet/fleet-watch.ts'

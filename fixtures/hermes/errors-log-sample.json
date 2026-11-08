@@ -1,0 +1,153 @@
+{
+ "captured_at": "2026-11-08T23:46:23+08:00",
+ "source": "nas:/root/.hermes/logs/errors.log (tail -c 200000, redacted)",
+ "total_lines_read": 1179,
+ "matched": 509,
+ "kept": 24,
+ "lines": [
+  {
+   "ts": "2026-11-05 17:34:31,352",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-05 19:21:49,755",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-05 19:30:42,338",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-06 12:10:16,204",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-06 21:49:24,972",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-06 21:53:39,712",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-07 01:12:39,248",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-07 07:35:26,754",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-07 10:17:01,939",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-07 16:03:18,229",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-07 16:03:18,272",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-08 12:49:37,194",
+   "level": "ERROR",
+   "logger": "tools.vision_tools",
+   "message": "Error analyzing image: Error code: 400 - {'error': {'message': 'this server does not accept images: the engine was started without a vision tower (HALOGEN_VISION_TOWER)', 'type': 'invalid_request_error', 'param': None, 'code': None}}"
+  },
+  {
+   "ts": "2026-11-05 17:34:31,378",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.tool_executor",
+   "message": "Tool vision_analyze returned error (0.30s): {"
+  },
+  {
+   "ts": "2026-11-05 17:34:31,433",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.tool_executor",
+   "message": "Tool vision_analyze returned error (0.36s): {"
+  },
+  {
+   "ts": "2026-11-05 17:49:33,420",
+   "level": "WARNING",
+   "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+  },
+  {
+   "ts": "2026-11-05 19:30:42,378",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.tool_executor",
+   "message": "Tool vision_analyze returned error (0.12s): {"
+  },
+  {
+   "ts": "2026-11-05 19:35:19,639",
+   "level": "WARNING",
+   "logger": "agent.chat_completion_helpers",
+   "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop."
+  },
+  {
+   "ts": "2026-11-05 19:35:29,970",
+   "level": "WARNING",
+   "logger": "agent.chat_completion_helpers",
+   "message": "Stream ended with no finish_reason after delivering text with no tool calls; treating as a mid-stream drop."
+  },
+  {
+   "ts": "2026-11-05 19:35:35,746",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.conversation_loop",
+   "message": "Redirected-message restart limit (3) exceeded; ending turn instead of refunding the iteration budget indefinitely."
+  },
+  {
+   "ts": "2026-11-05 19:35:35,812",
+   "level": "WARNING",
+   "logger": "agent.relay_runtime",
+   "message": "Skipping Relay instrumentation for concurrent Hermes turn 20261019_234153_47501950:***:851d1291 in session 20261019_234153_47501950"
+  },
+  {
+   "ts": "2026-11-05 19:35:46,087",
+   "level": "WARNING",
+   "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+  },
+  {
+   "ts": "2026-11-05 19:37:39,488",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.tool_executor",
+   "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs an 'action'.\", \"success\": false}"
+  },
+  {
+   "ts": "2026-11-05 19:39:51,427",
+   "level": "WARNING",
+   "logger": "[20261019_234153_47501950] agent.tool_executor",
+   "message": "Tool skill_manage returned error (0.01s): {\"error\": \"operations[0] needs a 'name' (the skill it targets).\", \"success\": false}"
+  },
+  {
+   "ts": "2026-11-05 19:56:53,141",
+   "level": "WARNING",
+   "logger": "_hermes_user_memory.hindsight__source_83b6cb7294dda391",
+   "message": "Prefetch: server retain visibility timed out after 10.0s; dropping 1 unresolved op(s) so later prefetches stay bounded (recall may miss the just-completed turn)"
+  }
+ ]
+}

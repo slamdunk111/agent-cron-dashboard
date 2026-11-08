@@ -1,0 +1,709 @@
+{
+ "captured_at": "2026-11-08T23:45:41+08:00",
+ "updated_at": "2026-11-08T23:45:26.797657+08:00",
+ "count": 39,
+ "jobs": [
+  {
+   "id": "f1dcbf1808ae",
+   "name": "diag-cron-health-6h",
+   "schedule": {
+    "kind": "cron",
+    "expr": "15 */6 * * *",
+    "display": "15 */6 * * *"
+   },
+   "script": "cron_health_check.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T18:15:10.560560+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 509
+   }
+  },
+  {
+   "id": "68f64ca3b0b1",
+   "name": "diag-systemd-health-1h",
+   "schedule": {
+    "kind": "cron",
+    "expr": "20 * * * *",
+    "display": "20 * * * *"
+   },
+   "script": "systemd_health_check.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:20:08.954920+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 3003
+   }
+  },
+  {
+   "id": "a3f91c7e2b08",
+   "name": "diag-agy-failures-daily",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 9 * * *",
+    "display": "30 9 * * *"
+   },
+   "script": "agy_failure_check.py",
+   "enabled": false,
+   "state": "paused",
+   "last_run_at": "2026-10-18T09:30:13.510461+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 107
+   }
+  },
+  {
+   "id": "7368f3f37d75",
+   "name": "io-daily-report",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 8 * * *",
+    "display": "0 8 * * *"
+   },
+   "script": null,
+   "enabled": false,
+   "state": "paused",
+   "last_run_at": "2026-10-01T08:25:19.655815+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 90
+   }
+  },
+  {
+   "id": "87257b4237b5",
+   "name": "halogen-metrics-baseline-daily",
+   "schedule": {
+    "kind": "cron",
+    "expr": "5 0 * * *",
+    "display": "5 0 * * *"
+   },
+   "script": "halogen_baseline.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T00:05:09.766515+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 40
+   }
+  },
+  {
+   "id": "243b69b85448",
+   "name": "halogen-metrics-report-10am",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 10 * * *",
+    "display": "0 10 * * *"
+   },
+   "script": "halogen_vm_report.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T10:00:10.667487+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 43
+   }
+  },
+  {
+   "id": "abc35ee123d7",
+   "name": "halogen-metrics-report-10pm",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 22 * * *",
+    "display": "0 22 * * *"
+   },
+   "script": "halogen_vm_report.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T22:00:10.259673+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 41
+   }
+  },
+  {
+   "id": "60aa33e115ef",
+   "name": "hindsight-daily-report-2300",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 23 * * *",
+    "display": "0 23 * * *"
+   },
+   "script": null,
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:03:10.714208+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 41
+   }
+  },
+  {
+   "id": "9bdf18b9897a",
+   "name": "daily-host-security-audit",
+   "schedule": {
+    "kind": "cron",
+    "expr": "10 2 * * *",
+    "display": "10 2 * * *"
+   },
+   "script": "host_security_audit.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T02:12:42.768779+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 38
+   }
+  },
+  {
+   "id": "b2194c1116da",
+   "name": "aly-exit-watchdog-10min",
+   "schedule": {
+    "kind": "cron",
+    "expr": "35,55 * * * *",
+    "display": "35,55 * * * *"
+   },
+   "script": "aly_exit_watchdog.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:35:13.967653+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 1823
+   }
+  },
+  {
+   "id": "e641c1d2fbf7",
+   "name": "aly-hourly-healthcheck",
+   "schedule": {
+    "kind": "cron",
+    "expr": "15 * * * *",
+    "display": "15 * * * *"
+   },
+   "script": "aly_hourly_healthcheck.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:15:49.966287+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 903
+   }
+  },
+  {
+   "id": "8a0657590a4a",
+   "name": "smb-mount-patrol-4h",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 240,
+    "display": "every 240m"
+   },
+   "script": "smb_mount_patrol.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T20:05:49.164392+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 222
+   }
+  },
+  {
+   "id": "2c6cb42190e9",
+   "name": "hindsight-retry-failed-retains-daily",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 * * * *",
+    "display": "0 * * * *"
+   },
+   "script": "hindsight_retry_failed_retains.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:00:14.429611+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 712
+   }
+  },
+  {
+   "id": "054f2bb2d8ed",
+   "name": "skills-assembly-reconcile-6h",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 */6 * * *",
+    "display": "0 */6 * * *"
+   },
+   "script": "daily_planreview_hindsight_sync.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T18:00:52.834310+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 100
+   }
+  },
+  {
+   "id": "3be6a06b87ed",
+   "name": "halogen-version-check-daily",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 10 * * *",
+    "display": "0 10 * * *"
+   },
+   "script": "halogen_version_daily.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T10:01:45.258610+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 28
+   }
+  },
+  {
+   "id": "d26d1bb80a8f",
+   "name": "hindsight-failed-ops-daily-clear",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 21 * * *",
+    "display": "30 21 * * *"
+   },
+   "script": "hindsight_failed_ops_daily.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T21:30:10.592931+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 28
+   }
+  },
+  {
+   "id": "32d158da241d",
+   "name": "macmini-ssd-hourly-check",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 60,
+    "display": "every 60m"
+   },
+   "script": "macmini_ssd_hourly_check.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:15:09.826833+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 615
+   }
+  },
+  {
+   "id": "7b6b75044e70",
+   "name": "jiuwenswarm-browser-zombie-check",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 60,
+    "display": "every 60m"
+   },
+   "script": "jiuwenswarm_browser_zombie_check.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:20:09.531589+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 606
+   }
+  },
+  {
+   "id": "e3429f14c178",
+   "name": "github-gitcode-triage",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 9,21 * * *",
+    "display": "0 9,21 * * *"
+   },
+   "script": null,
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T21:11:03.267874+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 52
+   }
+  },
+  {
+   "id": "dc9e0000f20e",
+   "name": "gmk-disk-daily-monitor",
+   "schedule": {
+    "kind": "cron",
+    "expr": "40 8 * * *",
+    "display": "40 8 * * *"
+   },
+   "script": "gmk_disk_daily_monitor.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T08:45:03.713738+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 25
+   }
+  },
+  {
+   "id": "1e89a7df0310",
+   "name": "agy-gemini4-daily-probe",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 9 * * *",
+    "display": "every day at 9:30"
+   },
+   "script": "agy_gemini4_daily_probe.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T09:30:14.586786+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 25
+   }
+  },
+  {
+   "id": "562fe5f9eef9",
+   "name": "opendesign-reset-monitor",
+   "schedule": {
+    "kind": "cron",
+    "expr": "40 9 * * *",
+    "display": "40 9 * * *"
+   },
+   "script": "opendesign_reset_monitor.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T09:40:20.595670+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 25
+   }
+  },
+  {
+   "id": "827a97b62699",
+   "name": "tailscale-mesh-proxy-daily",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 8 * * *",
+    "display": "0 8 * * *"
+   },
+   "script": "tailscale_mesh_proxy_check.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T08:01:42.361199+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 24
+   }
+  },
+  {
+   "id": "aa6a0332311a",
+   "name": "jiuwenswarm-daily-upgrade",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 4 * * *",
+    "display": "30 4 * * *"
+   },
+   "script": "jiuwenswarm_daily_upgrade.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T04:30:17.409819+08:00",
+   "last_status": "error",
+   "repeat": {
+    "times": null,
+    "completed": 22
+   }
+  },
+  {
+   "id": "d8b4107ddcb0",
+   "name": "droid-agy-daily-guard",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 8,20 * * *",
+    "display": "30 8,20 * * *"
+   },
+   "script": "droid_agy_daily_guard.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T20:31:09.717134+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 44
+   }
+  },
+  {
+   "id": "6cc9fb9eea1a",
+   "name": "srvm-5way-alert-sentinel",
+   "schedule": {
+    "kind": "cron",
+    "expr": "7,37 * * * *",
+    "display": "7,37 * * * *"
+   },
+   "script": "srvm_5way_alert_check.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:37:37.307725+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 1017
+   }
+  },
+  {
+   "id": "b35c712cc3b4",
+   "name": "nas-root-disk-monitor",
+   "schedule": {
+    "kind": "cron",
+    "expr": "*/30 * * * *",
+    "display": "*/30 * * * *"
+   },
+   "script": "nas_root_disk_monitor.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:30:08.953835+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 994
+   }
+  },
+  {
+   "id": "09ba7482cb32",
+   "name": "mcr-sentinel-patrol-hourly",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 60,
+    "display": "every 60m"
+   },
+   "script": "mcr_sentinel_patrol.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:17:10.353754+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 441
+   }
+  },
+  {
+   "id": "f83174aa538d",
+   "name": "hindsight-3machine-patrol-2x",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 8,20 * * *",
+    "display": "30 8,20 * * *"
+   },
+   "script": "hindsight_3machine_patrol.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T20:30:47.278943+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 34
+   }
+  },
+  {
+   "id": "63773a457c6b",
+   "name": "hindsight-probe-daily-cleanup",
+   "schedule": {
+    "kind": "cron",
+    "expr": "15 4 * * *",
+    "display": "15 4 * * *"
+   },
+   "script": "hindsight_probe_daily_cleanup.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T04:15:25.814441+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 17
+   }
+  },
+  {
+   "id": "93043f0082d7",
+   "name": "agy-health-sentinel-30m",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 30,
+    "display": "every 30m"
+   },
+   "script": "agy_health_sentinel.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:23:39.456549+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 733
+   }
+  },
+  {
+   "id": "6ab47c82390d",
+   "name": "dsh-web-3machine-sentinel",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 15,
+    "display": "every 15m"
+   },
+   "script": "dsh_web_sentinel.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:35:10.322668+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 1260
+   }
+  },
+  {
+   "id": "4579664fa1f8",
+   "name": "xiaomi-5g-congestion-hourly",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 60,
+    "display": "every 60m"
+   },
+   "script": "xiaomi_5g_hourly.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:40:56.331017+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 155
+   }
+  },
+  {
+   "id": "e8fc6c7bf5db",
+   "name": "group-daily-task-broadcast-8am",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 8 * * *",
+    "display": "0 8 * * *"
+   },
+   "script": null,
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T08:01:21.592879+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 4
+   }
+  },
+  {
+   "id": "3a13f06b4dd4",
+   "name": "ascend-weekly-summary",
+   "schedule": {
+    "kind": "cron",
+    "expr": "30 9 * * 1",
+    "display": "every monday 9:30"
+   },
+   "script": "ascend_weekly_sentinel.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": null,
+   "last_status": null,
+   "repeat": {
+    "times": null,
+    "completed": 0
+   }
+  },
+  {
+   "id": "96223a25f4ba",
+   "name": "ascend-daily-increment",
+   "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * *",
+    "display": "0 9 * * *"
+   },
+   "script": "ascend_daily_sentinel.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T09:00:30.520987+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 2
+   }
+  },
+  {
+   "id": "858f6b42632d",
+   "name": "三机工具链每日升级",
+   "schedule": {
+    "kind": "cron",
+    "expr": "20 5 * * *",
+    "display": "20 5 * * *"
+   },
+   "script": "tool_upgrades_daily.sh",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T05:23:16.744708+08:00",
+   "last_status": "error",
+   "repeat": {
+    "times": null,
+    "completed": 2
+   }
+  },
+  {
+   "id": "3d07ff83ef9f",
+   "name": "dsh-headless-3machine-sentinel-15m",
+   "schedule": {
+    "kind": "interval",
+    "minutes": 15,
+    "display": "every 15m"
+   },
+   "script": "dsh_headless_sentinel.py",
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:45:26.795773+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 129
+   }
+  },
+  {
+   "id": "71672df594bf",
+   "name": "eco-recur-9368-sentinel",
+   "schedule": {
+    "kind": "cron",
+    "expr": "*/30 * * * *",
+    "display": "*/30 * * * *"
+   },
+   "script": null,
+   "enabled": true,
+   "state": "scheduled",
+   "last_run_at": "2026-11-08T23:30:24.740694+08:00",
+   "last_status": "ok",
+   "repeat": {
+    "times": null,
+    "completed": 6
+   }
+  }
+ ]
+}

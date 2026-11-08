@@ -1,0 +1,51 @@
+{
+ "captured_at": "2026-11-08T23:47:33+08:00",
+ "source": {
+  "tool_log": "/home/nawenyu/.jiuwenswarm/logs/tool.log",
+  "worker_logs_dir": "/home/nawenyu/.jiuwenswarm/run/worker-logs"
+ },
+ "tool_log_error_lines": [
+  {
+   "ts": "2026-10-04 11:18:45",
+   "module": "tool",
+   "level": "ERROR",
+   "event_type": "tool_call_error",
+   "message": "Todo modify tool invocation failed"
+  },
+  {
+   "ts": "2026-10-16 05:00:26",
+   "module": "tool",
+   "level": "ERROR",
+   "event_type": "tool_call_error",
+   "message": "Todo create tool invocation failed"
+  },
+  {
+   "ts": "2026-10-26 05:01:20",
+   "module": "tool",
+   "level": "ERROR",
+   "event_type": "tool_call_error",
+   "message": "Todo modify tool invocation failed"
+  },
+  {
+   "ts": "2026-11-06 15:07:35",
+   "module": "tool",
+   "level": "ERROR",
+   "event_type": "tool_call_error",
+   "message": "Todo modify tool invocation failed"
+  }
+ ],
+ "worker_logs_count": 44,
+ "worker_logs_newest": "runtime-worker-8e8d2456de8c445595d918873680f09e.stderr.log",
+ "log_sizes": {
+  "runner.log.1": 20971491,
+  "runner.log.2": 20971156,
+  "sys_operation.log.2": 20970724,
+  "sys_operation.log.1": 20970008,
+  "sys_operation.log": 18097359,
+  "llm.log": 14356691,
+  "runner.log": 10670744,
+  "deployment_service.log": 2785222,
+  "server.log": 2231972,
+  "deployment_service.log.2.gz": 1833270
+ }
+}

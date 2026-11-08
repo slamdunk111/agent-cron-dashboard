@@ -16,7 +16,7 @@ export interface StatusSources {
   readonly prCount: () => number
   readonly issueCount: () => number
   /** Fleet rows exist only from P5; `null` means "not wired yet". */
-  readonly fleet: { readonly jobs: number; readonly errors: number } | null
+  readonly fleet: { readonly jobs: number; readonly errors: number; readonly sourcesUp?: number; readonly sourcesTotal?: number } | null
   readonly now?: () => Date
 }
 
@@ -91,6 +91,9 @@ export function buildStatus(sources: StatusSources, scope: StatusScope = 'all', 
         ? 'fleet: not wired yet (P5 unimplemented; error ledger lands in P6)'
         : `fleet: ${String(sources.fleet.jobs)} job(s), ${String(sources.fleet.errors)} error record(s)`,
     )
+    if (sources.fleet !== null && sources.fleet.sourcesTotal !== undefined) {
+      lines.push(`fleet health: ${String(sources.fleet.sourcesUp ?? 0)}/${String(sources.fleet.sourcesTotal)} source(s) up`)
+    }
   }
   return {
     text: lines.join('\n'),
@@ -112,4 +115,4 @@ export const STATUS_TOOL = 'workbench_status'
 
 /** Model-facing description. */
 export const STATUS_DESCRIPTION =
-  'Read-only workbench summary: community change events in a time window (PR/issue), snapshot counts, and fleet health. Fleet sections are placeholders until P5/P6.'
+  'Read-only workbench summary: community change events in a time window (PR/issue), snapshot counts, fleet jobs/errors and source health (P5); the error ledger detail lands in P6.'
