@@ -10,7 +10,7 @@
  */
 import type { IdentityConfig } from '../config-validate.ts'
 import type { PlatformIdentity } from './identity.ts'
-import { tokenOf } from './identity.ts'
+import { effectiveLogin, tokenOf } from './identity.ts'
 
 /** Page size every list read uses (measurable; plan §5.5). */
 export const LIST_PER_PAGE = 50
@@ -142,6 +142,9 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
 
   const github = options.identities.find((identity) => identity.platform === 'github')
   const gitcode = options.identities.find((identity) => identity.platform === 'gitcode')
+  // One rule for both consumers of the author filter (plan §3.1 rule 4).
+  const githubLogin = effectiveLogin(options.identities, 'github')
+  const gitcodeLogin = effectiveLogin(options.identities, 'gitcode')
   const seeded: SeededPr[] = []
 
   // ---- GitHub ----------------------------------------------------------------
@@ -150,10 +153,9 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
   if (githubRepos.length === 0) {
     githubProblems.push('no github.com repository in watch.repos[]; nothing to seed')
   }
-  if (github === undefined || github.state === 'down' || github.login === undefined) {
+  if (githubLogin === undefined) {
     githubProblems.push(`GitHub identity unavailable (${github?.message ?? 'no identity'})`)
   }
-  const githubLogin = github !== undefined && github.state === 'up' ? github.login : undefined
   for (const repo of githubLogin !== undefined ? githubRepos : []) {
     const url = `https://api.github.com/repos/${repo.owner}/${repo.name}/pulls?state=open&per_page=${LIST_PER_PAGE}&page=1`
     let result: { status: number; text: string; link?: string | null }
@@ -195,7 +197,13 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
   }
   const githubFailures = githubProblems.filter((entry) => !entry.startsWith('no github.com repository'))
   const githubState: SeedHealth['state'] =
-    githubProblems.length === 0 ? 'up' : githubFailures.length > 0 && seeded.length === 0 ? 'down' : 'degraded'
+    githubProblems.length === 0
+      ? 'up'
+      : githubLogin === undefined
+        ? 'down'
+        : githubFailures.some((entry) => /HTTP|failed|not a JSON list/.test(entry))
+          ? 'degraded'
+          : 'degraded'
 
   // ---- GitCode ---------------------------------------------------------------
   const gitcodeHealth: SeedHealth = { sourceId: 'community:seed:gitcode', state: 'up', message: null, checkedAt: at }
@@ -205,15 +213,15 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
   if (gitcodeRepos.length === 0) {
     gitcodeProblems.push('no gitcode.com repository in watch.repos[]; nothing to seed')
   }
-  if (gitcode === undefined || gitcode.state !== 'up' || gitcode.login === undefined) {
+  if (gitcodeLogin === undefined) {
     // D8: no token means the platform is skipped (never watched repository-wide).
     gitcodeProblems.push(`GitCode seeding skipped (${gitcode?.message ?? 'identity not up'})`)
   } else if (token === undefined) {
     gitcodeProblems.push('GitCode seeding skipped (no token in the configured tokenEnv)')
   }
-  const gitcodeLogin = gitcode !== undefined && gitcode.state === 'up' ? gitcode.login : undefined
-  const listRepos = gitcodeLogin !== undefined && token !== undefined ? gitcodeRepos : []
-  const gitcodeToken: string = token ?? ''
+  const listToken: string | undefined = identityConfig === undefined ? undefined : tokenOf(options.env ?? {}, identityConfig.tokenEnv)
+  const usableToken: string = listToken ?? ''
+  const listRepos = gitcodeLogin !== undefined && listToken !== undefined ? gitcodeRepos : []
   for (const repo of listRepos) {
     let stop = false
     let listed = 0
@@ -221,7 +229,7 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
       const url = `https://gitcode.com/api/v5/repos/${repo.owner}/${repo.name}/pulls?state=open&per_page=${LIST_PER_PAGE}&page=${page}`
       let result: { status: number; text: string }
       try {
-        result = await transport.get(url, { Accept: 'application/json', 'private-token': gitcodeToken })
+        result = await transport.get(url, { Accept: 'application/json', 'private-token': usableToken })
       } catch (error) {
         gitcodeProblems.push(`${repo.owner}/${repo.name}: page ${page} failed (${error instanceof Error ? error.message : String(error)})`)
         stop = true
@@ -263,8 +271,10 @@ export async function seedPullRequests(options: SeedOptions): Promise<SeedOutcom
       }
     }
   }
+  // Any note (skip, truncation, page failure) is a named degradation; only a
+  // total failure without a single item is `down`.
   const gitcodeState: SeedHealth['state'] =
-    gitcodeProblems.length === 0 ? 'up' : gitcodeProblems.some((entry) => /skipped|HTTP|failed|not a JSON list/.test(entry)) ? 'degraded' : 'up'
+    gitcodeProblems.length === 0 ? 'up' : seeded.some((item) => item.platform === 'gitcode') || !gitcodeProblems.some((entry) => /HTTP|failed|not a JSON list/.test(entry)) ? 'degraded' : 'down'
 
   const health: SeedHealth[] = [
     { ...githubHealth, state: githubState, message: githubProblems.length === 0 ? null : [...githubProblems, ...note].join('; ') },

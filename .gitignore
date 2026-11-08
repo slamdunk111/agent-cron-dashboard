@@ -8,3 +8,5 @@ coverage/
 .env.*
 
 build/
+.omo/
+.omo/
