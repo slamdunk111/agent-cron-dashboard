@@ -65,7 +65,18 @@ function filled(value: string | null | undefined): string | null {
 /** A `.diff` hunk header: `@@ -a,b +c,d @@`. */
 const HUNK = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/m
 
-/** Count `+`/`-` body lines of a unified patch, ignoring file headers and hunks. */
+/** Header lines that may precede a hunk: `--- a/x`, `+++ b/x`, and a `a/x`
+ *  pattern is shared by from-file, to-file and rename headers. */
+const OLD_FILE_HEADER = /^--- (?:a\/|\/dev\/null)/
+
+/**
+ * Count `+`/`-` body lines of a unified patch.
+ *
+ * Inside a hunk only `--- ` marks the old-file header (a deleted line always
+ * keeps its prefix, so a deleted `-- x` shows up as `--- -- x` only when it IS
+ * a header; a real deleted Markdown rule arrives as `- -- x`). `+++ ` likewise
+ * only appears as the to-file header; a real added line reads `+- or +x`.
+ */
 export function countDiffLines(diff: string): { additions: number; deletions: number } {
   let additions = 0
   let deletions = 0
@@ -75,8 +86,12 @@ export function countDiffLines(diff: string): { additions: number; deletions: nu
       inHunk = HUNK.test(line)
       continue
     }
+    if (line.startsWith('diff --git ')) {
+      inHunk = false
+      continue
+    }
     if (!inHunk) continue
-    if (line.startsWith('+++') || line.startsWith('---')) continue
+    if (OLD_FILE_HEADER.test(line)) continue
     if (line.startsWith('+')) additions += 1
     else if (line.startsWith('-')) deletions += 1
   }

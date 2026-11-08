@@ -506,3 +506,20 @@ describe('R5 hardening (bytes, encoding, malformed body)', () => {
     expect(request.indexOf('?ref=')).toBe(request.lastIndexOf('?'))
   })
 })
+
+describe('patch counting ignores header look-alikes (R7-P1-01)', () => {
+  it('counts a deleted `-- comment` and an added `++ x` line', () => {
+    const patch = [
+      'diff --git a/docs/x.md b/docs/x.md',
+      '--- a/docs/x.md',
+      '+++ b/docs/x.md',
+      '@@ -1,3 +1,3 @@ heading',
+      ' keep',
+      '--- this is a deleted markdown rule',
+      '- removed',
+      '+++ this is an added double-plus line',
+      '+ added',
+    ].join('\n')
+    expect(countDiffLines(patch)).toEqual({ additions: 2, deletions: 2 })
+  })
+})
