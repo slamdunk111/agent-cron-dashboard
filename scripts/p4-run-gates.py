@@ -88,6 +88,10 @@ def gate_g1(window: str, no_live: bool) -> int:
     cmd = ["node", "scripts/smoke-p4.mjs", "--window-minutes", window, "--action-cards=off"]
     if no_live:
         cmd.append("--no-live")
+    # Truncate again immediately before the step: an interrupted earlier run
+    # can leave a smoke child appending to the same fixed log, and a re-run must
+    # start from an empty one (the gate judges exactly one run).
+    log.write_text("", encoding="utf-8")
     rc = run(log, cmd)
     finish(log, rc)
     return run(log, ["node", "scripts/p4-gate-check.mjs", "--gate", "G1", "--log", str(log), "--window-minutes", "0" if no_live else window])
