@@ -172,20 +172,30 @@ function mergeMethodsOf(pull: GitCodePullJson): readonly MergeMethod[] {
 }
 
 /** Whether every host-side merge guard passes (the host's own conjunction). */
-function mergeReadyOf(pull: GitCodePullJson): boolean {
+/**
+ * Whether the host would merge this request for the SIGNED-IN user.
+ *
+ * `merged_by_user_passed` / `merge_by_self_passed` describe the reader's own
+ * rights (gitcode answers "you have no PUSH permission" for anonymous readers),
+ * so they are the only guards that may be exempted — and only when the reader
+ * is not authenticated: forge defines `mergeReady` as "would the host merge
+ * this now FOR THE SIGNED-IN USER". With a token, their failure means the
+ * signed-in user cannot merge, so it must block readiness.
+ * @param authenticated - whether the provider read with a token.
+ */
+function mergeReadyOf(pull: GitCodePullJson, authenticated: boolean): boolean {
   const mergeState = pull.mergeable_state
   if (mergeState === undefined) return false
   const guards = Object.entries(mergeState).filter(([key, value]) => key.endsWith('_passed') && typeof value === 'boolean')
-  // `merged_by_user_passed` / `merge_by_self_passed` describe the READER's own
-  // permissions (gitcode answers "you have no PUSH permission" for anonymous
-  // readers); they are the only guards excluded here. Every other guard — CI,
-  // conflicts, work-in-progress, discussions, approvals — blocks merge readiness.
   const blocking = guards
     .filter(([key, value]) => value === false)
     .map(([key]) => key)
-    .filter((key) => key !== 'merged_by_user_passed' && key !== 'merge_by_self_passed')
+    .filter((key) => !(READER_ONLY_GUARDS.has(key) && !authenticated))
   return blocking.length === 0
 }
+
+/** Guards that describe the reader's own permissions rather than the request. */
+const READER_ONLY_GUARDS: ReadonlySet<string> = new Set(['merged_by_user_passed', 'merge_by_self_passed'])
 
 /**
  * Aggregate review outcome, limited to what the host actually publishes.
@@ -218,6 +228,7 @@ export function snapshotOf(
   pull: GitCodePullJson,
   ref: ChangeRequestRef,
   diffSizes?: { additions: number; deletions: number },
+  authenticated = false,
 ): ChangeRequestSnapshot {
   const { rollup } = ciStateOf(pull)
   const state = stateOf(pull)
@@ -234,7 +245,7 @@ export function snapshotOf(
     additions: diffSizes?.additions ?? 0,
     deletions: diffSizes?.deletions ?? 0,
     mergeability: mergeabilityOf(pull),
-    mergeReady: state === 'open' && pull.draft !== true && mergeReadyOf(pull),
+    mergeReady: state === 'open' && pull.draft !== true && mergeReadyOf(pull, authenticated),
     mergeMethods: mergeMethodsOf(pull),
     reviewDecision: reviewDecisionOf(pull),
     checks: checksOf(pull, ref),

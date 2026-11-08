@@ -172,6 +172,8 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
   const served = (host: string | undefined): boolean =>
     typeof host === 'string' && hosts.includes(host.toLowerCase())
   const transportFor = (host: string): TransportFeatures => (served(host) ? transport : { ...transport, token: undefined })
+  /** Whether this provider reads with a token (drives `mergeReady` semantics). */
+  const authenticated = typeof transport.token === 'string' && transport.token.length > 0
 
   async function readPull(ref: ForgeChangeRequestRef, signal: AbortSignal): Promise<ChangeRequestSnapshot | ForgeFailure> {
     if (!served(ref.repository.host)) {
@@ -182,13 +184,16 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
     if (!result.ok) return result.failure
     const parsed = parseJson(result.text)
     if (!parsed.ok) return parsed.failure
+    if (typeof parsed.value !== 'object' || parsed.value === null) {
+      return { code: 'unavailable', message: 'unexpected pull payload (not an object)' }
+    }
     const pull = parsed.value as GitCodePullJson
-    if (config.filesPageSize === 0) return snapshotOf(pull, ref)
+    if (config.filesPageSize === 0) return snapshotOf(pull, ref, undefined, authenticated)
     const sizes = await readSizes(gitcode, signal)
     // A failed or oversized files page makes the line counts unknowable, and
     // reporting 0/0 would be a wrong number rather than an honest failure.
     if ('code' in sizes) return sizes
-    return snapshotOf(pull, ref, sizes)
+    return snapshotOf(pull, ref, sizes, authenticated)
   }
 
   /**

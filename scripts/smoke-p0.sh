@@ -44,7 +44,7 @@ else
 fi
 
 step "0. header" "date/host/uptime/load (owner 9b: timing evidence needs a baseline head)"
-{ date -Is; uname -sr; uptime; echo "nproc=$(nproc)"; free -g | head -2; } 2>&1 | tee -a "$LOG"
+{ date -Is; uname -sr; uptime; echo "nproc=$(nproc)"; free -g | head -2; echo "repo HEAD: $(git -C "$ROOT" log -1 --format=%H 2>/dev/null || echo 'not a git tree')"; } 2>&1 | tee -a "$LOG"
 
 step "1. build bundles" "node scripts/build-bundles.mjs"
 (cd "$ROOT" && node scripts/build-bundles.mjs) >>"$LOG" 2>&1
@@ -58,8 +58,11 @@ step "1c. unit gate second engine: typecheck" "pnpm typecheck"
 (cd "$ROOT" && run_pnpm run typecheck) >>"$LOG" 2>&1
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 
-step "2. unit tests" "pnpm test"
+step "2. unit tests" "pnpm test (+ node scripts/test-count.mjs)"
 (cd "$ROOT" && run_pnpm run test) >>"$LOG" 2>&1
+rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
+# Machine count source for reports: one line, per file plus TOTAL.
+{ cd "$ROOT" && node scripts/test-count.mjs; } >>"$LOG" 2>&1
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 
 step "3. config corpus (JSON Schema + typed validator)" "node --experimental-strip-types scripts/validate-config.mjs"

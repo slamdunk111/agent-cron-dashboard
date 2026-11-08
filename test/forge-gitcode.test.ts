@@ -523,3 +523,37 @@ describe('patch counting ignores header look-alikes (R7-P1-01)', () => {
     expect(countDiffLines(patch)).toEqual({ additions: 2, deletions: 2 })
   })
 })
+
+describe('mergeReady follows the signed-in user (R8-01)', () => {
+  const readerBlocked = {
+    ...pullOpen,
+    state: 'open',
+    merged_at: null,
+    draft: false,
+    mergeable_state: {
+      ...(pullOpen.mergeable_state as Record<string, unknown>),
+      merged_by_user_passed: false,
+      ci_state_passed: true,
+      mr_state_passed: true,
+      conflict_passed: true,
+    },
+  }
+
+  it('is false for a token holder without PUSH rights', () => {
+    const snapshot = snapshotOf(readerBlocked, ref, undefined, true)
+    expect(snapshot.mergeReady).toBe(false)
+  })
+
+  it('ignores the reader guard only when reading anonymously', () => {
+    const snapshot = snapshotOf(readerBlocked, ref, undefined, false)
+    expect(snapshot.mergeReady).toBe(true)
+  })
+
+  it('the provider passes its own authentication state through', async () => {
+    const { impl } = fixtureFetch()
+    const authed = makeGitCodeProvider(validateConfig({}), { fetch: impl, token: 'secret' })
+    const result = await authed.fetch([ref], signalOf())
+    const snapshot = result.get(snapshotKey(ref)) as ChangeRequestSnapshot
+    expect(snapshot.mergeReady).toBe(false)
+  })
+})
