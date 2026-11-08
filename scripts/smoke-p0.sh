@@ -104,6 +104,21 @@ step "6. row activation on a live host" "dsh --profile $PROFILE web --port $BOOT
 # Asserts the row's own line `workbench: storage domains opened (N)`, printed by
 # the service once its seven domains are open — not just that HTTP serves
 # (handoff §4-9: the web profile filters plugin info logs, so the row echoes it).
+# A server left behind by an earlier interrupted run would occupy the port and
+# make this step fail for a reason unrelated to the build; clear it first and
+# verify the port is free before starting.
+stale=0
+for pid in $(ls /proc | grep -E '^[0-9]+$'); do
+  cmd="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)" || continue
+  case "$cmd" in *"dsh --profile $PROFILE"*"--port $BOOT_PORT"*) kill "$pid" 2>/dev/null && stale=1;; esac
+done
+[ "$stale" -eq 1 ] && sleep 2 && echo "note: cleared a stale server on port $BOOT_PORT from an earlier run" | tee -a "$LOG"
+if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -q ":$BOOT_PORT"; then
+  echo "port $BOOT_PORT is still occupied by a foreign process; refusing to judge this step" | tee -a "$LOG"
+  rc_of 1; FAILED=1
+else
+  echo "port $BOOT_PORT free before boot" | tee -a "$LOG"
+fi
 bootlog="$(mktemp)"
 ( dsh --profile "$PROFILE" --no-open --port $BOOT_PORT --host 127.0.0.1 >"$bootlog" 2>&1 & )
 READY=0
@@ -121,6 +136,10 @@ done
 for pid in $(ls /proc | grep -E '^[0-9]+$'); do
   cmd="$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)" || continue
   case "$cmd" in *"dsh --profile $PROFILE"*"--port $BOOT_PORT"*) kill "$pid" 2>/dev/null;; esac
+done
+for _ in $(seq 1 10); do
+  if ! { command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -q ":$BOOT_PORT"; }; then break; fi
+  sleep 1
 done
 { echo "boot output:"; cat "$bootlog"; echo "row open line found: $DOMAINS_OPENED"; } | tee -a "$LOG"
 if [ "$READY" -eq 1 ] && [ "$DOMAINS_OPENED" -eq 1 ]; then
