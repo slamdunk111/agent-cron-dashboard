@@ -310,3 +310,11 @@ describe('documented gaps stay documented', () => {
     for (const row of noted) expect(row.note).toMatch(/diff doc|404|authenticated/)
   })
 })
+
+describe('plugin row exports', () => {
+  it('declares the row name and the forge injection', async () => {
+    const mod = await import('../packages/dsh-forge-gitcode/src/index.ts')
+    expect(mod.name).toBe('forge-gitcode')
+    expect(mod.inject).toEqual(['forge'])
+  })
+})

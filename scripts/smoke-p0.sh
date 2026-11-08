@@ -163,5 +163,11 @@ process.exit(ok ? 0 : 1)
 rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
 cat "$LIVE_LOG" | tee -a "$LOG"
 
+step "9. forge-gitcode live snapshot" "node scripts/watch-gitcode.mjs openJiuwen/jiuwenswarm#9724 30"
+# P1 gate: a real GitCode change request yields a snapshot with a non-empty CI
+# field. Reads public endpoints, no token needed.
+(cd "$ROOT" && node scripts/watch-gitcode.mjs openJiuwen/jiuwenswarm#9724 30) >>"$LOG" 2>&1
+rc=$?; rc_of "$rc"; [ $rc -ne 0 ] && FAILED=1
+
 printf '\n== summary: %s\n' "$([ $FAILED -eq 0 ] && echo PASS || echo FAIL)" | tee -a "$LOG"
 exit $FAILED
