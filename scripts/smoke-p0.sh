@@ -43,6 +43,13 @@ else
   run_pnpm() { corepack pnpm "$@"; }
 fi
 
+# A smoke run must describe the tree it ran on: refuse to start on a dirty
+# worktree, so the HEAD recorded below really is the code that was measured.
+if [ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ]; then
+  echo "refusing to run: $ROOT has uncommitted changes (commit first so the log binds to a HEAD)" | tee -a "$LOG"
+  exit 2
+fi
+
 step "0. header" "date/host/uptime/load (owner 9b: timing evidence needs a baseline head)"
 { date -Is; uname -sr; uptime; echo "nproc=$(nproc)"; free -g | head -2; echo "repo HEAD: $(git -C "$ROOT" log -1 --format=%H 2>/dev/null || echo 'not a git tree')"; } 2>&1 | tee -a "$LOG"
 

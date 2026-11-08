@@ -557,3 +557,21 @@ describe('mergeReady follows the signed-in user (R8-01)', () => {
     expect(snapshot.mergeReady).toBe(false)
   })
 })
+
+describe('payload shape guards (R8/R9 P2)', () => {
+  it('fetch maps a null payload to unavailable instead of throwing', async () => {
+    const impl = (async () => new Response('null', { status: 200 })) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    expect((await provider.fetch([ref], signalOf())).get(snapshotKey(ref))).toMatchObject({ code: 'unavailable' })
+  })
+
+  it('fileText maps a null contents payload to unavailable instead of throwing', async () => {
+    const impl = (async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.includes('/contents/')) return new Response('null', { status: 200 })
+      return Response.json(pullOpen)
+    }) as unknown as typeof fetch
+    const provider = makeGitCodeProvider(validateConfig({}), { fetch: impl })
+    expect(await provider.fileText(ref, 'sha', 'a/b', signalOf())).toMatchObject({ code: 'unavailable' })
+  })
+})

@@ -277,6 +277,9 @@ export function makeGitCodeProvider(config: Required<Config>, features: Transpor
       if (!result.ok) return result.failure
       const parsed = parseJson(result.text)
       if (!parsed.ok) return parsed.failure
+      if (typeof parsed.value !== 'object' || parsed.value === null) {
+        return { code: 'unavailable', message: `unexpected contents payload for ${path}` }
+      }
       const entry = parsed.value as { download_url?: string; content?: string; encoding?: string }
       if (typeof entry.download_url === 'string') {
         // `download_url` points at raw.gitcode.com; it never receives the token.
