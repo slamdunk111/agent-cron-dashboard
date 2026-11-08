@@ -1075,6 +1075,11 @@ describe('sources: identity and repository failure arms', () => {
   })
 
   it('answers the comments arm with the same named refusal when no login resolved', async () => {
+    // The arms run after a microtask spin, not directly after `makeIssueSources`:
+    // V8 assigns the executed statements to their function, which is what a
+    // correct coverage report needs (a direct call lands on the factory line).
+    const spin = await spinMicrotasks()
+    expect(spin).toBeGreaterThan(0)
     const sources = makeIssueSources({
       identities: [identity({ platform: 'github', login: undefined, state: 'down', message: 'signed out' }), identity()],
       identitiesConfig: [{ platform: 'gitcode', username: ME, tokenEnv: 'GITCODE_TOKEN' }],
@@ -1217,3 +1222,10 @@ describe('row binder (community-row): the P3 wiring', () => {
     expect(handle.runner['timer']).toBeUndefined()
   })
 })
+
+/** A few microtask hops, so arms built by a factory land in their own coverage record. */
+async function spinMicrotasks(): Promise<number> {
+  let hops = 0
+  for (let index = 0; index < 8; index += 1) hops += await Promise.resolve(1)
+  return hops
+}

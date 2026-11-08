@@ -58,32 +58,33 @@ export function makeIssueSources(options: IssueSourceOptions): IssueSourcesResul
   const sources: Partial<Record<NonNullable<Platform>, IssuePlatformSource>> = {}
   const unavailable: Partial<Record<NonNullable<Platform>, string>> = {}
   const githubLogin = options.identities.find((identity) => identity.platform === 'github' && identity.state !== 'down')?.login
-  const missingLogin = { ok: false, failure: { code: 'unauthenticated', message: 'no GitHub login resolved' } } as const
+  const noLoginRefusal: ListAnswer = { ok: false, failure: { code: 'unauthenticated', message: 'no GitHub login resolved' } }
+  // The one refusal every GitHub arm answers when the row resolved no login.
   let listReads = 0
 
   // ---- GitHub ----------------------------------------------------------------
-  const githubReader = (): GithubIssueReader =>
-    new GithubIssueReader({ login: githubLogin ?? '', transport, now, headers: options.githubHeaders })
+  const githubReader = (login: string): GithubIssueReader => new GithubIssueReader({ login, transport, now, headers: options.githubHeaders })
   let cachedList: { at: number; answer: ListAnswer } | undefined
   sources.github = {
     async list(): Promise<ListAnswer> {
-      if (githubLogin === undefined) return missingLogin
+      if (githubLogin === undefined) return noLoginRefusal
       const at = now().getTime()
       if (cachedList !== undefined && at - cachedList.at < GITHUB_LIST_REFRESH_MS) return cachedList.answer
       listReads += 1
-      const answer: ListAnswer = await githubReader().listPage(1)
+      const answer: ListAnswer = await githubReader(githubLogin).listPage(1)
       cachedList = { at, answer }
       return answer
     },
+    // A login-less row answers every arm with one named refusal. The decision
+    // is a value looked up lazily, so the branch body stays empty and a reader
+    // that misses it fails loud instead of guessing.
     async detail(ref: IssueRef, etag: string | undefined): Promise<PollResult<IssueDetail | 'unchanged'>> {
-      // The guard is a value (not an awaited arm), so it survives coverage
-      // accounting and stays one line in the log.
-      if (githubLogin === undefined) return missingLogin
-      return githubReader().detail(ref, etag)
+      if (githubLogin !== undefined) return githubReader(githubLogin).detail(ref, etag)
+      return noLoginRefusal
     },
     async lastComment(ref: IssueRef, count: number): Promise<PollResult<LastComment>> {
-      if (githubLogin === undefined) return missingLogin
-      return githubReader().lastComment(ref, count)
+      if (githubLogin !== undefined) return githubReader(githubLogin).lastComment(ref, count)
+      return noLoginRefusal
     },
   }
   if (githubLogin === undefined) {
