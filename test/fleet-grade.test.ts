@@ -42,7 +42,9 @@ describe('fleet grading (P5: four keys only)', () => {
   })
 
   it('keeps the error-record keys reserved for P6 (P5 never emits them)', () => {
-    expect(P6_RESERVED_KINDS).toEqual(['error-record-opened', 'error-record-reopened', 'error-record-verified'])
+    // derived from the frozen table: the three error-record keys and nothing else
+    expect([...P6_RESERVED_KINDS].sort()).toEqual(['error-record-opened', 'error-record-reopened', 'error-record-verified'])
+    expect(P6_RESERVED_KINDS.every((kind) => CHANGE_LEVELS[kind] !== undefined)).toBe(true)
     for (const kind of P5_EMITTABLE_KINDS) {
       expect(P6_RESERVED_KINDS).not.toContain(kind)
       expect(CHANGE_LEVELS[kind]).toBeTruthy()

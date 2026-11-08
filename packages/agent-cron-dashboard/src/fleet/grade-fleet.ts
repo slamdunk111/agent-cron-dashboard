@@ -21,8 +21,10 @@ export interface FleetGraded {
 /** Keys P5 may emit (subset of the frozen table). */
 export const P5_EMITTABLE_KINDS = ['run-failed', 'run-recovered', 'source-health-down', 'source-health-recovered'] as const satisfies readonly ChangeKind[]
 
-/** Keys reserved for P6 (P5 source code must not reference them). */
-export const P6_RESERVED_KINDS = ['error-record-opened', 'error-record-reopened', 'error-record-verified'] as const satisfies readonly ChangeKind[]
+/** Keys reserved for P6, derived from the frozen table so a table edit cannot drift. */
+export const P6_RESERVED_KINDS: readonly ChangeKind[] = (
+  Object.keys(CHANGE_LEVELS) as ChangeKind[]
+).filter((kind) => kind.startsWith('error-record-'))
 
 /** Storage key of a run/job subject (`<sourceId>/<jobId>`, design §8). */
 export function runKey(sourceId: string, run: FleetRun, job?: FleetJob): string {
