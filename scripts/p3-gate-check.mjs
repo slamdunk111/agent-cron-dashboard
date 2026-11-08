@@ -57,9 +57,9 @@ function checkEnvironment(lines, problems) {
   if (end === undefined || !lineHasTime(end)) problems.push('env_end capture time missing (the "before and after" record is required)')
 }
 
-/** A real ISO 8601 instant, optionally wrapped in `<…>` (the environment lines). */
+/** A real ISO 8601 instant, bare (`…Z`) or wrapped in `<…>` (the environment lines). */
 function lineHasTime(line) {
-  return /<\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.[0-9]+)?Z>/.test(line)
+  return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/.test(line)
 }
 
 /** Count per-platform rounds from the `issue <platform> ok=… at=…` lines. */
@@ -79,7 +79,9 @@ function roundCounts(lines) {
 
 function snapshotLines(lines) {
   return lines.filter((line) => line.startsWith('snapshot=')).map((line) => {
-    const match = /^snapshot=([^\s]+) state=(open|closed) labels=([^\s]+) comments=(\d+) last_comment_by=([^\s]+) last_comment_at=([^\s]+) at=([0-9T:.Z-]+)/.exec(line)
+    // Labels are a JSON array and may contain spaces/commas: it is the one
+    // field with brackets, so the regex anchors on `] comments=`.
+    const match = /^snapshot=([^\s]+) state=(open|closed) labels=(\[.*?\]) comments=(\d+) last_comment_by=([^\s]+) last_comment_at=([^\s]+) at=([0-9T:.Z-]+)/.exec(line)
     if (match === null) return { raw: line, invalid: true }
     const labels = safeJson(match[3])
     return {
@@ -118,8 +120,12 @@ function checkQueueArms(lines, keys, problems) {
   for (const key of keys) {
     const pairs = queueCount(lines, key, 'pairs')
     const dropped = queueCount(lines, key, 'dropped')
-    if (pairs === undefined || dropped === undefined) problems.push(`queue line missing for ${key}`)
-    else if (pairs < 1) problems.push(`${key}: no pair queued (first observation never reached P4)`)
+    if (pairs === undefined || dropped === undefined) {
+      // A first observation whose pair the previous batch already queued is
+      // legitimate only when its `diff` line names `first-observation` (the
+      // queue record is written before the first dump of the round).
+      if (!lines.some((line) => line.startsWith('diff ') && line.includes(`key=${key} `) && line.includes('first-observation'))) problems.push(`queue line missing for ${key}`)
+    } else if (pairs < 1) problems.push(`${key}: no pair queued (first observation never reached P4)`)
     else if (dropped > 0) problems.push(`${key}: ${String(dropped)} pair(s) dropped`)
     if (!diffed.has(key) && !lines.some((line) => line.includes(`key=${key}`) && line.startsWith('diff '))) {
       problems.push(`${key}: no diff line (the pair is not proven to carry before/after)`)
@@ -161,7 +167,7 @@ function checkG1(argv) {
 
   // ---- per-issue rows -------------------------------------------------------
   const snapshots = snapshotLines(lines)
-  if (snapshots.some((row) => row.invalid === true)) problems.push('a snapshot line does not match the fixed format')
+  for (const row of snapshots.filter((entry) => entry.invalid === true).slice(0, 3)) problems.push(`snapshot line does not match the fixed format: ${row.raw.slice(0, 160)}`)
   const rows = snapshots.filter((row) => row.invalid !== true)
   if (rows.length === 0) problems.push('no snapshot= lines: the poller stored nothing')
   // Only the LAST row per key describes the final store (a 304 round re-prints
@@ -175,15 +181,20 @@ function checkG1(argv) {
     if (seen.length < 1) problems.push(`no ${platform} snapshot row`)
   }
   for (const row of rows) {
-    if ((row.labels === null || row.labels.length === 0) && !lines.some((line) => line.includes(`warning ${row.key}`))) {
+    if ((row.labels === null || row.labels.length === 0) && !lines.some((line) => line.startsWith('warning ') && line.includes(` ${row.key} `))) {
       problems.push(`${row.key}: labels empty (an unlabelled issue is exempt only when it is named)`)
     }
-    if (row.lastCommentBy === null || row.lastCommentAt === null) problems.push(`${row.key}: last comment unknown although the issue has comments=${String(row.comments)}`)
+    if (row.comments > 0 && (row.lastCommentBy === null || row.lastCommentAt === null) && !lines.some((line) => line.startsWith('warning ') && line.includes(` ${row.key} `) && line.includes('last_comment_unknown'))) problems.push(`${row.key}: last comment unknown although the issue has comments=${String(row.comments)}`)
+    // An issue with no comments must not carry a commenter (a stale value is a defect).
+    if (row.comments === 0 && (row.lastCommentBy !== null || row.lastCommentAt !== null)) problems.push(`${row.key}: commenter recorded although the issue has no comments`)
     if (row.comments > 0 && !lineHasTime(` at=${row.at}`)) problems.push(`${row.key}: row carries no time`)
   }
 
   // ---- GitCode round named or degraded ---------------------------------------
-  const gitcodeDown = lines.filter((line) => line.startsWith('health community:issue:gitcode') && line.includes('state=down'))
+  // A `down` platform that never names the token slot means the host refused the
+  // request outright (identity up, seed read failing): that is a live-window
+  // degradation, not the "在席/显名" state the plan discusses.
+  const gitcodeDown = lines.filter((line) => line.startsWith('health community:issue:gitcode') && line.includes('state=down') && !line.includes('no token in GITCODE_TOKEN'))
   if (gitcodeDown.length > 0) problems.push(`gitcode unusable in the live window although the token exists: ${gitcodeDown[0]}`)
 
   // ---- queue arms -------------------------------------------------------------

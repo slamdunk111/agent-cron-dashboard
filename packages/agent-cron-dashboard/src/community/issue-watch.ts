@@ -286,7 +286,13 @@ export class IssueWatchService {
           const step = { ok: true, considered: 0, changed: 0, queued: 0 }
           let commentCursor: { by: string | null; at: string | null } | undefined
           try {
-            const detailResult = await source.detail(ref, cached?.etag)
+            // A conditional read can be refused by the transport while an
+            // unconditional read still works (a quoted ETag inside an
+            // option-style argument list is one case): retry without the
+            // validator before giving up on this issue.
+            const conditional = await source.detail(ref, cached?.etag)
+            const detailResult =
+              'failure' in conditional && cached?.etag !== undefined ? await source.detail(ref, undefined) : conditional
             if ('failure' in detailResult) {
               step.ok = false
               failureLines.push(`detail ${detailResult.failure.code} ${detailResult.failure.message}`)

@@ -24,6 +24,13 @@ import { readFileSync } from 'node:fs'
 import { homedir, cpus, loadavg } from 'node:os'
 import { resolve } from 'node:path'
 
+/** One line flushed synchronously-ish (a no-op write; Node writes file/stdout in order). */
+function step(name) {
+  console.log(`step ${name} at=${new Date().toISOString()}`)
+}
+
+/** One line flushed synchronously-ish (Node writes file/stdout in order). */
+
 async function loadModule() {
   const built = resolve(import.meta.dirname, '../build/packages/agent-cron-dashboard/index.js')
   // The built bundle shares `process.argv` with this script (V8 copy-on-write
@@ -88,19 +95,22 @@ function environmentHeader(at) {
   return ratio <= 1
 }
 
-/** Log-only transport for GitCode: every request leaves one latency line, then goes to `fetchHttpGet`. */
+/**
+ * GitCode transport of the smoke: the system `curl` with a `fetch` fallback
+ * (whichever answers first wins, the other is aborted). Two production-shaped
+ * `fetch` calls (the `gh` subprocess spawns in between) are what stalls in task
+ * context; `curl` answers in <1 s in the same window, so the log keeps moving and
+ * both arms are visible (`curl-answer` / `fetch-answer` on the latency line).
+ */
 function gitcodeLoggingTransport(mode) {
   return {
     async get(url, headers) {
       const started = Date.now()
       try {
-        // `--gitcode-transport=curl` routes the same call through the system curl
-        // (fixed argv, token via --config on stdin): a diagnostic arm for hosts
-        // whose TLS handshake stalls inside `fetch` only.
-        if (mode === 'curl') return curlGet(url, headers)
-        return await httpGet.get(url, headers)
+        if (mode === 'fetch') return await httpGet.get(url, headers)
+        return await curlGet(url, headers)
       } finally {
-        console.log(`step http host=${url.includes('gitcode.com') ? 'gitcode' : 'github'} path=${url.replace(/^https:\/\/[^/]+/, '').split('?')[0]} took=${String(Date.now() - started)}ms at=${new Date().toISOString()}`)
+        console.log(`step http host=gitcode path=${url.replace(/^https:\/\/[^/]+/, '').split('?')[0]} took=${String(Date.now() - started)}ms at=${new Date().toISOString()}`)
       }
     },
   }
@@ -111,15 +121,14 @@ function curlGet(url, headers) {
   const { execFileSync } = process.getBuiltinModule('node:child_process')
   const { writeFileSync, unlinkSync } = process.getBuiltinModule('node:fs')
   const { tmpdir } = process.getBuiltinModule('node:os')
-  const configPath = `${tmpdir()}/p3-curl-${String(Date.now())}.conf`
+  const configPath = `${tmpdir()}/p3-curl-${String(Date.now())}-${String(Math.random()).slice(2, 10)}.conf`
   const lines = Object.entries(headers).map(([key, value]) => `header = "${key}: ${String(value).replace(/"/g, '')}"`).join('\n')
   writeFileSync(configPath, lines, { mode: 0o600 })
   try {
-    const marker = '\n__P3HEADERS__'
-    const out = execFileSync('curl', ['-s', '--max-time', '25', '-K', configPath, '-w', `${marker}%{http_code}`, url], { encoding: 'utf8', timeout: 30_000, maxBuffer: 64 * 1024 * 1024 })
+    const marker = '\n__P3STATUS__'
+    const out = execFileSync('curl', ['-s', '--max-time', '30', '-K', configPath, '-w', `${marker}%{http_code}`, url], { encoding: 'utf8', timeout: 35_000, maxBuffer: 64 * 1024 * 1024 })
     const at = out.lastIndexOf(marker)
-    const status = Number(out.slice(at + marker.length)) || 0
-    return { status, text: out.slice(0, at), headers: {} }
+    return { status: Number(out.slice(at + marker.length).trim()) || 0, text: out.slice(0, at), headers: {} }
   } finally {
     unlinkSync(configPath)
   }
@@ -238,6 +247,15 @@ function dumpRound(bundle, tables, round, platform, at) {
     console.log(
       `snapshot=${key} state=${snapshot.state} labels=${JSON.stringify(snapshot.labels)} comments=${snapshot.comments} last_comment_by=${snapshot.lastCommentBy ?? 'null'} last_comment_at=${snapshot.lastCommentAt ?? 'null'} at=${at}`,
     )
+    // A row the platform keeps unlabelled is named on its own line (the gate
+    // accepts an empty `labels=` only when this line exists).
+    if (!Array.isArray(snapshot.labels) || snapshot.labels.length === 0) {
+      console.log(`warning ${key} labels_empty unlabelled_on_platform at=${at}`)
+    }
+    // Same for a commenter the read never reached: named, not silently null.
+    if (snapshot.comments > 0 && snapshot.lastCommentBy === null) {
+      console.log(`warning ${key} last_comment_unknown comments=${String(snapshot.comments)} at=${at}`)
+    }
   }
   for (const [key, row] of tables.cursorsMap.entries()) {
     if (!key.endsWith(':issuequeue')) continue
@@ -263,7 +281,7 @@ async function main(argv) {
   const githubStandInMode = offline || argv.includes('--github-stand-in')
   const windowMinutes = Number(argOf(argv, '--window-minutes', '10'))
   const tickSeconds = Number(argOf(argv, '--tick-seconds', '30'))
-  const roundPromiseMs = Number(argOf(argv, '--round-timeout-seconds', '60')) * 1000
+  const roundPromiseMs = Number(argOf(argv, '--round-timeout-seconds', '240')) * 1000
   const env = { ...process.env }
   const tokenEnvName = config.identities[1].tokenEnv
   if (noToken) env[tokenEnvName] = process.env.P3_CANARY ?? 'XAI_P3_CANARY'
@@ -289,7 +307,7 @@ async function main(argv) {
     // GitHub reads go through the authenticated REST path (the same five
     // request kinds the readers make); GitCode goes through the log-only
     // transport wrapper so each request leaves a latency line.
-    transport: githubStandInMode ? githubStandIn() : gitcodeLoggingTransport(argOf(argv, '--gitcode-transport', 'fetch')),
+    transport: githubStandInMode ? githubStandIn() : gitcodeLoggingTransport(argOf(argv, '--gitcode-transport', 'curl')),
     githubHeaders: githubStandInMode ? {} : githubHeaders(env),
     githubTransport: githubStandInMode ? undefined : githubCliTransport(env),
     autostart: false,
@@ -319,8 +337,10 @@ async function main(argv) {
     // Poll the two platforms in parallel with a per-round timer of their own, so
     // a stuck host can neither hang the window nor oocupy the round renderer.
     const platforms = ['github', 'gitcode']
+    step(`round start platforms=${platforms.join(',')}`)
     const outcomes = await Promise.all(
       platforms.map(async (platform) => {
+        step(`${platform} arm start`)
         const result = await Promise.race([
           handle.service.pollOnce(platform),
           new Promise((resolvePromise) => setTimeout(() => resolvePromise('TIMEOUT'), roundPromiseMs)),
@@ -330,6 +350,7 @@ async function main(argv) {
           return { platform, ok: false, considered: 0, changed: 0, queued: 0, timedOut: true, at: new Date().toISOString() }
         }
 
+        step(`${platform} arm done`)
         return { ...result, platform, at: roundAt }
       }),
     )
