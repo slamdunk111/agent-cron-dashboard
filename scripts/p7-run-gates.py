@@ -89,7 +89,11 @@ def append(log: Path, line: str) -> None:
 def judge(gate: str, log: Path, extra: list[str] | None = None) -> int:
     """Judge the log that has no verdict yet, then record the verdict once."""
     text = log.read_text(encoding="utf-8")
-    keep = [line for line in text.splitlines() if not line.startswith(f"GATE {gate} ")]
+    keep = [
+        line
+        for line in text.splitlines()
+        if not line.startswith(f"GATE {gate} ") and not line.startswith("EXIT rc=")
+    ]
     log.write_text("\n".join(keep) + "\n", encoding="utf-8")
     cmd = ["node", "scripts/p7-gate-check.mjs", "--gate", gate, "--log", str(log)] + (extra or [])
     proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
