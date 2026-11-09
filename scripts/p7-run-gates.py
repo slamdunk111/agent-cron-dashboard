@@ -27,6 +27,7 @@ Line templates (the judge parses exactly these; keep the two in step):
 from __future__ import annotations
 
 import datetime
+import re
 import hashlib
 import json
 import os
@@ -254,12 +255,13 @@ def gate_g3(log: Path, min_total: int) -> int:
     total, skipped = "0", "0"
     for line in text.splitlines():
         if "Tests " in line and "passed" in line:
-            parts = [token.strip("\x1b[0m|,") for token in line.split()]
-            for index, token in enumerate(parts):
-                if token == "passed":
-                    total = parts[index - 1]
-                if token == "skipped":
-                    skipped = parts[index - 1]
+            match = re.search(r"Tests\s+([0-9]+)\s+passed", line)
+            if match is not None:
+                total = match.group(1)
+        if "skipped" in line and "Tests" not in line:
+            match = re.search(r"([0-9]+)\s+skipped", line)
+            if match is not None:
+                skipped = match.group(1)
     append(log, f"tests total={total} skipped={skipped} at={now()}")
 
     coverage = ["node", "scripts/p2-coverage-gate.mjs", "--lcov", "coverage/lcov.info", "--scope", "src/ui/p7-routes.ts"]
