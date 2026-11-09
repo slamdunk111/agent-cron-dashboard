@@ -79,13 +79,14 @@ def append(log: Path, line: str) -> None:
 
 
 def judge(gate: str, log: Path, extra: list[str] | None = None) -> int:
+    """Judge the log that has no verdict yet, then record the verdict once."""
     cmd = ["node", "scripts/p7-gate-check.mjs", "--gate", gate, "--log", str(log)] + (extra or [])
     proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
-    for line in proc.stdout.splitlines():
+    out = proc.stdout.strip().splitlines()
+    print(out[-1] if out else f"GATE {gate} FAIL (no output)")
+    for line in out:
         if line.startswith(f"GATE {gate} "):
-            # the verdict is part of the audit trail, so it lands in the same log
             append(log, line)
-    print(proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else f"GATE {gate} FAIL (no output)")
     return proc.returncode
 
 
