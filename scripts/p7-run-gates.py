@@ -193,6 +193,8 @@ def gate_g1p(log: Path) -> int:
         if line.strip() == "SELFTEST PASS" or line.strip() == "SELFTEST FAIL":
             append(log, f"# {line.strip()}")
     selftest_ok = rc.returncode == 0 and selftest.returncode == 0
+    # the judge requires the closing line to be present; it starts as the producer's rc
+    append(log, f"EXIT rc={0 if selftest_ok else 1}")
     verdict = judge("G1-P", log)
     _write_exit(log, 0 if selftest_ok and verdict == 0 else 1)
     return 0 if selftest_ok and verdict == 0 else verdict or 1
@@ -229,6 +231,7 @@ def gate_empty(log: Path) -> int:
     rc = subprocess.run(["node", str(E2E / "empty.mjs"), str(log), str((ROOT / "packages/agent-cron-dashboard/src/ui/p7-routes.ts").as_posix())], cwd=ROOT, capture_output=True, text=True, env=env)
     if rc.returncode != 0:
         append(log, f"# empty probe failed: {rc.stderr.strip().splitlines()[:2]}")
+    append(log, f"EXIT rc={0 if rc.returncode == 0 else 1}")
     verdict = judge("G-EMPTY", log)
     _write_exit(log, 0 if rc.returncode == 0 and verdict == 0 else 1)
     return 0 if rc.returncode == 0 and verdict == 0 else verdict or 1
@@ -290,6 +293,7 @@ def gate_g3(log: Path, min_total: int) -> int:
     append(log, mir.stdout.strip()[:200])
     record("MIRROR", mir.returncode == 0)
 
+    append(log, f"EXIT rc={0 if proc.returncode == 0 else 1}")
     verdict = judge("G3", log, ["--min-total", str(min_total)])
     _write_exit(log, 0 if proc.returncode == 0 and verdict == 0 else 1)
     return 0 if proc.returncode == 0 and verdict == 0 else verdict or 1
