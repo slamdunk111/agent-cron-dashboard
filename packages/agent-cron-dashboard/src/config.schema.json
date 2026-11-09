@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nawenyu/agent-cron-dashboard/contracts/config.schema.json",
+  "title": "agent-cron-dashboard workbench config",
+  "description": "Config row of the `workbench` host plugin (design doc §7). Credentials never appear here: only environment variable NAMES are accepted, and any token-shaped literal is rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "identities": {
+      "description": "Per-platform identity the workbench watches for.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/identity"
+      }
+    },
+    "watch": {
+      "$ref": "#/$defs/watch"
+    },
+    "fleet": {
+      "description": "Fleet (cron/scheduled-task) sources.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fleetSource"
+      }
+    },
+    "poll": {
+      "$ref": "#/$defs/poll"
+    },
+    "analysis": {
+      "$ref": "#/$defs/analysis"
+    },
+    "notify": {
+      "$ref": "#/$defs/notify"
+    }
+  },
+  "$defs": {
+    "tokenEnvName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Environment variable name only, upper-case snake case with 3..128 characters (e.g. GITCODE_TOKEN). Credential literals cannot pass the pattern."
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform"
+      ],
+      "properties": {
+        "platform": {
+          "enum": [
+            "github",
+            "gitcode"
+          ]
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "tokenEnv": {
+          "$ref": "#/$defs/tokenEnvName"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "gitcode"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "properties": {
+              "username": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            },
+            "required": [
+              "username"
+            ]
+          }
+        }
+      ]
+    },
+    "watch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repos": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(https?://)?(github\\.com|gitcode\\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(\\.git)?/?$",
+            "maxLength": 2048
+          }
+        },
+        "issuePollIntervalMs": {
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 300000
+        }
+      }
+    },
+    "fleetSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "kind": {
+          "enum": [
+            "hermes-ssh",
+            "jiuwenswarm-local",
+            "ssh-sqlite"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "ssh": {
+          "$ref": "#/$defs/fleetSsh"
+        },
+        "paths": {
+          "$ref": "#/$defs/fleetLocalPaths"
+        },
+        "query": {
+          "$ref": "#/$defs/readOnlyQuery"
+        },
+        "runsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
+        },
+        "jobsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
+        },
+        "errorsQuery": {
+          "$ref": "#/$defs/readOnlyQuery"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "hermes-ssh",
+                  "ssh-sqlite"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ssh": {
+                "$ref": "#/$defs/fleetSsh"
+              }
+            },
+            "required": [
+              "ssh"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "jiuwenswarm-local"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "paths": {
+                "$ref": "#/$defs/fleetLocalPaths"
+              }
+            },
+            "required": [
+              "paths"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ssh-sqlite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ssh": {
+                "$ref": "#/$defs/fleetSsh"
+              },
+              "query": {
+                "$ref": "#/$defs/readOnlyQuery"
+              }
+            },
+            "required": [
+              "ssh",
+              "query"
+            ]
+          }
+        }
+      ]
+    },
+    "fleetSsh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host"
+      ],
+      "properties": {
+        "host": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253,
+          "pattern": "^[A-Za-z0-9_.:@][A-Za-z0-9_.@:-]*$"
+        },
+        "dbPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "errorsLog": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sshOptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?:ConnectTimeout|BatchMode|StrictHostKeyChecking|ServerAliveInterval|ServerAliveCountMax|ConnectTimeout|IdentityFile|Port|User|KeepAliveInterval|ConnectRetries)=[A-Za-z0-9_.:=/,@-]+$"
+          },
+          "maxItems": 8,
+          "description": "Non-interactive ssh options; only a fixed key allowlist (no ProxyCommand/LocalCommand/ProxyJump)."
+        }
+      }
+    },
+    "fleetLocalPaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      }
+    },
+    "readOnlyQuery": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 4096,
+      "not": {
+        "pattern": ";\\s*[^;\\s]"
+      },
+      "description": "Single read-only SELECT statement: starts with SELECT (case-insensitive), may end with trailing semicolons and whitespace, and must not contain a second statement. Enforced by standard 2020-12 validators (no extension keywords); contracts/config-validate.ts validateSshQuery applies the same rule, and P5 must additionally open the database read-only (mode=ro URI), because SELECT can still call side-effecting SQLite functions.",
+      "pattern": "^\\s*[Ss][Ee][Ll][Ee][Cc][Tt]\\b"
+    },
+    "poll": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fleetIntervalMs": {
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 300000
+        },
+        "backoffMaxMs": {
+          "type": "integer",
+          "minimum": 600000,
+          "maximum": 86400000,
+          "default": 3600000
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "llm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "greenRunsToVerify": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 3
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 7,
+          "maximum": 3650,
+          "default": 90
+        }
+      }
+    },
+    "notify": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionCards": {
+          "type": "boolean",
+          "default": true
+        },
+        "digest": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "cron": {
+              "type": "string",
+              "pattern": "^([0-9*,/-]+ ){4}[0-9*,/-]+$",
+              "default": "0 9 * * *",
+              "maxLength": 64
+            },
+            "timeZone": {
+              "type": "string",
+              "pattern": "^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*\\/[A-Za-z][A-Za-z0-9_+-]*)$",
+              "default": "Asia/Shanghai",
+              "maxLength": 64,
+              "description": "P4: IANA zone of the digest cron timing; the schedule service rejects a cron timing without one."
+            },
+            "taskTitle": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "default": "workbench-digest",
+              "description": "P4: title the daily digest task is created and deleted under."
+            }
+          }
+        },
+        "debounceMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000,
+          "default": 300000,
+          "description": "P4 change engine debounce window: the same subject and the same kind inside this window merge into one event."
+        },
+        "backlogMergeCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 2,
+          "description": "P4: high events that accumulated while no root agent was live are aggregated into one card when at least this many piled up."
+        }
+      }
+    },
+    "analysisOutput": {
+      "description": "JSON-Schema-constrained LLM output of the error analyser (P6); also referenced by `contracts/records.ts` IssueAnalysis.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootCauseHypothesis",
+        "impact",
+        "suggestedFix",
+        "confidence",
+        "needMoreInfo"
+      ],
+      "properties": {
+        "rootCauseHypothesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suggestedFix": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "needMoreInfo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

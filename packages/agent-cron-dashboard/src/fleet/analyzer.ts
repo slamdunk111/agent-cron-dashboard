@@ -8,8 +8,8 @@
  * `failed` and the record keeps `analysis.state = pending` while the ledger row
  * stays visible ("未分析" is shown, not hidden).
  */
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import CONFIG_SCHEMA from '../config.schema.json' with { type: 'json' }
 import Ajv2020 from 'ajv/dist/2020.js'
 import type { ErrorSample, FleetJobRecord, IssueRecord } from '../../../../contracts/records.ts'
 import { normalize } from './fingerprint.ts'
@@ -86,20 +86,29 @@ interface CacheEntry {
 /** Default similarity floor below which a variant is re-analysed (Levenshtein ratio). */
 export const DEFAULT_CACHE_SIMILARITY = 0.9
 
-/** Load the frozen schema file the same way the config tests do. */
-function loadSchema(): { schema: Record<string, unknown>; def: Record<string, unknown> } {
-  const root = resolve(import.meta.dirname, '../../../..')
-  const schema = JSON.parse(readFileSync(resolve(root, 'contracts/config.schema.json'), 'utf8')) as Record<string, unknown> & { $defs: Record<string, Record<string, unknown>> }
-  return { schema, def: schema.$defs['analysisOutput']! }
-}
+/**
+ * The frozen schema shipped with the package.
+ *
+ * The bundle cannot hop above its own directory once dsh copies the linked
+ * package into a profile's node_modules, so `scripts/sync-contracts.mjs` keeps a
+ * byte-identical copy of `contracts/config.schema.json` at
+ * `src/config.schema.json`, and esbuild embeds it at bundle time (the JSON import
+ * above). No runtime file read, so the built bundle works from any directory.
+ */
+const SCHEMA = CONFIG_SCHEMA as Record<string, unknown> & { $defs: Record<string, Record<string, unknown>> }
 
-const LOADED = loadSchema()
+/** The `$defs.analysisOutput` definition of the frozen schema. */
+const ANALYSIS_DEF = SCHEMA.$defs['analysisOutput']!
+
+/** Location of this module (kept for diagnostics only; the schema is embedded). */
+export const ANALYSER_MODULE_URL = fileURLToPath(import.meta.url)
+
 
 /** Compile the frozen `$defs.analysisOutput` once (strict Ajv, no custom keywords). */
-const validateOutput = new Ajv2020({ allErrors: true, strict: true }).compile({ ...LOADED.def, $defs: LOADED.schema.$defs })
+const validateOutput = new Ajv2020({ allErrors: true, strict: true }).compile({ ...ANALYSIS_DEF, $defs: SCHEMA.$defs })
 
 /** The schema text handed to the model (the same frozen document, no second copy). */
-export const ANALYSIS_OUTPUT_SCHEMA_TEXT = JSON.stringify(LOADED.def, null, 2)
+export const ANALYSIS_OUTPUT_SCHEMA_TEXT = JSON.stringify(ANALYSIS_DEF, null, 2)
 
 /** Levenshtein distance between two strings (two-row DP, bounded memory). */
 export function levenshtein(a: string, b: string): number {

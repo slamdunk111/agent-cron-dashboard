@@ -45,12 +45,19 @@ const COPIES = [
   },
 ]
 
+COPIES.push({
+  from: 'contracts/config.schema.json',
+  to: 'packages/agent-cron-dashboard/src/config.schema.json',
+  banner: '',
+  raw: true,
+})
+
 let stale = 0
 for (const copy of COPIES) {
   const source = readFileSync(resolve(root, copy.from), 'utf8')
-  // Drop the source's own header comment; the banner replaces it.
-  const body = source.replace(/^\/\*\*[\s\S]*?\*\/\s*/, '')
-  const expected = `${copy.banner}${body}`
+  // JSON copies are byte-identical (no header to strip); TS copies drop the source header.
+  const body = copy.raw === true ? source : source.replace(/^\/\*\*[\s\S]*?\*\/\s*/, '')
+  const expected = copy.raw === true ? body : `${copy.banner}${body}`
   const target = resolve(root, copy.to)
   const current = existsSync(target) ? readFileSync(target, 'utf8') : ''
   if (current === expected) {
