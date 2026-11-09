@@ -92,7 +92,7 @@ def judge(gate: str, log: Path, extra: list[str] | None = None) -> int:
     keep = [
         line
         for line in text.splitlines()
-        if not line.startswith(f"GATE {gate} ") and not line.startswith("EXIT rc=")
+        if not line.startswith("GATE ") and not line.startswith("EXIT rc=")
     ]
     log.write_text("\n".join(keep) + "\n", encoding="utf-8")
     cmd = ["node", "scripts/p7-gate-check.mjs", "--gate", gate, "--log", str(log)] + (extra or [])
@@ -113,8 +113,18 @@ def count_newer(stamp_file: Path, home: Path | None = None) -> int:
     root = storage_root()
     if not root.exists():
         return 0
-    rc = subprocess.run(["find", str(root), "-type", "f", "-newer", str(stamp_file)], capture_output=True, text=True)
-    return len([line for line in rc.stdout.splitlines() if line.strip() and str(home) not in line])
+    if not root.exists():
+        return 0
+    newer = []
+    for unit in ("workbench_snapshot_pr", "workbench_snapshot_issue", "workbench_fleet_jobs",
+                 "workbench_fleet_errors", "workbench_fleet_events", "workbench_fleet_health",
+                 "workbench_fingerprints", "workbench_cursors", "workbench_events"):
+        path = root / unit
+        if not path.exists():
+            continue
+        rc = subprocess.run(["find", str(path), "-type", "f", "-newer", str(stamp_file)], capture_output=True, text=True)
+        newer.extend(line for line in rc.stdout.splitlines() if line.strip() and str(home) not in line)
+    return len(newer)
 
 
 def gate_g1p(log: Path) -> int:
@@ -173,6 +183,7 @@ def gate_g1p(log: Path) -> int:
     newer = count_newer(stamp, home)
     append(log, f"probe owner-storage untouched={'yes' if newer == 0 else 'no'} newer={newer} at={now()}")
 
+    # selftest is judged before the real verdict lands, so it never sees a verdict line
     selftest = subprocess.run(["node", "scripts/p7-gate-check.mjs", "--selftest"], cwd=ROOT, capture_output=True, text=True)
     append(log, f"# gate-check selftest rc={selftest.returncode}")
     for line in selftest.stdout.splitlines():
