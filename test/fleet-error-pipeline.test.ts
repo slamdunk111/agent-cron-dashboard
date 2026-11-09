@@ -199,6 +199,32 @@ describe('ErrorPipeline pump: analysis never blocks the ingest', () => {
     expect(pipeline.pending()).toBe(0)
   })
 
+  it('reports a rejected scheduled pump to the failure sink instead of leaving it unhandled', async () => {
+    let seen: unknown = undefined
+    const pipeline = new ErrorPipeline({ tables: memoryTables().tables, greenRunsToVerify: 3, retentionDays: 90 })
+    const failing = pipeline as unknown as { pump(): Promise<unknown> }
+    const original = failing.pump.bind(pipeline)
+    failing.pump = () => Promise.reject(new Error('boom'))
+    pipeline.schedule((error: unknown) => {
+      seen = error
+    })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(seen).toBeInstanceOf(Error)
+    failing.pump = original
+  })
+
+  it('logs the failure through the default sink when none is injected', async () => {
+    const lines: string[] = []
+    const pipeline = new ErrorPipeline({ tables: memoryTables().tables, greenRunsToVerify: 3, retentionDays: 90, log: (line: string) => lines.push(line) })
+    const failing = pipeline as unknown as { pump(): Promise<unknown> }
+    const original = failing.pump.bind(pipeline)
+    failing.pump = () => Promise.reject(new Error('offline model'))
+    pipeline.schedule()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(lines.join('\n')).toContain('p6: analysis pump failed (offline model)')
+    failing.pump = original
+  })
+
   it('keeps the row visible as pending when no model is configured', async () => {
     const store = memoryTables()
     const pipeline = new ErrorPipeline({ tables: store.tables, greenRunsToVerify: 3, retentionDays: 90 })

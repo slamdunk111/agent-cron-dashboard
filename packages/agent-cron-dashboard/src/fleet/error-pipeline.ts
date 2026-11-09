@@ -169,12 +169,19 @@ export class ErrorPipeline {
     return { entries: entries.length, opened, revisited, reopened, touched }
   }
 
-  /** Schedule the analysis pump without blocking the caller. */
-  schedule(): void {
-    queueMicrotask(() => {
-      void this.pump().catch((error: unknown) => {
+  /**
+   * Schedule the analysis pump without blocking the caller.
+   * @param fail - optional sink for a rejected pump; the default writes to the log
+   *   (an observer that inspects the rejection is what P7t2 tests).
+   */
+  schedule(fail?: (error: unknown) => void): void {
+    const onError =
+      fail ??
+      ((error: unknown) => {
         this.log(`p6: analysis pump failed (${error instanceof Error ? error.message : String(error)})`)
       })
+    queueMicrotask(() => {
+      void this.pump().catch(onError)
     })
   }
 

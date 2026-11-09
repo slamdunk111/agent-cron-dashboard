@@ -145,4 +145,22 @@ describe('fingerprint evaluation set: P5 measured samples only', () => {
     const signatures = new Set(members.map((entry) => signatureOf(entryOf(entry))))
     expect(signatures.size).toBe(1)
   })
+
+describe('fingerprint evaluation: the negative arms', () => {
+  it('marks a different-cause case as FAIL when its signature clashes with a same-cause group', () => {
+    const same = { id: 'a1', group: 'g', expect: 'same' as const, sourceId: 'hermes-nas', jobId: null, message: 'boom alpha', cause: 'alpha' }
+    const clash = { id: 'd1', group: 'g', expect: 'diff' as const, sourceId: 'hermes-nas', jobId: null, message: 'boom alpha', cause: 'alpha-clone' }
+    const verdict = evaluateSamples({ cases: [same, clash], sameCauseGroups: [{ id: 'g', cause: 'alpha', cases: ['a1'] }], differentCause: [] } as never)
+    expect(verdict.errors.map((entry) => entry.id)).toContain('d1')
+    expect(verdict.differentCauseSeparated).toBe(0)
+  })
+
+  it('counts a same-cause group as failed when its members do not merge', () => {
+    const a = { id: 'a1', group: 'g', expect: 'same' as const, sourceId: 'hermes-nas', jobId: null, message: 'boom alpha', cause: 'alpha' }
+    const b = { id: 'a2', group: 'g', expect: 'same' as const, sourceId: 'hermes-nas', jobId: null, message: 'boom beta', cause: 'alpha-variant' }
+    const verdict = evaluateSamples({ cases: [a, b], sameCauseGroups: [{ id: 'g', cause: 'alpha', cases: ['a1', 'a2'] }], differentCause: [] } as never)
+    expect(verdict.sameCauseMerged).toBe(0)
+    expect(verdict.errors.map((entry) => entry.id).sort()).toEqual(['a1', 'a2'])
+  })
+})
 })

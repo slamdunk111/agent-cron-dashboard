@@ -241,6 +241,11 @@ export class ErrorAnalyzer {
     return this.port.model
   }
 
+  /** `provider/model` label stored with an analysis (used by the tool face and the UI snapshot). */
+  get label(): string {
+    return `${this.provider}/${this.model}`
+  }
+
   /**
    * Cached model answer for a signature, or undefined.
    * @param signature - fingerprint of the record.

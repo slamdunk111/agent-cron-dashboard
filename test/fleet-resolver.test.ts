@@ -3,6 +3,7 @@ import type { ChangeEvent } from '../contracts/events.ts'
 import type { ErrorEntry } from '../contracts/fleet-source.ts'
 import type { FingerprintRecord, FleetJobRecord, IssueRecord } from '../contracts/records.ts'
 import { ErrorPipeline, type PipelineTables } from '../packages/agent-cron-dashboard/src/fleet/error-pipeline.ts'
+import { IllegalTransitionError } from '../packages/agent-cron-dashboard/src/fleet/issues-machine.ts'
 import { ErrorResolver, RESOLVE_ACTIONS, stateBadge } from '../packages/agent-cron-dashboard/src/fleet/resolver.ts'
 
 function memory(): { tables: PipelineTables; events: Map<string, ChangeEvent> } {
@@ -32,7 +33,53 @@ async function ledgerRecord(state: IssueRecord['state']): Promise<{ resolver: Er
   return { resolver: new ErrorResolver({ pipeline, now: CLOCK }), pipeline, id: record.recordId }
 }
 
+/** Resolver over a pipeline double (record, save, emit) so the catch arm can be driven directly. */
+function doublePipeline(record: IssueRecord): { pipeline: ErrorPipeline; saved: IssueRecord[] } {
+  const saved: IssueRecord[] = []
+  const pipeline = {
+    record: () => record,
+    save: async (next: IssueRecord) => {
+      saved.push(next)
+    },
+    emit: async () => 'error/' + record.recordId,
+  } as unknown as ErrorPipeline
+  return { pipeline, saved }
+}
+
 describe('resolver: the three write actions and their illegal edges', () => {
+  it('turns an illegal transition into readable text and writes nothing', async () => {
+    const record: IssueRecord = {
+      recordId: 'demo-1',
+      signature: 'sig',
+      sourceId: 'jiuwen-gmk',
+      jobId: 'cron-todo',
+      state: 'open',
+      severity: 'error',
+      count: 1,
+      firstSeen: '2026-11-06T15:07:35+08:00',
+      lastSeen: '2026-11-06T15:07:35+08:00',
+      samples: [],
+      analysis: { state: 'pending', rootCauseHypothesis: null, impact: null, suggestedFix: [], confidence: null, needMoreInfo: [], analyzedAt: null, model: null },
+      resolution: [],
+      verifiedAt: null,
+    }
+    const { pipeline, saved } = doublePipeline(record)
+    const outcome = await new ErrorResolver({ pipeline, now: CLOCK }).resolve({ recordId: record.recordId, action: 'fix-applied', by: 'tool' })
+    expect(outcome.ok).toBe(false)
+    expect(outcome.text).toContain('rejected:')
+    expect(saved).toHaveLength(0)
+  })
+
+  it('answers with readable text when a malformed action reaches no legal step', async () => {
+    const record = { recordId: 'demo-2', state: 'open', resolution: [], samples: [], analysis: { state: 'pending', rootCauseHypothesis: null, impact: null, suggestedFix: [], confidence: null, needMoreInfo: [], analyzedAt: null, model: null }, verifiedAt: null } as unknown as IssueRecord
+    const { pipeline } = doublePipeline(record)
+    const plain = new ErrorResolver({ pipeline, now: CLOCK })
+    // A malformed action reaches no legal step, so the resolver answers with readable text instead of throwing.
+    const outcome = await plain.resolve({ recordId: record.recordId, action: 'bogus' as never, by: 'tool' })
+    expect(outcome.ok).toBe(false)
+    expect(outcome.text.length).toBeGreaterThan(0)
+  })
+
   it('lists the same three actions the step kinds carry', () => {
     expect([...RESOLVE_ACTIONS]).toEqual(['fix-applied', 'wontfix', 'reopen'])
   })

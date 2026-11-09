@@ -18,10 +18,27 @@ const lcovPath = resolve(index >= 0 && argv[index + 1] !== undefined ? argv[inde
 const scopeIndex = argv.indexOf('--scope')
 const scopeArg = scopeIndex >= 0 && argv[scopeIndex + 1] !== undefined ? argv[scopeIndex + 1] : '/src/community/'
 // `{a,b}` is a brace list of file suffixes, anything else is a plain path fragment.
+// P7 fix: the brace list used to be expanded under a hardcoded `/src/community/`
+// prefix, so any other `src/.../{a,b}.ts` scope matched no file and the gate
+// passed vacuously. The directory now comes from the scope itself, the `.ts`
+// tail after the closing brace is re-applied to every member, and a matcher
+// that still holds `{`/`}` aborts the gate instead of passing.
 const scopeMatchers =
-  scopeArg.startsWith('src/') && scopeArg.includes('{')
-    ? scopeArg.slice(4, -1).split(',').map((name) => `/src/community/${name}`)
+  scopeArg.includes('{') && scopeArg.includes('}')
+    ? (() => {
+        const slash = scopeArg.lastIndexOf('/')
+        const dir = scopeArg.slice(0, slash + 1)
+        // The brace list omits the shared extension: `{a,b}.ts` names `a` and `b.ts`.
+        const tail = scopeArg.slice(slash + 1)
+        const ext = tail.slice(tail.lastIndexOf('}') + 1)
+        const names = tail.slice(1, tail.lastIndexOf('}')).split(',').filter(Boolean)
+        return names.map((name) => `${dir}${name}${name.includes('.') ? '' : ext}`)
+      })()
     : [scopeArg]
+if (scopeMatchers.some((matcher) => matcher.includes('{') || matcher.includes('}'))) {
+  console.log(`COVERAGE-GATE FAIL (scope not expandable: ${scopeArg})`)
+  process.exit(1)
+}
 
 if (!existsSync(lcovPath)) {
   console.log('COVERAGE-GATE FAIL (lcov missing)')

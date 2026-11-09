@@ -213,4 +213,11 @@ describe('ErrorAnalyzer cache: same signature, similar detail', () => {
     expect(detailHashOf([MEASURED, later])).toBe(detailHashOf([MEASURED]))
     expect(detailHashOf([MEASURED])).not.toBe(detailHashOf([{ ...MEASURED, message: 'other' }]))
   })
+
+describe('analyser port label', () => {
+  it('names provider and model together for the tool face and the snapshot', () => {
+    const analyser = new ErrorAnalyzer({ port: scriptedPort([]).port })
+    expect(analyser.label).toBe('fake/fake-1')
+  })
+})
 })

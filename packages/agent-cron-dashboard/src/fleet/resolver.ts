@@ -73,10 +73,8 @@ export class ErrorResolver {
     try {
       next = applyStep(record, step)
     } catch (error) {
-      if (error instanceof IllegalTransitionError) {
-        return { ok: false, text: `rejected: ${error.message} (current state ${record.state}; a record must be analysed before a repair can be registered)`, subjectKey: null, record }
-      }
-      throw error
+      if (!(error instanceof IllegalTransitionError)) throw error
+      return { ok: false, text: `rejected: ${error.message} (current state ${record.state}; a record must be analysed before a repair can be registered)`, subjectKey: null, record }
     }
     await this.pipeline.save(next)
     const kind = request.action === 'fix-applied' ? null : request.action === 'wontfix' ? null : 'error-record-reopened'
