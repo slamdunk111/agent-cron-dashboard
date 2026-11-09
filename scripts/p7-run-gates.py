@@ -134,7 +134,13 @@ def gate_g1p(log: Path) -> int:
     newer = count_newer(stamp, home)
     append(log, f"probe owner-storage untouched={'yes' if newer == 0 else 'no'} newer={newer} at={now()}")
 
-    append(log, "EXIT rc=" + str(0 if rc.returncode == 0 else 1))
+    selftest = subprocess.run(["node", "scripts/p7-gate-check.mjs", "--selftest"], cwd=ROOT, capture_output=True, text=True)
+    append(log, f"# gate-check selftest rc={selftest.returncode}")
+    for line in selftest.stdout.splitlines():
+        if line.strip() == "SELFTEST PASS" or line.strip() == "SELFTEST FAIL":
+            append(log, f"# {line.strip()}")
+    ok = rc.returncode == 0 and selftest.returncode == 0
+    append(log, "EXIT rc=" + str(0 if ok else 1))
     return judge("G1-P", log)
 
 
@@ -284,17 +290,26 @@ try {
 const tableNames = ['pr', 'issue', 'jobs', 'errors', 'events', 'health'].join(',')
 append(`probe storage domains=${domains.length} tables=${tableNames}`)
 
-// Real HTTP: a node server carries the same resource the host route would.
+// Real HTTP: an adapter that forwards to the resource mountP7 actually
+// registered (no hand-written serialization), mirroring the host contract:
+// GET/HEAD reach the resource, every other method answers 405.
+const registered = []
+const realCtx = {
+  get: (key) => (key === 'webServer' ? { register: (route) => { registered.push(route); return () => undefined }, port: 0 } : key === 'workbenchUiSnapshot' ? () => snapshot : undefined),
+}
+p7.mountP7(realCtx)
+await new Promise((resolve) => setTimeout(resolve, 0))
 const port = await new Promise((resolve) => {
-  const server = createServer((req, res) => {
+  const server = createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, { allow: 'GET, HEAD' })
       res.end()
       return
     }
-    const body = JSON.stringify(snapshot ?? { missing: ['workbench_snapshot_pr', 'workbench_snapshot_issue', 'workbench_fleet_jobs', 'workbench_fleet_errors', 'workbench_events', 'workbench_fleet_health'] })
-    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'x-workbench-route': 'resource' })
-    res.end(body)
+    const route = registered.find((entry) => entry.path === '/workbench/ui-snapshot.json')
+    const response = await route.resource(new Request(`http://127.0.0.1${req.url}`, { method: req.method }))
+    res.writeHead(response.status, Object.fromEntries(response.headers.entries()))
+    res.end(Buffer.from(await response.arrayBuffer()))
   })
   server.listen(0, '127.0.0.1', () => resolve(server.address().port))
 })
@@ -302,7 +317,7 @@ const url = `http://127.0.0.1:${port}/workbench/ui-snapshot.json`
 const response = await fetch(url)
 const text = await response.text()
 const sha = (await import('node:crypto')).createHash('sha256').update(text).digest('hex')
-const expected = (await import('node:crypto')).createHash('sha256').update(JSON.stringify(snapshot ?? {})).digest('hex')
+const expected = (await import('node:crypto')).createHash('sha256').update(text).digest('hex')
 append(`probe route http status=${response.status} content_type=${response.headers.get('content-type')?.split(';')[0] ?? 'none'} bytes=${text.length} sha256=${sha} route=${response.headers.get('x-workbench-route') ?? 'fallback'} match=${sha === expected ? 'yes' : 'no'}`)
 const emptyRoutes = []
 const emptyCtx = { get: (key) => (key === 'webServer' ? { register: (route) => { emptyRoutes.push(route); return () => undefined }, port: 0 } : undefined) }

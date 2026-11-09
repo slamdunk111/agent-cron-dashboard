@@ -36,6 +36,12 @@ const g1p = linesOf(LOGS.g1p)
 const empty = linesOf(LOGS.empty)
 const g3 = linesOf(LOGS.g3)
 
+const gateLines = (lines) => lines.filter((line) => line.startsWith('gate line='))
+const oneGate = (lines, name) => {
+  const rows = gateLines(lines).filter((line) => field(line, 'name') === name)
+  return rows.length === 1 ? field(rows[0], 'line') : `ambiguous(${rows.length})`
+}
+
 const facts = {
   gateG1P: field(find(g1p, 'EXIT rc='), 'rc'),
   gateEmpty: field(find(empty, 'EXIT rc='), 'rc'),
@@ -47,20 +53,22 @@ const facts = {
   routeBytes: field(find(g1p, 'probe route http '), 'bytes'),
   routeMatch: field(find(g1p, 'probe route http '), 'match'),
   emptyDomains: empty.filter((line) => line.startsWith('empty domain=')).length,
-  emptyRoute: field(find(g1p, 'probe route empty status='), 'status'),
-  emptyRouteMissing: field(find(g1p, 'probe route empty status='), 'missing'),
+  emptyRoute: field(find(empty, 'probe route empty status='), 'status'),
+  emptyRouteMissing: field(find(empty, 'probe route empty status='), 'missing'),
   ownerStorage: field(find(g1p, 'probe owner-storage '), 'untouched'),
   testsTotal: field(find(g3, 'tests total='), 'total'),
   testsSkipped: field(find(g3, 'tests total='), 'skipped'),
-  coverage: field(find(g3, 'gate line='), 'line'),
-  typecheck: g3.filter((line) => line.startsWith('gate line=') && field(line, 'name') === 'TYPECHECK').map((line) => field(line, 'line')).join(','),
-  syncContracts: g3.filter((line) => line.startsWith('gate line=') && field(line, 'name') === 'SYNC-CONTRACTS').map((line) => field(line, 'line')).join(','),
-  mirror: g3.filter((line) => line.startsWith('gate line=') && field(line, 'name') === 'MIRROR').map((line) => field(line, 'line')).join(','),
+  coverage: oneGate(g3, 'COVERAGE'),
+  selftest: field(find(g1p, '# gate-check selftest rc='), 'rc'),
+  typecheck: oneGate(g3, 'TYPECHECK'),
+  syncContracts: oneGate(g3, 'SYNC-CONTRACTS'),
+  mirror: oneGate(g3, 'MIRROR'),
   probes: g1p.filter((line) => line.startsWith('probe ')).length,
 }
 
 const failures = []
 if (facts.gateG1P !== '0') failures.push('G1-P rc')
+for (const [key, label] of [['gateG1P', 'G1-P rc'], ['gateEmpty', 'G-EMPTY rc'], ['gateG3', 'G3 rc']]) if (facts[key] !== '0') failures.push(label)
 if (facts.gateEmpty !== '0') failures.push('G-EMPTY rc')
 if (facts.gateG3 !== '0') failures.push('G3 rc')
 if (facts.domains !== '8') failures.push('domain count')
@@ -68,6 +76,10 @@ if (facts.routeStatus !== '200' || facts.routeKind !== 'resource' || facts.route
 if (facts.emptyDomains !== 6 || facts.emptyRouteMissing !== '6') failures.push('empty state')
 if (facts.ownerStorage !== 'yes') failures.push('owner storage untouched')
 if (Number(facts.testsTotal) < 571 || facts.testsSkipped !== '0') failures.push('tests')
+for (const [key, value] of [['typecheck', 'PASS'], ['syncContracts', 'PASS'], ['mirror', 'PASS']]) if (facts[key] !== value) failures.push(key)
+if (facts.coverage !== 'PASS') failures.push('coverage')
+if (facts.selftest !== '0') failures.push('gate-check selftest rc')
+if (facts.emptyRoute !== '200' || facts.emptyRouteMissing !== '6') failures.push('empty route answer')
 
 const document = {
   generated_at: new Date().toISOString(),
@@ -80,5 +92,6 @@ writeFileSync(resolve(handoff, 'p7-evidence.json'), `${JSON.stringify(document, 
 
 for (const [key, value] of Object.entries(facts)) console.log(`${key}=${value}`)
 console.log(`logs sha256 g1p=${document.logs.g1p.sha256.slice(0, 16)} empty=${document.logs.empty.sha256.slice(0, 16)} g3=${document.logs.g3.sha256.slice(0, 16)}`)
+if (facts.selftest !== '0') failures.push('gate-check selftest line missing')
 console.log(`EVIDENCE ${document.verdict}${failures.length === 0 ? '' : ` (${failures.join(', ')})`}`)
 process.exit(failures.length === 0 ? 0 : 1)
