@@ -61,6 +61,18 @@ def run(log: Path, cmd: list[str], env: dict | None = None) -> int:
         return proc.returncode
 
 
+def head_binding() -> list[str]:
+    """The HEAD, work-tree state and command the run belongs to (R3 finding 001)."""
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    return [
+        f"run head={head} branch={branch} dirty={len(dirty.splitlines())}",
+        f"run command=python3 scripts/p7-run-gates.py {sys.argv[1] if len(sys.argv) > 1 else ''}",
+        f"run started={now()}",
+    ]
+
+
 def append(log: Path, line: str) -> None:
     with log.open("a", encoding="utf-8") as handle:
         handle.write(line + "\n")
@@ -91,6 +103,8 @@ def count_newer(stamp_file: Path, home: Path | None = None) -> int:
 
 def gate_g1p(log: Path) -> int:
     log.write_text("", encoding="utf-8")
+    for line in head_binding():
+        append(log, line)
     append(log, f"env load={os.getloadavg()[0]:.2f} nproc={os.cpu_count()} at={now()}")
     dsh_version = subprocess.run(["dsh", "--version"], capture_output=True, text=True).stdout.strip().splitlines()
     append(log, f"probe dsh version={dsh_version[-1] if dsh_version else 'unknown'} at={now()}")
@@ -148,9 +162,10 @@ def gate_g1p(log: Path) -> int:
     for line in selftest.stdout.splitlines():
         if line.strip() == "SELFTEST PASS" or line.strip() == "SELFTEST FAIL":
             append(log, f"# {line.strip()}")
-    ok = rc.returncode == 0 and selftest.returncode == 0
-    append(log, "EXIT rc=" + str(0 if ok else 1))
-    return judge("G1-P", log)
+    selftest_ok = rc.returncode == 0 and selftest.returncode == 0
+    verdict = judge("G1-P", log)
+    append(log, "EXIT rc=" + str(0 if selftest_ok and verdict == 0 else 1))
+    return 0 if selftest_ok and verdict == 0 else verdict or 1
 
 
 EMPTY_SOURCE = r"""
@@ -174,6 +189,8 @@ process.exit(body.missing.length === 6 && res.status === 200 ? 0 : 1)
 
 def gate_empty(log: Path) -> int:
     log.write_text("", encoding="utf-8")
+    for line in head_binding():
+        append(log, line)
     append(log, f"env load={os.getloadavg()[0]:.2f} nproc={os.cpu_count()} at={now()}")
     home_empty = E2E / "home-empty"
     home_empty.mkdir(parents=True, exist_ok=True)
@@ -182,12 +199,15 @@ def gate_empty(log: Path) -> int:
     rc = subprocess.run(["node", str(E2E / "empty.mjs"), str(log), str((ROOT / "packages/agent-cron-dashboard/src/ui/p7-routes.ts").as_posix())], cwd=ROOT, capture_output=True, text=True, env=env)
     if rc.returncode != 0:
         append(log, f"# empty probe failed: {rc.stderr.strip().splitlines()[:2]}")
-    append(log, "EXIT rc=" + str(0 if rc.returncode == 0 else 1))
-    return judge("G-EMPTY", log)
+    verdict = judge("G-EMPTY", log)
+    append(log, "EXIT rc=" + str(0 if rc.returncode == 0 and verdict == 0 else 1))
+    return 0 if rc.returncode == 0 and verdict == 0 else verdict or 1
 
 
 def gate_g3(log: Path, min_total: int) -> int:
     log.write_text("", encoding="utf-8")
+    for line in head_binding():
+        append(log, line)
     append(log, f"env load={os.getloadavg()[0]:.2f} nproc={os.cpu_count()} at={now()}")
 
     def record(name: str, ok: bool) -> None:
@@ -240,8 +260,9 @@ def gate_g3(log: Path, min_total: int) -> int:
     append(log, mir.stdout.strip()[:200])
     record("MIRROR", mir.returncode == 0)
 
-    append(log, "EXIT rc=" + str(0 if proc.returncode == 0 else 1))
-    return judge("G3", log, ["--min-total", str(min_total)])
+    verdict = judge("G3", log, ["--min-total", str(min_total)])
+    append(log, "EXIT rc=" + str(0 if proc.returncode == 0 and verdict == 0 else 1))
+    return 0 if proc.returncode == 0 and verdict == 0 else verdict or 1
 
 
 PROBE_SOURCE = r"""

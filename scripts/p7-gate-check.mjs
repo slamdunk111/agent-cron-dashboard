@@ -39,6 +39,7 @@ const ISO_WITH_OFFSET = /at=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?\+08
 
 function judgeG1P(lines) {
   note(lines.length > 0, 'log not empty')
+  note(lines.some((line) => line.startsWith('run head=') && /dirty=0/.test(line)), 'run head=… dirty=0 line present')
   const env = find(lines, 'env ')
   note(/load=|nproc=/.test(env) && ISO_WITH_OFFSET.test(env), `env line carries load/nproc/at: ${env.slice(0, 80)}`)
   const version = find(lines, 'probe dsh version=')
@@ -67,6 +68,7 @@ function judgeG1P(lines) {
 
 function judgeEmpty(lines) {
   note(lines.length > 0, 'log not empty')
+  note(lines.some((line) => line.startsWith('run head=') && /dirty=0/.test(line)), 'run head=… dirty=0 line present')
   const domains = lines.filter((line) => line.startsWith('empty domain='))
   note(domains.length === 6, `six empty domain rows (got ${domains.length})`)
   for (const line of domains) note(field(line, 'present') === 'no' && field(line, 'state') === 'empty', `${field(line, 'domain')} present=no state=empty`)
@@ -77,6 +79,7 @@ function judgeEmpty(lines) {
 
 function judgeG3(lines, minTotal) {
   note(lines.length > 0, 'log not empty')
+  note(lines.some((line) => line.startsWith('run head=') && /dirty=0/.test(line)), 'run head=… dirty=0 line present')
   const tests = find(lines, 'tests total=')
   note(field(tests, 'total') !== '' && Number(field(tests, 'total')) >= minTotal, `tests total=${field(tests, 'total')} >= ${minTotal}`)
   note(field(tests, 'skipped') === '0', 'tests skipped=0')
@@ -91,6 +94,8 @@ function judgeG3(lines, minTotal) {
 
 function selftest() {
   const ok = [
+    'run head=deadbeef branch=main dirty=0',
+    'run command=python3 scripts/p7-run-gates.py G1-P',
     'env load=1.0 nproc=32 at=2026-11-09T20:20:00.000+08:00',
     'probe dsh version=0.2.2-rc.1 at=2026-11-09T20:20:00.000+08:00',
     'probe home-isolation ok=yes home=/tmp/p7-e2e/home at=2026-11-09T20:20:00.000+08:00',

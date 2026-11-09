@@ -37,6 +37,16 @@ const empty = linesOf(LOGS.empty)
 const g3 = linesOf(LOGS.g3)
 
 const gateLines = (lines) => lines.filter((line) => line.startsWith('gate line='))
+// A verdict counts only when the judge line itself says PASS and appears once.
+const verdictOf = (lines, gate) => {
+  const rows = lines.filter((line) => line.startsWith(`GATE ${gate} `))
+  return rows.length === 1 && /^GATE \S+ PASS\b/.test(rows[0]) ? 'PASS' : rows.length === 0 ? 'missing' : 'not-pass'
+}
+// Version must be the pinned release.
+const verdictVersion = () => {
+  const line = g1p.find((entry) => entry.startsWith('probe dsh version=')) ?? ''
+  return (/version=([^ ]+)/.exec(line) ?? [])[1] ?? 'missing'
+}
 const oneGate = (lines, name) => {
   const rows = gateLines(lines).filter((line) => field(line, 'name') === name)
   return rows.length === 1 ? field(rows[0], 'line') : `ambiguous(${rows.length})`
@@ -46,6 +56,7 @@ const facts = {
   gateG1P: field(find(g1p, 'EXIT rc='), 'rc'),
   gateEmpty: field(find(empty, 'EXIT rc='), 'rc'),
   gateG3: field(find(g3, 'EXIT rc='), 'rc'),
+  dshVersion: verdictVersion(),
   domains: field(find(g1p, 'probe storage domains='), 'domains'),
   routeStatus: field(find(g1p, 'probe route http '), 'status'),
   routeContentType: field(find(g1p, 'probe route http '), 'content_type'),
@@ -55,9 +66,9 @@ const facts = {
   emptyDomains: empty.filter((line) => line.startsWith('empty domain=')).length,
   emptyRoute: field(find(empty, 'probe route empty status='), 'status'),
   emptyRouteMissing: field(find(empty, 'probe route empty status='), 'missing'),
-  g1pVerdict: find(g1p, 'GATE G1-P ') ? 'PASS' : 'missing',
-  emptyVerdict: find(empty, 'GATE G-EMPTY ') ? 'PASS' : 'missing',
-  g3Verdict: find(g3, 'GATE G3 ') ? 'PASS' : 'missing',
+  g1pVerdict: verdictOf(g1p, 'G1-P'),
+  emptyVerdict: verdictOf(empty, 'G-EMPTY'),
+  g3Verdict: verdictOf(g3, 'G3'),
   ownerStorage: field(find(g1p, 'probe owner-storage '), 'untouched'),
   testsTotal: field(find(g3, 'tests total='), 'total'),
   testsSkipped: field(find(g3, 'tests total='), 'skipped'),
@@ -91,11 +102,13 @@ const document = {
   verdict: failures.length === 0 ? 'PASS' : 'FAIL',
   failures,
 }
+// every structural and value check has run above; only now the document is built
 writeFileSync(resolve(handoff, 'p7-evidence.json'), `${JSON.stringify(document, null, 2)}\n`)
 
 for (const [key, value] of Object.entries(facts)) console.log(`${key}=${value}`)
 console.log(`logs sha256 g1p=${document.logs.g1p.sha256.slice(0, 16)} empty=${document.logs.empty.sha256.slice(0, 16)} g3=${document.logs.g3.sha256.slice(0, 16)}`)
 if (facts.selftest !== '0') failures.push('gate-check selftest line missing')
+if (facts.dshVersion !== '0.2.2-rc.1') failures.push('dsh version')
 for (const [key, gate] of [['g1pVerdict', 'G1-P'], ['emptyVerdict', 'G-EMPTY'], ['g3Verdict', 'G3']]) if (facts[key] !== 'PASS') failures.push(gate + ' verdict')
 console.log(`EVIDENCE ${document.verdict}${failures.length === 0 ? '' : ` (${failures.join(', ')})`}`)
 process.exit(failures.length === 0 ? 0 : 1)
