@@ -581,10 +581,9 @@ export function apply(ctx: Context, raw: Config = {}): void {
     })
     ready.then(() => {
       if (stopped) return
-      // The row registers the route through the module-level hook so the mount
-      // survives any context shape; mountP7Context is set by the portal module.
+      // Hand the provider over explicitly: a plain row context has no
+      // `workbenchUiSnapshot` service key for `ctx.set`.
       mountP7Direct(ctx, uiSnapshotProvider)
-      if (process.env.P7_DEBUG === '1') console.log('p7 mount done on ctx=' + String(ctx.get?.('webServer') !== undefined))
     }).catch((error: unknown) => {
       ctx.logger?.('workbench')?.info?.('workbench p7: the snapshot route did not mount (%s)', String(error))
     })
