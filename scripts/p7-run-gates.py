@@ -98,6 +98,9 @@ def judge(gate: str, log: Path, extra: list[str] | None = None) -> int:
     cmd = ["node", "scripts/p7-gate-check.mjs", "--gate", gate, "--log", str(log)] + (extra or [])
     proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     out = proc.stdout.strip().splitlines()
+    for line in out:
+        if line.startswith("FAIL "):
+            append(log, "# judge: " + line)
     print(out[-1] if out else f"GATE {gate} FAIL (no output)")
     for line in out:
         if line.startswith(f"GATE {gate} "):
