@@ -93,7 +93,10 @@ if (Number(facts.testsTotal) < 571 || facts.testsSkipped !== '0') failures.push(
 for (const [key, value] of [['typecheck', 'PASS'], ['syncContracts', 'PASS'], ['mirror', 'PASS']]) if (facts[key] !== value) failures.push(key)
 if (facts.coverage !== 'PASS') failures.push('coverage')
 if (facts.selftest !== '0') failures.push('gate-check selftest rc')
+if (facts.dshVersion !== '0.2.2-rc.1') failures.push('dsh version')
+if (facts.selftest !== '0') failures.push('gate-check selftest line missing')
 if (facts.emptyRoute !== '200' || facts.emptyRouteMissing !== '6') failures.push('empty route answer')
+for (const [key, gate] of [['g1pVerdict', 'G1-P'], ['emptyVerdict', 'G-EMPTY'], ['g3Verdict', 'G3']]) if (facts[key] !== 'PASS') failures.push(gate + ' verdict')
 
 const document = {
   generated_at: new Date().toISOString(),
@@ -106,9 +109,6 @@ const document = {
 writeFileSync(resolve(handoff, 'p7-evidence.json'), `${JSON.stringify(document, null, 2)}\n`)
 
 for (const [key, value] of Object.entries(facts)) console.log(`${key}=${value}`)
+console.log(`EVIDENCE ${document.verdict}${document.verdict === 'PASS' ? '' : ` (${document.failures.join(', ')})`}`)
 console.log(`logs sha256 g1p=${document.logs.g1p.sha256.slice(0, 16)} empty=${document.logs.empty.sha256.slice(0, 16)} g3=${document.logs.g3.sha256.slice(0, 16)}`)
-if (facts.selftest !== '0') failures.push('gate-check selftest line missing')
-if (facts.dshVersion !== '0.2.2-rc.1') failures.push('dsh version')
-for (const [key, gate] of [['g1pVerdict', 'G1-P'], ['emptyVerdict', 'G-EMPTY'], ['g3Verdict', 'G3']]) if (facts[key] !== 'PASS') failures.push(gate + ' verdict')
-console.log(`EVIDENCE ${document.verdict}${failures.length === 0 ? '' : ` (${failures.join(', ')})`}`)
-process.exit(failures.length === 0 ? 0 : 1)
+process.exit(document.verdict === 'PASS' ? 0 : 1)
