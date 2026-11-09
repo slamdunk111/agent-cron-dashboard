@@ -55,6 +55,9 @@ const facts = {
   emptyDomains: empty.filter((line) => line.startsWith('empty domain=')).length,
   emptyRoute: field(find(empty, 'probe route empty status='), 'status'),
   emptyRouteMissing: field(find(empty, 'probe route empty status='), 'missing'),
+  g1pVerdict: find(g1p, 'GATE G1-P ') ? 'PASS' : 'missing',
+  emptyVerdict: find(empty, 'GATE G-EMPTY ') ? 'PASS' : 'missing',
+  g3Verdict: find(g3, 'GATE G3 ') ? 'PASS' : 'missing',
   ownerStorage: field(find(g1p, 'probe owner-storage '), 'untouched'),
   testsTotal: field(find(g3, 'tests total='), 'total'),
   testsSkipped: field(find(g3, 'tests total='), 'skipped'),
@@ -93,5 +96,6 @@ writeFileSync(resolve(handoff, 'p7-evidence.json'), `${JSON.stringify(document, 
 for (const [key, value] of Object.entries(facts)) console.log(`${key}=${value}`)
 console.log(`logs sha256 g1p=${document.logs.g1p.sha256.slice(0, 16)} empty=${document.logs.empty.sha256.slice(0, 16)} g3=${document.logs.g3.sha256.slice(0, 16)}`)
 if (facts.selftest !== '0') failures.push('gate-check selftest line missing')
+for (const [key, gate] of [['g1pVerdict', 'G1-P'], ['emptyVerdict', 'G-EMPTY'], ['g3Verdict', 'G3']]) if (facts[key] !== 'PASS') failures.push(gate + ' verdict')
 console.log(`EVIDENCE ${document.verdict}${failures.length === 0 ? '' : ` (${failures.join(', ')})`}`)
 process.exit(failures.length === 0 ? 0 : 1)

@@ -68,7 +68,13 @@ def append(log: Path, line: str) -> None:
 
 def judge(gate: str, log: Path, extra: list[str] | None = None) -> int:
     cmd = ["node", "scripts/p7-gate-check.mjs", "--gate", gate, "--log", str(log)] + (extra or [])
-    return subprocess.run(cmd, cwd=ROOT).returncode
+    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    for line in proc.stdout.splitlines():
+        if line.startswith(f"GATE {gate} "):
+            # the verdict is part of the audit trail, so it lands in the same log
+            append(log, line)
+    print(proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else f"GATE {gate} FAIL (no output)")
+    return proc.returncode
 
 
 def storage_root() -> Path:
@@ -127,10 +133,13 @@ def gate_g1p(log: Path) -> int:
         append(log, f"# probe build failed: {build.stderr.strip().splitlines()[:2]}")
 
     node_extra = [str(script), str(log), home.as_posix(), (ROOT / "packages/agent-cron-dashboard/src/index.ts").as_posix(), (ROOT / "packages/agent-cron-dashboard/src/ui/p7-routes.ts").as_posix()]
-    rc = subprocess.run(["node", *node_extra], cwd=ROOT, capture_output=True, text=True, env=dict(env, NODE_PATH=str(search)))
+    rc = subprocess.run(["node", *node_extra], cwd=ROOT, capture_output=True, text=True, env=dict(env, NODE_PATH=str(search), P7_DEBUG="1"))
+    for line in (rc.stdout or "").splitlines():
+        if "p7" in line or "mount" in line:
+            append(log, f"# probe stdout: {line[:200]}")
     if rc.returncode != 0:
         append(log, "probe route registered=no at=" + now())
-        append(log, f"# probe failed: {rc.stderr.strip().splitlines()[:2]}")
+        append(log, f"# probe failed: {rc.stderr.strip().splitlines()[:3]}")
     newer = count_newer(stamp, home)
     append(log, f"probe owner-storage untouched={'yes' if newer == 0 else 'no'} newer={newer} at={now()}")
 
@@ -144,14 +153,36 @@ def gate_g1p(log: Path) -> int:
     return judge("G1-P", log)
 
 
+EMPTY_SOURCE = r"""
+// Cold-store probe: mount the real route with no provider and make sure it
+// answers 200 with every domain named missing.
+const [logPath, routesModule] = process.argv.slice(2)
+const p7 = await import(routesModule)
+const routes = []
+const ctx = { get: (key) => (key === "webServer" ? { port: 0, register: (route) => { routes.push(route); return () => undefined } } : undefined) }
+p7.mountP7(ctx)
+await new Promise((r) => setTimeout(r, 50))
+const res = await routes[0].resource(new Request("http://x/workbench/ui-snapshot.json"))
+const body = await res.json()
+const stamp = new Date(Date.now() + 8 * 3600 * 1000).toISOString().replace("Z", "+08:00")
+const { appendFileSync } = await import("node:fs")
+for (const name of body.missing) appendFileSync(logPath, `empty domain=${name} present=no state=empty at=${stamp}\n`)
+appendFileSync(logPath, `probe route empty status=${res.status} missing=${body.missing.length} at=${stamp}\n`)
+process.exit(body.missing.length === 6 && res.status === 200 ? 0 : 1)
+"""
+
+
 def gate_empty(log: Path) -> int:
     log.write_text("", encoding="utf-8")
     append(log, f"env load={os.getloadavg()[0]:.2f} nproc={os.cpu_count()} at={now()}")
-    for domain in DOMAINS:
-        append(log, f"empty domain={domain} present=no state=empty at={now()}")
-    append(log, f"probe route empty status=200 missing=6 at={now()}")
-    append(log, f"probe home-isolation ok=yes home={E2E / 'home-empty'} at={now()}")
-    append(log, "EXIT rc=0")
+    home_empty = E2E / "home-empty"
+    home_empty.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ, HOME=str(home_empty), DSH_HOME=str(home_empty / ".dsh"))
+    (E2E / "empty.mjs").write_text(EMPTY_SOURCE, encoding="utf-8")
+    rc = subprocess.run(["node", str(E2E / "empty.mjs"), str(log), str((ROOT / "packages/agent-cron-dashboard/src/ui/p7-routes.ts").as_posix())], cwd=ROOT, capture_output=True, text=True, env=env)
+    if rc.returncode != 0:
+        append(log, f"# empty probe failed: {rc.stderr.strip().splitlines()[:2]}")
+    append(log, "EXIT rc=" + str(0 if rc.returncode == 0 else 1))
     return judge("G-EMPTY", log)
 
 
@@ -235,98 +266,128 @@ const append = (line) => {
 }
 
 const root = mkdtempSync(join(tmpdir(), 'p7-probe-'))
-let domains = []
-let tables = {}
-let snapshot = null
 let failed = false
 let p7 = null
+let index = null
+let ledgerRecord = {
+  recordId: 'hermes-nas-0df790358866',
+  signature: '0df790358866aabbccddee',
+  sourceId: 'hermes-nas',
+  jobId: 'cron-1',
+  state: 'open',
+  severity: 'error',
+  count: 3,
+  firstSeen: '2026-11-08T10:00:00+08:00',
+  lastSeen: '2026-11-09T08:00:00+08:00',
+  samples: [{ occurredAt: '2026-11-09T08:00:00+08:00', severity: 'error', message: 'token=secret boom' }],
+  analysis: { state: 'pending', rootCauseHypothesis: null, impact: null, suggestedFix: [], confidence: null, needMoreInfo: [], analyzedAt: null, model: null },
+  resolution: [],
+  verifiedAt: null,
+}
+const routes = []
 try {
   const { Context } = await import('@deepseek-ai/cordis')
-  const { Storage } = await import('@deepseek-ai/dsh-storage')
-  const StorageJson = await import('@deepseek-ai/dsh-storage-json')
-  const StorageDomain = await import('@deepseek-ai/dsh-storage-domain')
-  const index = await import(INDEX_PATH)
+  class StubWebServer {
+    constructor() {
+      this.port = 0
+      this.registered = []
+    }
+    register(route) {
+      this.registered.push(route)
+      routes.push(route)
+      return () => undefined
+    }
+  }
+  const storagePlugins = await import('@deepseek-ai/dsh-storage')
+  const storageJsonPlugin = await import('@deepseek-ai/dsh-storage-json')
+  const storageDomainPlugin = await import('@deepseek-ai/dsh-storage-domain')
+  index = await import(INDEX_PATH)
   p7 = await import(ROUTES_PATH)
 
-  const ctx = new Context()
-  await ctx.plugin(Storage)
-  await ctx.plugin(StorageJson, { root })
-  await ctx.plugin(StorageDomain, { backend: 'json' })
-  const service = index.makeWorkbenchService(ctx, {})
-  for (let i = 0; i < 40 && Object.keys(service.domains).length === 0; i += 1) await new Promise((r) => setTimeout(r, 250))
-  domains = Object.keys(service.domains)
-  const record = {
-    recordId: 'hermes-nas-0df790358866',
-    signature: '0df790358866aabbccddee',
-    sourceId: 'hermes-nas',
-    jobId: 'cron-1',
-    state: 'open',
-    severity: 'error',
-    count: 3,
-    firstSeen: '2026-11-08T10:00:00+08:00',
-    lastSeen: '2026-11-09T08:00:00+08:00',
-    samples: [{ occurredAt: '2026-11-09T08:00:00+08:00', severity: 'error', message: 'token=secret boom' }],
-    analysis: { state: 'pending', rootCauseHypothesis: null, impact: null, suggestedFix: [], confidence: null, needMoreInfo: [], analyzedAt: null, model: null },
-    resolution: [],
-    verifiedAt: null,
-  }
-  const errors = service.domains.workbench_fleet_errors.table('records')
-  await errors.put(record.recordId, record)
+  // ONE host context, exactly what a deployment provides: storage JSON backend,
+  // a webServer service and the plugin's own apply.
+  const hostCtx = new Context()
+  const stubWebServer = new StubWebServer()
+  hostCtx.reflect.provide('webServer', stubWebServer)
 
-  snapshot = p7.snapshotOf({
-    errors: service.domains.workbench_fleet_errors.table('records'),
-    pr: service.domains.workbench_snapshot_pr.table('snapshots'),
-    issue: service.domains.workbench_snapshot_issue.table('snapshots'),
-    jobs: service.domains.workbench_fleet_jobs.table('jobs'),
-    events: service.domains.workbench_events.table('events'),
-    health: service.domains.workbench_fleet_health.table('health'),
+  await hostCtx.plugin(storagePlugins.Storage)
+  await hostCtx.plugin(storageJsonPlugin, { root: root })
+  await hostCtx.plugin(storageDomainPlugin, { backend: 'json' })
+  for (let i = 0; i < 20 && hostCtx.get('storageDomain') === undefined; i += 1) await new Promise((r) => setTimeout(r, 250))
+
+
+  index.apply(hostCtx, {})
+  for (let i = 0; i < 60 && index.getWorkbenchService() === undefined; i += 1) await new Promise((r) => setTimeout(r, 250))
+  for (let i = 0; i < 80 && Object.keys(index.getWorkbenchService()?.domains ?? {}).length < 6; i += 1) await new Promise((r) => setTimeout(r, 250))
+
+
+
+  // The plugin effect mounts on its own timer; wait for the route, then read it.
+  for (let i = 0; i < 120 && routes.length === 0; i += 1) await new Promise((r) => setTimeout(r, 250))
+  append(`# probe routes=${routes.length} after-wait`)
+
+  // Wait for the row to publish the provider; the context that `apply` ran on
+  // is where the row lives, so `index.getWorkbenchService()` becomes defined.
+  for (let i = 0; i < 40 && index.getWorkbenchService() === undefined; i += 1) await new Promise((r) => setTimeout(r, 250))
+  for (let i = 0; i < 60 && index.getWorkbenchService() === undefined; i += 1) await new Promise((r) => setTimeout(r, 250))
+  const rowService = index.getWorkbenchService()
+  for (let i = 0; i < 40 && (rowService === undefined || Object.keys(rowService.domains ?? {}).length < 6); i += 1) await new Promise((r) => setTimeout(r, 250))
+  const names = Object.keys(rowService.domains)
+  append(`probe storage domains=${names.length} tables=pr,issue,jobs,errors,events,health`)
+  await rowService.domains.workbench_fleet_errors.table('records').put(ledgerRecord.recordId, ledgerRecord)
+
+  // The plugin effect mounts on its own timer; wait for the route, then read it.
+  for (let i = 0; i < 120 && routes.length === 0; i += 1) await new Promise((r) => setTimeout(r, 250))
+  append(`# probe routes=${routes.length} after-wait`)
+
+  const port = await new Promise((resolve) => {
+    const server = createServer(async (req, res) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        res.writeHead(405, { allow: 'GET, HEAD' })
+        res.end()
+        return
+      }
+      const route = routes.find((entry) => entry.path === '/workbench/ui-snapshot.json')
+      if (route === undefined) {
+        res.writeHead(503, { 'content-type': 'text/plain' })
+        res.end('no route registered')
+        return
+      }
+      const response = await route.resource(new Request(`http://127.0.0.1${req.url}`, { method: req.method }))
+      res.writeHead(response.status, Object.fromEntries(response.headers.entries()))
+      res.end(Buffer.from(await response.arrayBuffer()))
+    })
+    server.listen(0, '127.0.0.1', () => resolve(server.address().port))
   })
-  await ctx.storageDomain.closeAll?.()
+  const reply = await fetch(`http://127.0.0.1:${port}/workbench/ui-snapshot.json`)
+  const text = await reply.text()
+  const sha = (await import('node:crypto')).createHash('sha256').update(text).digest('hex')
+  // Independent expectation: the probe projects the row's own tables and
+  // serializes them here; the route's bytes are compared against that.
+  const expectedSnapshot = p7.snapshotOf({
+    errors: rowService.domains.workbench_fleet_errors.table('records'),
+    pr: rowService.domains.workbench_snapshot_pr.table('snapshots'),
+    issue: rowService.domains.workbench_snapshot_issue.table('snapshots'),
+    jobs: rowService.domains.workbench_fleet_jobs.table('jobs'),
+    events: rowService.domains.workbench_events.table('events'),
+    health: rowService.domains.workbench_fleet_health.table('health'),
+  })
+  // the route stamps its own `at`; compare every field except that instant.
+  const expectedText = JSON.stringify({ ...expectedSnapshot, at: JSON.parse(text).at })
+  const expected = (await import('node:crypto')).createHash('sha256').update(expectedText).digest('hex')
+  append(`probe route http status=${reply.status} content_type=${reply.headers.get('content-type')?.split(';')[0] ?? 'none'} bytes=${text.length} sha256=${sha} expected=${expected} route=${reply.headers.get('x-workbench-route') ?? 'fallback'} match=${sha === expected ? 'yes' : 'no'}`)
+  // same route, cold store: mountP7 over a stub server with no provider
+  const emptyRoutes = []
+  const emptyCtx = { get: (key) => (key === 'webServer' ? { port: 0, register: (route) => { emptyRoutes.push(route); return () => undefined } } : undefined) }
+  p7.mountP7(emptyCtx)
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  const emptyRes = await emptyRoutes[0].resource(new Request('http://x/workbench/ui-snapshot.json'))
+  const emptyBody = await emptyRes.json()
+  append(`probe route empty status=${emptyRes.status} missing=${emptyBody.missing.length}`)
 } catch (error) {
   append(`# probe storage error: ${String(error).slice(0, 200).replace(/\n/g, ' ')}`)
   failed = true
 }
-
-const tableNames = ['pr', 'issue', 'jobs', 'errors', 'events', 'health'].join(',')
-append(`probe storage domains=${domains.length} tables=${tableNames}`)
-
-// Real HTTP: an adapter that forwards to the resource mountP7 actually
-// registered (no hand-written serialization), mirroring the host contract:
-// GET/HEAD reach the resource, every other method answers 405.
-const registered = []
-const realCtx = {
-  get: (key) => (key === 'webServer' ? { register: (route) => { registered.push(route); return () => undefined }, port: 0 } : key === 'workbenchUiSnapshot' ? () => snapshot : undefined),
-}
-p7.mountP7(realCtx)
-await new Promise((resolve) => setTimeout(resolve, 0))
-const port = await new Promise((resolve) => {
-  const server = createServer(async (req, res) => {
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.writeHead(405, { allow: 'GET, HEAD' })
-      res.end()
-      return
-    }
-    const route = registered.find((entry) => entry.path === '/workbench/ui-snapshot.json')
-    const response = await route.resource(new Request(`http://127.0.0.1${req.url}`, { method: req.method }))
-    res.writeHead(response.status, Object.fromEntries(response.headers.entries()))
-    res.end(Buffer.from(await response.arrayBuffer()))
-  })
-  server.listen(0, '127.0.0.1', () => resolve(server.address().port))
-})
-const url = `http://127.0.0.1:${port}/workbench/ui-snapshot.json`
-const response = await fetch(url)
-const text = await response.text()
-const sha = (await import('node:crypto')).createHash('sha256').update(text).digest('hex')
-const expected = (await import('node:crypto')).createHash('sha256').update(text).digest('hex')
-append(`probe route http status=${response.status} content_type=${response.headers.get('content-type')?.split(';')[0] ?? 'none'} bytes=${text.length} sha256=${sha} route=${response.headers.get('x-workbench-route') ?? 'fallback'} match=${sha === expected ? 'yes' : 'no'}`)
-const emptyRoutes = []
-const emptyCtx = { get: (key) => (key === 'webServer' ? { register: (route) => { emptyRoutes.push(route); return () => undefined }, port: 0 } : undefined) }
-p7.mountP7(emptyCtx)
-await new Promise((resolve) => setTimeout(resolve, 0))
-const emptyRes = emptyRoutes.length === 0 ? { status: 0, json: async () => ({ missing: [] }) } : await emptyRoutes[0].resource(new Request('http://x/workbench/ui-snapshot.json'))
-const emptyBody = await emptyRes.json()
-const emptyResponse = { status: emptyRes.status, missing: emptyBody.missing.length }
-append(`probe route empty status=${emptyResponse.status} missing=${emptyResponse.missing}`)
 append(`probe route registered=${failed ? 'no' : 'yes'}`)
 process.exit(0)
 """

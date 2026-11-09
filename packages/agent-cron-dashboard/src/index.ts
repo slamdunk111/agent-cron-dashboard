@@ -35,6 +35,7 @@ import { ErrorAnalyzer, type AnalysisChunk, type AnalysisPort, type AnalysisRequ
 import { ErrorResolver } from './fleet/resolver.ts'
 import { ERRORS_DESCRIPTION, RESOLVE_DESCRIPTION, RESOLVE_TOOL, ERRORS_TOOL } from './fleet/tools-errors.ts'
 import { mountP7, snapshotOf, type DomainTables } from './ui/p7-routes.ts'
+import { mountP7 as mountP7Direct } from './ui/p7-routes.ts'
 
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
@@ -300,6 +301,9 @@ export interface FleetOverrides {
   readonly makeSources?: (config: WorkbenchConfig) => readonly FleetSource[]
 }
 
+/** The provider the snapshot route reads (set once the six domains are open). */
+let uiSnapshotProvider: (() => import('./ui/p7-routes.ts').UiSnapshot) | undefined
+
 /** Plugin row name (dsh expects a `name` export; the loader keeps the row id). */
 export const name = 'workbench'
 
@@ -554,17 +558,39 @@ export function apply(ctx: Context, raw: Config = {}): void {
   // profile without `webServer` simply gets no route (named in the log).
   ctx.effect(() => {
     let stopped = false
-    void Promise.resolve()
-      .then(() => waitForSnapshotTables(workbenchService as WorkbenchService))
-      .then((tables) => {
-        if (stopped || tables === undefined) {
-          if (tables === undefined && !stopped) ctx.logger?.('workbench')?.info?.('workbench p7: domains did not open; the snapshot route answers missing[]')
+    // The row publishes its service asynchronously; wait for the provider the
+    // route reads, then mount the route (a mount without a provider would
+    // answer an empty snapshot forever).
+    const ready = new Promise<DomainTables>((resolve) => {
+      // `snapshotTablesOf` reads `service.domains`; the service only exists after
+      // the row publishes it, so it must be probed before it is handed over.
+      const poll = () => {
+        if (stopped) return
+        const service = (workbenchService ?? getWorkbenchService()) as WorkbenchService | undefined
+        const tables = service === undefined ? undefined : snapshotTablesOf(service)
+        if (tables !== undefined) {
+          // The route reads the provider through a module-level holder, so the
+          // mount works on any context (ctx.set needs a declared service key).
+          uiSnapshotProvider = () => snapshotOf(tables)
+          resolve(tables)
           return
         }
-        ctx.set('workbenchUiSnapshot', () => snapshotOf(tables))
-      })
-      .catch(() => undefined)
-    return mountP7(ctx)
+        setTimeout(poll, 500)
+      }
+      poll()
+    })
+    ready.then(() => {
+      if (stopped) return
+      // The row registers the route through the module-level hook so the mount
+      // survives any context shape; mountP7Context is set by the portal module.
+      mountP7Direct(ctx, uiSnapshotProvider)
+      if (process.env.P7_DEBUG === '1') console.log('p7 mount done on ctx=' + String(ctx.get?.('webServer') !== undefined))
+    }).catch((error: unknown) => {
+      ctx.logger?.('workbench')?.info?.('workbench p7: the snapshot route did not mount (%s)', String(error))
+    })
+    return () => {
+      stopped = true
+    }
   }, 'workbench:p7')
 }
 

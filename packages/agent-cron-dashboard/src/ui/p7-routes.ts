@@ -303,10 +303,11 @@ export function decodeRow(key: string, event: ChangeEvent): { at: string; subjec
 /**
  * Register the read-only snapshot route on the host web server.
  * @param ctx - row context (reads `webServer` when it is mounted).
+ * @param provider - the snapshot source the route answers with.
  * @returns a synchronous disposer; registration itself happens on a microtask,
  *   and a disposer called first cancels it.
  */
-export function mountP7(ctx: { get?: (key: string) => unknown }): () => void {
+export function mountP7(ctx: { get?: (key: string) => unknown }, provider?: () => UiSnapshot): () => void {
   let stopped = false
   let disposeRoute: (() => void) | undefined
 
@@ -315,9 +316,9 @@ export function mountP7(ctx: { get?: (key: string) => unknown }): () => void {
       | { register(route: unknown): () => void; port?: number; host?: string }
       | undefined
     if (webServer === undefined || stopped) return
-    const provider = ctx.get?.('workbenchUiSnapshot') as (() => UiSnapshot) | undefined
+    const source = provider ?? (ctx.get?.('workbenchUiSnapshot') as (() => UiSnapshot) | undefined)
     const resource = async (): Promise<Response> =>
-      new Response(JSON.stringify(provider === undefined ? emptySnapshot() : provider()), {
+      new Response(JSON.stringify(source === undefined ? emptySnapshot() : source()), {
         status: 200,
         headers: {
           'content-type': 'application/json; charset=utf-8',
