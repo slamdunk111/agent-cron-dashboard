@@ -69,7 +69,7 @@ def head_binding() -> list[str]:
     branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     return [
         f"run head={head} branch={branch} dirty={len(dirty.splitlines())}",
-        f"run command=python3 scripts/p7-run-gates.py {' '.join(sys.argv[1:])}",
+        "run command=" + shlex.join([sys.executable, *sys.argv]),
         f"run started={now()}",
     ]
 

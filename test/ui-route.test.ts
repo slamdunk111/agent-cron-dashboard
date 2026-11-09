@@ -118,3 +118,28 @@ describe('the route disposer under a cancelled build', () => {
     dispose()
   })
 })
+
+describe('the resource refuses an oversized body', () => {
+  it('answers 503 snapshot-too-large instead of a body past the ceiling', async () => {
+    const routes: Array<{ resource: (request: Request) => Promise<Response> }> = []
+    const webServer: HostWebServer = { register(route) { routes.push(route as never); return () => undefined } }
+    const big = {
+      at: '2026-11-09T20:40:00.000+08:00',
+      community: { pr: [{ key: 'k', platform: 'github', repo: 'o/r', number: 1, title: 't'.repeat(2_000_000), state: 'open', draft: false, mergeability: 'unknown', reviewDecision: 'none', checksRollup: 'none', lastSeenAt: 'x' }], issue: [] },
+      fleet: { health: [], jobs: [] },
+      ledger: [],
+      events: [],
+      missing: [],
+      truncated: false,
+    }
+    const ctx = { get: (key: string) => (key === 'webServer' ? webServer : key === 'workbenchUiSnapshot' ? () => big : undefined) }
+    const dispose = mountP7(ctx as never)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const response = await routes[0]!.resource(new Request(`http://x${SNAPSHOT_PATH}`))
+    expect(response.status).toBe(503)
+    const body = (await response.json()) as { error: string; bytes: number }
+    expect(body.error).toBe('snapshot-too-large')
+    expect(body.bytes).toBeGreaterThan(SNAPSHOT_MAX_BYTES)
+    dispose()
+  })
+})
