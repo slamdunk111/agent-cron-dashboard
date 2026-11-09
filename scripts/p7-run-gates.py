@@ -73,6 +73,14 @@ def head_binding() -> list[str]:
     ]
 
 
+def _write_exit(log: Path, code: int) -> None:
+    """Append the single closing line, dropping any earlier one."""
+    text = log.read_text(encoding="utf-8")
+    keep = [line for line in text.splitlines() if not line.startswith("EXIT rc=")]
+    log.write_text("\n".join(keep) + "\n", encoding="utf-8")
+    append(log, f"EXIT rc={code}")
+
+
 def append(log: Path, line: str) -> None:
     with log.open("a", encoding="utf-8") as handle:
         handle.write(line + "\n")
@@ -168,7 +176,7 @@ def gate_g1p(log: Path) -> int:
             append(log, f"# {line.strip()}")
     selftest_ok = rc.returncode == 0 and selftest.returncode == 0
     verdict = judge("G1-P", log)
-    append(log, "EXIT rc=" + str(0 if selftest_ok and verdict == 0 else 1))
+    _write_exit(log, 0 if selftest_ok and verdict == 0 else 1)
     return 0 if selftest_ok and verdict == 0 else verdict or 1
 
 
@@ -204,7 +212,7 @@ def gate_empty(log: Path) -> int:
     if rc.returncode != 0:
         append(log, f"# empty probe failed: {rc.stderr.strip().splitlines()[:2]}")
     verdict = judge("G-EMPTY", log)
-    append(log, "EXIT rc=" + str(0 if rc.returncode == 0 and verdict == 0 else 1))
+    _write_exit(log, 0 if rc.returncode == 0 and verdict == 0 else 1)
     return 0 if rc.returncode == 0 and verdict == 0 else verdict or 1
 
 
@@ -265,7 +273,7 @@ def gate_g3(log: Path, min_total: int) -> int:
     record("MIRROR", mir.returncode == 0)
 
     verdict = judge("G3", log, ["--min-total", str(min_total)])
-    append(log, "EXIT rc=" + str(0 if proc.returncode == 0 and verdict == 0 else 1))
+    _write_exit(log, 0 if proc.returncode == 0 and verdict == 0 else 1)
     return 0 if proc.returncode == 0 and verdict == 0 else verdict or 1
 
 
