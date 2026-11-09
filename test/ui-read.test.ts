@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ChangeEvent } from '../contracts/events.ts'
 import type { FleetJobRecord, IssueRecord, IssueSnapshot, PrSnapshot, SourceHealth } from '../contracts/records.ts'
 import { eventKeyOf as errorEventKeyOf } from '../packages/agent-cron-dashboard/src/fleet/event-key.ts'
-import { DOMAIN_NAMES, LEDGER_KEYS, SNAPSHOT_PATH, decodeRow, emptySnapshot, mountP7, snapshotOf, type DomainTables } from '../packages/agent-cron-dashboard/src/ui/p7-routes.ts'
+import { DOMAIN_NAMES, LEDGER_KEYS, SNAPSHOT_MAX_BYTES, SNAPSHOT_PATH, decodeRow, emptySnapshot, mountP7, snapshotOf, type DomainTables } from '../packages/agent-cron-dashboard/src/ui/p7-routes.ts'
 
 const NOW = new Date('2026-11-09T20:30:00.000+08:00')
 
@@ -305,5 +305,27 @@ describe('snapshotOf: the sorted arms and the masked health message', () => {
     expect(snapshot.fleet.health.map((row) => row.sourceId)).toEqual(['hermes-nas', 'jiuwen-gmk'])
     expect(snapshot.fleet.health[1]!.message).not.toContain('token=abc')
     expect(snapshot.truncated).toBe(false)
+  })
+})
+
+describe('snapshotOf: the byte ceiling', () => {
+  it('shrinks the event list until the body fits and sets truncated', () => {
+    const many: Record<string, ChangeEvent> = {}
+    for (let i = 0; i < 600; i += 1) {
+      const at = `2026-11-09T00:${String(i % 60).padStart(2, '0')}:00.000+08:00`
+      const key = `${at}|error/${'r'.repeat(6000) + i}|error-record-verified|${String(i + 1)}`
+      many[key] = {
+        level: 'medium',
+        kind: 'error-record-verified',
+        subject: { scope: 'fleet', key: `error/${'r'.repeat(6000) + i}`, label: 'x' },
+        summary: 'x'.repeat(400000),
+        evidence: [],
+        at,
+      }
+    }
+    const snapshot = snapshotOf(tables({ events: tableOf(many) }), NOW)
+    expect(snapshot.truncated).toBe(true)
+    expect(snapshot.events.length).toBeLessThan(200)
+    expect(Buffer.byteLength(JSON.stringify(snapshot), 'utf8')).toBeLessThanOrEqual(SNAPSHOT_MAX_BYTES)
   })
 })

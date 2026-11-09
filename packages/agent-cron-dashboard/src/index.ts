@@ -585,7 +585,9 @@ export function apply(ctx: Context, raw: Config = {}): void {
       // `workbenchUiSnapshot` service key for `ctx.set`.
       mountP7Direct(ctx, uiSnapshotProvider)
     }).catch((error: unknown) => {
-      ctx.logger?.('workbench')?.info?.('workbench p7: the snapshot route did not mount (%s)', String(error))
+      const message = `workbench p7: the snapshot route did not mount (${String(error)})`
+      ctx.logger?.('workbench')?.warn?.(message)
+      console.log(message)
     })
     return () => {
       stopped = true

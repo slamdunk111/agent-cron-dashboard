@@ -142,6 +142,11 @@ export interface UiSnapshot {
 /** Codes the `${}</>` of a snapshot body carries, so tests can prove the shape. */
 export const LEDGER_KEYS = ['recordId', 'state', 'severity', 'count', 'lastSeen', 'analysisState'] as const
 
+/** Byte length of the serialized snapshot (the ceiling is judged on this). */
+function byteLength(value: UiSnapshot): number {
+  return Buffer.byteLength(JSON.stringify(value), 'utf8')
+}
+
 /** Collect one table's keyed rows, or null when the domain is not open. */
 function keyedRowsOf<T>(table: Table<T> | undefined): Array<{ key: string; event: T }> | null {
   if (table === undefined) return null
@@ -270,15 +275,25 @@ export function snapshotOf(tables: Partial<DomainTables>, now = new Date()): UiS
   events.sort((left, right) => right.at.localeCompare(left.at))
   const kept = events.slice(0, EVENT_LIMIT)
 
-  return {
+  // The ceiling is enforced on the whole body: events are dropped from the tail
+  // until the serialized snapshot fits, and `truncated` says so.
+  let sized: UiSnapshot = {
     at: now.toISOString(),
     community: { pr, issue },
     fleet: { health, jobs },
     ledger,
     events: kept,
     missing,
-    truncated: seen || JSON.stringify(kept).length > SNAPSHOT_MAX_BYTES,
+    truncated: seen,
   }
+  let eventCount = kept.length
+  if (byteLength(sized) > SNAPSHOT_MAX_BYTES) {
+    while (eventCount > 0 && byteLength(sized) > SNAPSHOT_MAX_BYTES) {
+      eventCount -= 1
+      sized = { ...sized, events: kept.slice(0, eventCount), truncated: true }
+    }
+  }
+  return sized
 }
 
 /**
@@ -334,7 +349,12 @@ export function mountP7(ctx: { get?: (key: string) => unknown }, provider?: () =
       if (stopped) return
       build()
     })
-    .catch(() => undefined)
+    .catch((error: unknown) => {
+      // A failed registration must be visible to the host log, never silent
+      // (and never an unhandled rejection).
+      const message = `workbench p7: mountP7 could not register the route (${String(error)})`
+      console.error(message)
+    })
 
   return () => {
     stopped = true
