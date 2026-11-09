@@ -28,6 +28,8 @@ export const SNAPSHOT_PATH = '/workbench/ui-snapshot.json'
 export const EVENT_LIMIT = 200
 /** Upper bound of the serialized snapshot; a bigger body sets `truncated`. */
 export const SNAPSHOT_MAX_BYTES = 1_048_576
+/** Per-segment row caps (the whole body has no hard ceiling; each segment is bounded). */
+export const SEGMENT_CAPS = { pr: 500, issue: 500, ledger: 1000, jobs: 200, health: 200 } as const
 
 /** One table as the storage domain hands it over. */
 interface Table<T> {
@@ -279,12 +281,18 @@ export function snapshotOf(tables: Partial<DomainTables>, now = new Date()): UiS
   // until the serialized snapshot fits, and `truncated` says so.
   let sized: UiSnapshot = {
     at: now.toISOString(),
-    community: { pr, issue },
-    fleet: { health, jobs },
-    ledger,
+    community: { pr: pr.slice(0, SEGMENT_CAPS.pr), issue: issue.slice(0, SEGMENT_CAPS.issue) },
+    fleet: { health: health.slice(0, SEGMENT_CAPS.health), jobs: jobs.slice(0, SEGMENT_CAPS.jobs) },
+    ledger: ledger.slice(0, SEGMENT_CAPS.ledger),
     events: kept,
     missing,
-    truncated: seen,
+    truncated:
+      seen ||
+      pr.length > SEGMENT_CAPS.pr ||
+      issue.length > SEGMENT_CAPS.issue ||
+      ledger.length > SEGMENT_CAPS.ledger ||
+      jobs.length > SEGMENT_CAPS.jobs ||
+      health.length > SEGMENT_CAPS.health,
   }
   let eventCount = kept.length
   if (byteLength(sized) > SNAPSHOT_MAX_BYTES) {

@@ -329,3 +329,19 @@ describe('snapshotOf: the byte ceiling', () => {
     expect(Buffer.byteLength(JSON.stringify(snapshot), 'utf8')).toBeLessThanOrEqual(SNAPSHOT_MAX_BYTES)
   })
 })
+
+describe('snapshotOf: the per-segment caps', () => {
+  it('caps each segment and sets truncated when a segment is cut', () => {
+    const manyErrors: Record<string, IssueRecord> = {}
+    for (let i = 0; i < 1200; i += 1) manyErrors[`r${i}`] = { ...ERROR, recordId: `r${i}` }
+    const snapshot = snapshotOf(tables({ errors: tableOf(manyErrors) }), NOW)
+    expect(snapshot.ledger).toHaveLength(1000)
+    expect(snapshot.truncated).toBe(true)
+  })
+
+  it('leaves a small snapshot untouched and untruncated', () => {
+    const snapshot = snapshotOf(tables(), NOW)
+    expect(snapshot.ledger).toHaveLength(1)
+    expect(snapshot.truncated).toBe(false)
+  })
+})
