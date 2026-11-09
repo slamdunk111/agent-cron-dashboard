@@ -34,6 +34,7 @@ import { decodeEventKey, eventKeyOf } from './fleet/event-key.ts'
 import { ErrorAnalyzer, type AnalysisChunk, type AnalysisPort, type AnalysisRequest } from './fleet/analyzer.ts'
 import { ErrorResolver } from './fleet/resolver.ts'
 import { ERRORS_DESCRIPTION, RESOLVE_DESCRIPTION, RESOLVE_TOOL, ERRORS_TOOL } from './fleet/tools-errors.ts'
+import { mountP7, snapshotOf, type DomainTables } from './ui/p7-routes.ts'
 
 
 /** ISO 8601 timestamp string; stored verbatim, validated on read. */
@@ -548,6 +549,52 @@ export function apply(ctx: Context, raw: Config = {}): void {
   ctx.effect(() => mountP5(ctx, raw as RowOptions), 'workbench:p5')
   // P6: the error pipeline rides on the same row (needs P5's watch and P4's event domain).
   ctx.effect(() => mountP6(ctx, raw as RowOptions), 'workbench:p6')
+  // P7: the read-only snapshot route (owner ruling A). The provider waits for
+  // the row to open the six domains, then answers from the opened tables; a
+  // profile without `webServer` simply gets no route (named in the log).
+  ctx.effect(() => {
+    let stopped = false
+    void Promise.resolve()
+      .then(() => waitForSnapshotTables(workbenchService as WorkbenchService))
+      .then((tables) => {
+        if (stopped || tables === undefined) {
+          if (tables === undefined && !stopped) ctx.logger?.('workbench')?.info?.('workbench p7: domains did not open; the snapshot route answers missing[]')
+          return
+        }
+        ctx.set('workbenchUiSnapshot', () => snapshotOf(tables))
+      })
+      .catch(() => undefined)
+    return mountP7(ctx)
+  }, 'workbench:p7')
+}
+
+/** Wait (bounded) for the six P7 domains, then hand the tables over. */
+async function waitForSnapshotTables(service: WorkbenchService, waitedMs = 0): Promise<DomainTables | undefined> {
+  const tables = snapshotTablesOf(service)
+  if (tables !== undefined) return tables
+  if (waitedMs >= 10_000) return undefined
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return waitForSnapshotTables(service, waitedMs + 500)
+}
+
+/** Read the six snapshot tables out of the opened domains (named spellings of §DOMAIN_NAMES). */
+function snapshotTablesOf(service: WorkbenchService): DomainTables | undefined {
+  const domains = service.domains as Record<string, unknown>
+  const pr = domains.workbench_snapshot_pr as { table(name: string): DomainTables['pr'] } | undefined
+  const issue = domains.workbench_snapshot_issue as { table(name: string): DomainTables['issue'] } | undefined
+  const jobs = domains.workbench_fleet_jobs as { table(name: string): DomainTables['jobs'] } | undefined
+  const errors = domains.workbench_fleet_errors as { table(name: string): DomainTables['errors'] } | undefined
+  const events = domains.workbench_events as { table(name: string): DomainTables['events'] } | undefined
+  const health = domains.workbench_fleet_health as { table(name: string): DomainTables['health'] } | undefined
+  if (pr === undefined || issue === undefined || jobs === undefined || errors === undefined || events === undefined || health === undefined) return undefined
+  return {
+    pr: pr.table('snapshots'),
+    issue: issue.table('snapshots'),
+    jobs: jobs.table('jobs'),
+    errors: errors.table('records'),
+    events: events.table('events'),
+    health: health.table('health'),
+  }
 }
 
 /**
